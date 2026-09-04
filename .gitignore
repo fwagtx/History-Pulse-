@@ -1,0 +1,6 @@
+config.json
+state/*.json
+state/*.txt
+logs/*.log
+!state/.gitkeep
+!logs/.gitkeep

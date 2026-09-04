@@ -1,0 +1,8 @@
+# One topic per line. Lines starting with # are ignored.
+# The pipeline processes the first line each run that hasn't already been completed
+# (tracked in state/completed_topics.txt) — add new topics to the bottom.
+#
+# Example:
+# The Cuban Missile Crisis
+# The fall of Constantinople
+# Why the Roman currency collapsed
