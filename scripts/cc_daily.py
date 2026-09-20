@@ -4,7 +4,7 @@ Daily orchestrator for the creator-code BAD pipeline.
 Runs: fetch shop -> render card -> write captions -> build a publish queue -> ping Telegram.
 
 Deliberately stops at "assets are ready". It does not upload anything. Auto-publishing is a
-Phase 3 addition and belongs behind its own explicit config flag — this mirrors the History
+later addition and belongs behind its own explicit config flag — this mirrors the History
 Pulse rule that the agent prepares packages but a human owns the publish decision.
 
 Usage:

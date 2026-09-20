@@ -25,7 +25,7 @@ DISCLOSURE = "#EpicPartner — I get a commission from purchases made with code 
 # Every hook below is provable from the shop payload alone. Claims we cannot verify
 # ("is BACK", "RETURNS", "rare drop") are deliberately absent: they are deceptive if wrong,
 # and a title the video doesn't deliver on wrecks retention. Once shop_history.json has
-# accumulated (see PLAN.md Phase 5), "first time in N days" becomes a *true* hook worth adding.
+# accumulated, "first time in N days" becomes a *true* hook worth adding.
 TITLE_HOOKS = [
     "Fortnite Item Shop Today — {date} | {headline}",
     "{headline} in the Fortnite Item Shop — {date}",

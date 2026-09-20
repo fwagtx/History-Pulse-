@@ -52,7 +52,7 @@ Cron needs the machine powered on — same caveat as the History Pulse pipeline.
 have an always-on box, a **GitHub Actions scheduled workflow** covers it on the free tier
 (store the API key as a repo secret; note Actions' schedule can run several minutes late).
 
-## Daily manual step (until Phase 3)
+## Daily manual step (until auto-upload is built)
 
 `cc_daily.py` stops at "assets ready" on purpose — it never publishes. Each morning:
 
@@ -61,9 +61,9 @@ have an always-on box, a **GitHub Actions scheduled workflow** covers it on the 
    the card with music is enough, and consistency beats production value here.
 3. Copy captions from `captions.json` and upload.
 
-Automating step 3 for YouTube is Phase 3 in `PLAN.md`, and it's the highest-value thing to
-build next: `videos.insert` now costs 1 unit/call with a 100/day cap (changed June 2026), so
-daily auto-upload fits inside the free quota with enormous room to spare.
+Auto-uploading to YouTube Shorts is the natural next build: `videos.insert` now costs 1 unit/call
+with a 100/day cap (changed June 2026), so daily auto-upload fits the free quota easily. Do it
+only once TikTok is consistent — see `PLAN.md`.
 
 ## Reminder commands
 

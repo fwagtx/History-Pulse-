@@ -12,7 +12,7 @@
   "brand_handle": "@badcode",
   "site_url": "https://YOURNAME.github.io/bad",
 
-  "_comment_publish": "Phase 3. Leave false until you have OAuth working and have eyeballed output.",
+  "_comment_publish": "Leave false until you have OAuth working and have eyeballed the output.",
   "auto_publish_youtube": false,
   "auto_publish_discord": false,
   "discord_webhook_url": ""
