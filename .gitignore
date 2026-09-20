@@ -4,3 +4,11 @@ state/*.txt
 logs/*.log
 !state/.gitkeep
 !logs/.gitkeep
+
+# creator-code pipeline
+creator-code/config.json
+creator-code/out/
+!creator-code/out/.gitkeep
+state/cc_*.json
+__pycache__/
+*.pyc

@@ -1,0 +1,73 @@
+{
+  "status": 200,
+  "data": {
+    "hash": "sample0000000000000000000000000000000000",
+    "date": "2026-09-20T00:00:00Z",
+    "entries": [
+      {
+        "regularPrice": 2000,
+        "finalPrice": 1500,
+        "devName": "[VIRTUAL]1 x Midnight Wraith for 1500",
+        "brItems": [
+          {
+            "id": "CID_Sample_Wraith",
+            "name": "Midnight Wraith",
+            "description": "Some legends are better left untold.",
+            "type": { "value": "outfit", "displayValue": "Outfit" },
+            "rarity": { "value": "legendary", "displayValue": "Legendary" },
+            "images": {
+              "smallIcon": "https://fortnite-api.com/images/sample/smallicon.png",
+              "icon": "https://fortnite-api.com/images/sample/icon.png",
+              "featured": "https://fortnite-api.com/images/sample/featured.png"
+            }
+          }
+        ]
+      },
+      {
+        "regularPrice": 1500,
+        "finalPrice": 1500,
+        "devName": "[VIRTUAL]1 x Neon Drifter for 1500",
+        "brItems": [
+          {
+            "id": "CID_Sample_Drifter",
+            "name": "Neon Drifter",
+            "description": "Built for the long road.",
+            "type": { "value": "outfit", "displayValue": "Outfit" },
+            "rarity": { "value": "epic", "displayValue": "Epic" },
+            "images": { "icon": "https://fortnite-api.com/images/sample/icon2.png" }
+          }
+        ]
+      },
+      {
+        "regularPrice": 800,
+        "finalPrice": 800,
+        "devName": "[VIRTUAL]1 x Fracture Axe for 800",
+        "brItems": [
+          {
+            "id": "Pickaxe_Sample_Fracture",
+            "name": "Fracture Axe",
+            "description": "Cuts clean through.",
+            "type": { "value": "pickaxe", "displayValue": "Pickaxe" },
+            "rarity": { "value": "rare", "displayValue": "Rare" },
+            "images": { "icon": "https://fortnite-api.com/images/sample/icon3.png" }
+          }
+        ]
+      },
+      {
+        "regularPrice": 500,
+        "finalPrice": 500,
+        "devName": "[VIRTUAL]1 x Static Glide for 500",
+        "brItems": [
+          {
+            "id": "Emote_Sample_Static",
+            "name": "Static Glide",
+            "description": "Feel the current.",
+            "type": { "value": "emote", "displayValue": "Emote" },
+            "rarity": { "value": "uncommon", "displayValue": "Uncommon" },
+            "images": { "icon": "https://fortnite-api.com/images/sample/icon4.png" }
+          }
+        ]
+      }
+    ]
+  }
+}
