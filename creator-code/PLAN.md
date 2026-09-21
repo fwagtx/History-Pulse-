@@ -5,7 +5,8 @@ until it's working.
 
 👉 **The actual work is in [TIKTOK.md](TIKTOK.md)** — video ideas, gameplay ideas, hooks, schedule.
 👉 Guardrails that protect the code: [RULES.md](RULES.md)
-👉 Daily shop-card automation setup: [CRON.md](CRON.md)
+👉 **Get videos onto your phone: [SETUP.md](SETUP.md)** ← start here
+👉 Cron + troubleshooting: [CRON.md](CRON.md)
 
 ---
 

@@ -4,16 +4,14 @@
   "_comment_api": "Free API key, no credit card, from https://dash.fortnite-api.com/",
   "fortnite_api_key": "PASTE_YOUR_FORTNITE_API_KEY_HERE",
 
-  "_comment_telegram": "Reuse the same bot as the History Pulse pipeline, or make a new one.",
+  "_comment_video": "Leave ffmpeg_path empty to auto-detect. Point video_out_dir at a cloud-synced folder (Google Drive / Dropbox / iCloud) and finished videos land on your phone by themselves.",
+  "ffmpeg_path": "",
+  "video_out_dir": "",
+
+  "_comment_telegram": "Optional. Reuse the History Pulse bot, or make a new one.",
   "telegram_bot_token": "PASTE_YOUR_BOT_TOKEN_HERE",
   "telegram_chat_id": "PASTE_YOUR_CHAT_ID_HERE",
 
   "_comment_brand": "Keep these identical everywhere — the word IS the brand.",
-  "brand_handle": "@badcode",
-  "site_url": "https://YOURNAME.github.io/bad",
-
-  "_comment_publish": "Leave false until you have OAuth working and have eyeballed the output.",
-  "auto_publish_youtube": false,
-  "auto_publish_discord": false,
-  "discord_webhook_url": ""
+  "brand_handle": "@usecodebad"
 }
