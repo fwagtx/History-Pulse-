@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>BAD Stream Overlay</title>
+<style>
+  /* Transparent background so OBS composites this over your gameplay. */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    width:1080px; height:1920px; background:transparent; overflow:hidden;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  :root { --accent:#E8FF3A; }
+
+  /* ---- Persistent corner badge: always visible, never in the way ---- */
+  .badge {
+    position:absolute; top:150px; left:36px;
+    display:flex; align-items:center; gap:14px;
+    background:rgba(10,10,11,.82); border:2px solid var(--accent);
+    border-radius:16px; padding:14px 22px 14px 18px;
+    box-shadow:0 6px 28px rgba(0,0,0,.5);
+  }
+  .dot {
+    width:14px; height:14px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 14px var(--accent); animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(.82)} }
+  .badge .label { color:#9AA0A6; font-size:19px; font-weight:700;
+                  letter-spacing:.2em; text-transform:uppercase; }
+  .badge .code  { color:var(--accent); font-size:36px; font-weight:850;
+                  letter-spacing:-.01em; line-height:1; }
+
+  /* ---- Periodic lower-third: slides in, holds, slides out ---- */
+  .banner {
+    position:absolute; left:0; right:0; bottom:430px;
+    display:flex; justify-content:center;
+    transform:translateX(-120%);
+    animation:sweep 45s ease-in-out infinite;
+  }
+  .banner-inner {
+    background:rgba(10,10,11,.9); border-left:7px solid var(--accent);
+    border-radius:0 16px 16px 0; padding:22px 34px;
+    box-shadow:0 8px 32px rgba(0,0,0,.55);
+  }
+  .banner .big { color:#fff; font-size:38px; font-weight:800; letter-spacing:-.02em; }
+  .banner .big em { color:var(--accent); font-style:normal; }
+  .banner .sub { color:#8A8F98; font-size:20px; font-weight:600; margin-top:6px; }
+  /* Visible for ~7s of every 45s — present, not nagging. */
+  @keyframes sweep {
+    0%   { transform:translateX(-120%); }
+    3%   { transform:translateX(0); }
+    15%  { transform:translateX(0); }
+    18%  { transform:translateX(-120%); }
+    100% { transform:translateX(-120%); }
+  }
+</style></head>
+<body>
+  <div class="badge">
+    <span class="dot"></span>
+    <span>
+      <div class="label">Creator code</div>
+      <div class="code">BAD</div>
+    </span>
+  </div>
+
+  <div class="banner">
+    <div class="banner-inner">
+      <div class="big">Use code <em>BAD</em> in the item shop</div>
+      <div class="sub">Costs you nothing extra · #EpicPartner, I earn a commission</div>
+    </div>
+  </div>
+</body></html>
