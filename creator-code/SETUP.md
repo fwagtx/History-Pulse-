@@ -111,3 +111,84 @@ This automates the **shop** videos — the 2–3 per week. Your 5–7 weekly **g
 need you to play, clip and post; `--clip` only handles the formatting and end card. Given
 gameplay is the growth engine (see `PLAN.md`), most of the actual work stays manual by nature.
 The automation removes the boring half, not the whole job.
+
+---
+
+## Mac setup (start here if you're on a Mac)
+
+Everything in this pipeline runs fine on macOS. You only need to do this once.
+
+### 1. Open Terminal
+`Cmd + Space`, type `Terminal`, press Enter.
+
+### 2. Get the developer tools (gives you git and python3)
+```bash
+xcode-select --install
+```
+A dialog pops up — click Install, wait a few minutes. If it says they're already
+installed, you're fine.
+
+Check it worked:
+```bash
+python3 --version
+```
+You want 3.10 or higher.
+
+### 3. Install Homebrew (free package manager), then ffmpeg
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install ffmpeg
+```
+Homebrew prints a couple of extra commands at the end about your PATH — copy and run
+those, it tells you exactly what to paste.
+
+Check it worked:
+```bash
+ffmpeg -version
+```
+
+### 4. Get this repo onto your Mac
+```bash
+cd ~/Documents
+git clone https://github.com/fwagtx/History-Pulse-.git
+cd History-Pulse-
+git checkout claude/creator-code-bad-automation-0jjc1k
+```
+
+### 5. Configure
+```bash
+cp creator-code/config.example.json creator-code/config.json
+open -e creator-code/config.json
+```
+That opens it in TextEdit. Fill in:
+- `fortnite_api_key` — free, no card, from https://dash.fortnite-api.com/
+- `video_out_dir` — e.g. `/Users/YOURNAME/Library/CloudStorage/GoogleDrive-you@gmail.com/My Drive/BAD-drafts`
+  (or any iCloud/Dropbox folder — easiest is to make the folder first, then drag it into
+  Terminal to get its exact path)
+
+Save and close.
+
+### 6. Test it — no API key or internet needed
+```bash
+python3 scripts/cc_daily.py --fixture --png
+python3 scripts/cc_video.py
+```
+
+You should get an MP4 in your synced folder. **Actually watch it** — this is the first
+time the encoder has run anywhere, so if something's wrong this is where we find out.
+If ffmpeg throws an error, copy the whole thing and send it to me.
+
+### 7. Go live
+```bash
+python3 scripts/cc_daily.py --png
+python3 scripts/cc_video.py
+```
+
+### Posting from here
+Either post from the Mac (tiktok.com in a browser handles uploads fine), or let the
+folder sync to your phone and post from the app. Phone is usually less friction.
+
+### What does NOT work on a Mac
+**UEFN.** Fortnite hasn't been supported on macOS since the 2020 Epic/Apple dispute, so
+there is no Mac version of the editor to install. Writing Verse and moving it to your Mac
+doesn't help, because there's nothing on the Mac to open it with. See `uefn/CHECK_SPECS.md`.
