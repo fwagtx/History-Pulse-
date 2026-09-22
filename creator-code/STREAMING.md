@@ -29,22 +29,40 @@ actually live.
 Install **TikTok LIVE Studio** (Windows 10/11 only, free, official). It authenticates your
 account and handles everything. Lowest friction by far.
 
-### You play on PS5/Xbox and have a Mac → use Remote Play, no capture card
-1. Install **PS Remote Play** (or the Xbox app) on the Mac — free
-2. Stream the console to the Mac
-3. Install **OBS** (free), capture the Remote Play window
-4. Get your Server URL + Stream Key from **livecenter.tiktok.com/producer**
-5. Paste both into OBS → Settings → Stream → Custom
+### Xbox + Mac — your setup. Three routes, pick by what you're optimising for.
 
-Some input lag, but it costs nothing and needs no extra hardware.
+**Route A — Xbox clips → Mac (free, best gameplay feel, no live)**
+Your Xbox records clips natively. No lag, no cost, no extra gear, and you play normally on
+your TV.
+1. Record clips on Xbox as you play (guide button → capture)
+2. They sync to your Xbox account; grab them on the Mac via the Xbox web app or OneDrive
+3. `python3 scripts/cc_video.py --clip thatclip.mp4` → vertical + branded end card
+4. Post
 
-### You play on console and want best quality → capture card
-Console → capture card → computer → OBS/LIVE Studio.
-**Cost flag: a capture card is $30–100.** A real purchase, not free. Only worth it once
-streaming is already working for you via Remote Play.
+**Start here.** It's free, gameplay quality is unaffected, and it gets content flowing this
+week. You lose live, that's the only trade.
 
-### Mac, no console
-Fortnite doesn't run on macOS, so there's no gameplay to stream from the Mac itself.
+**Route B — Xbox Remote Play → Mac → TikTok LIVE (free, enables live, some lag)**
+There's no Xbox app for macOS, but Microsoft moved Remote Play to a web app:
+1. On the Mac, open **xbox.com/play** in Safari or Chrome, sign in, install it as a web app
+2. Start Remote Play to your own Xbox (up to 1080p)
+3. **OBS** (free, Mac native) → capture that browser window
+4. Stream Key + Server URL from **livecenter.tiktok.com/producer** → OBS → Settings → Stream
+5. Canvas **1080×1920 vertical**
+
+**Honest caveat:** Remote Play adds input lag, and Fortnite is a shooter. Your aim will feel
+worse than playing straight to the TV. Fine for casual/creative modes, rough for ranked. Good
+for *testing* whether live is worth it to you — at zero cost.
+
+**Route C — capture card (best of both, costs money)**
+Xbox → HDMI → capture card → Mac → OBS. You play directly on the Xbox with zero added lag,
+and the Mac gets a clean feed.
+**Cost flag: $30–100.** Only buy one once Route A or B has shown you this is worth investing in.
+
+### Bonus: Fortnite runs on the Mac itself, sort of
+Fortnite is free on **Xbox Cloud Gaming** at xbox.com/play — no Game Pass needed, just a free
+Microsoft account, in a browser on the Mac. **Free tier caps sessions at one hour**, then you
+requeue. Not a main setup, but it means you can play on the Mac in a pinch.
 
 ---
 
