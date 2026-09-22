@@ -1,0 +1,78 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>TikTok Preview</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1920px;position:relative;overflow:hidden;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#000}
+/* stand-in gameplay */
+.game{position:absolute;inset:0;
+  background:linear-gradient(170deg,#3a6ea5 0%,#2a5a3f 35%,#1e3a2a 60%,#4a3520 100%)}
+.hills{position:absolute;bottom:0;left:0;right:0;height:46%;
+  background:radial-gradient(ellipse 60% 100% at 20% 100%,#2d7a3e,transparent 70%),
+             radial-gradient(ellipse 70% 100% at 75% 100%,#256633,transparent 70%),
+             linear-gradient(180deg,transparent,#1a4526)}
+.sun{position:absolute;top:12%;right:14%;width:170px;height:170px;border-radius:50%;
+  background:radial-gradient(circle,#ffe9a8,#ffc247 60%,transparent 72%);opacity:.75}
+.hud{position:absolute;bottom:20%;left:50%;transform:translateX(-50%);
+  color:#fff;font-size:26px;font-weight:700;opacity:.45;letter-spacing:.1em}
+
+/* hook text — the thing that decides if anyone watches */
+.hook{position:absolute;top:290px;left:56px;right:150px}
+.hook .line{display:inline-block;background:#000;color:#fff;font-size:62px;font-weight:850;
+  line-height:1.22;letter-spacing:-.02em;padding:6px 16px;margin-bottom:8px;
+  box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hook .hl{background:#E8FF3A;color:#0A0A0B}
+
+/* our overlay badge */
+.badge{position:absolute;top:150px;left:36px;display:flex;align-items:center;gap:14px;
+  background:rgba(10,10,11,.82);border:2px solid #E8FF3A;border-radius:16px;padding:13px 20px}
+.dot{width:13px;height:13px;border-radius:50%;background:#E8FF3A;box-shadow:0 0 14px #E8FF3A}
+.badge .l{color:#9AA0A6;font-size:17px;font-weight:700;letter-spacing:.2em}
+.badge .c{color:#E8FF3A;font-size:33px;font-weight:850;line-height:1}
+
+/* TikTok chrome */
+.top{position:absolute;top:64px;left:0;right:0;display:flex;justify-content:center;gap:40px;
+  color:#fff;font-size:30px;font-weight:600}
+.top .on{font-weight:800;border-bottom:4px solid #fff;padding-bottom:8px}
+.top .off{opacity:.62}
+.side{position:absolute;right:30px;bottom:390px;display:flex;flex-direction:column;
+  align-items:center;gap:44px;color:#fff}
+.side .i{display:flex;flex-direction:column;align-items:center;gap:10px;font-size:25px;font-weight:700}
+.side svg{width:62px;height:62px;fill:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+.pfp{width:92px;height:92px;border-radius:50%;border:3px solid #fff;
+  background:linear-gradient(135deg,#E8FF3A,#7a8a1f);display:flex;align-items:center;
+  justify-content:center;color:#0A0A0B;font-weight:850;font-size:34px}
+.meta{position:absolute;left:36px;right:190px;bottom:230px;color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.85)}
+.meta .u{font-size:36px;font-weight:800;margin-bottom:14px}
+.meta .cap{font-size:30px;line-height:1.42;font-weight:500}
+.meta .tags{color:#E8FF3A;font-weight:700}
+.bar{position:absolute;left:0;right:0;bottom:150px;height:5px;background:rgba(255,255,255,.28)}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:34%;background:#fff}
+</style></head><body>
+<div class="game"><div class="sun"></div><div class="hills"></div>
+  <div class="hud">GREEN HILL ZONE</div></div>
+
+<div class="top"><span class="off">Following</span><span class="on">For You</span></div>
+
+<div class="badge"><span class="dot"></span><span>
+  <div class="l">CREATOR CODE</div><div class="c">BAD</div></span></div>
+
+<div class="hook">
+  <span class="line">I can't leave</span><br>
+  <span class="line hl">Green Hill Zone</span><br>
+  <span class="line">until I win a fight</span>
+</div>
+
+<div class="side">
+  <div class="pfp">B</div>
+  <div class="i"><svg viewBox="0 0 24 24"><path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"/></svg>18.2K</div>
+  <div class="i"><svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>431</div>
+  <div class="i"><svg viewBox="0 0 24 24"><path d="M5 5h9V1l7 6-7 6V9H7v8H5z"/></svg>1,204</div>
+</div>
+
+<div class="meta">
+  <div class="u">@usecodebad</div>
+  <div class="cap">Took six tries. Everyone lands here for the Sonic crossover so it's a
+    permanent hot drop <span class="tags">#fortnite #greenhillzone</span></div>
+</div>
+<div class="bar"><i></i></div>
+</body></html>
