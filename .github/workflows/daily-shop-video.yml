@@ -1,0 +1,70 @@
+name: Daily shop video
+
+# The Fortnite shop rotates at 00:00 UTC. Build just after so the video is
+# ready before anyone's awake.
+on:
+  schedule:
+    - cron: "20 0 * * *"
+  workflow_dispatch:        # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write           # needed to publish the release that hosts the video
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/creator-code-bad-automation-0jjc1k
+
+      - name: Install ffmpeg and Chromium
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg chromium-browser || \
+          sudo apt-get install -y -qq ffmpeg chromium
+          ffmpeg -version | head -1
+          (command -v chromium || command -v chromium-browser) && echo "chromium ok"
+
+      - name: Write config from secret
+        env:
+          FORTNITE_API_KEY: ${{ secrets.FORTNITE_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          cfg = json.loads(pathlib.Path("creator-code/config.example.json").read_text())
+          cfg["fortnite_api_key"] = os.environ.get("FORTNITE_API_KEY", "")
+          cfg["telegram_bot_token"] = ""
+          cfg["telegram_chat_id"] = ""
+          cfg["video_out_dir"] = ""        # keep output inside creator-code/out/<date>/
+          pathlib.Path("creator-code/config.json").write_text(json.dumps(cfg, indent=2))
+          print("config written, key present:", bool(cfg["fortnite_api_key"]))
+          PY
+
+      - name: Build card, slides and video
+        id: build
+        run: |
+          set -e
+          STAMP=$(date -u +%F)
+          echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
+          python3 scripts/cc_daily.py --png --video
+          ls -la "creator-code/out/$STAMP/"
+
+      - name: Publish to a release (this is what gives the video a public URL)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          STAMP="${{ steps.build.outputs.stamp }}"
+          DIR="creator-code/out/$STAMP"
+          TAG="shop-$STAMP"
+          # Re-runs should replace, not fail.
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" \
+            --title "Item shop $STAMP" \
+            --notes "Auto-generated shop video and card for $STAMP." \
+            "$DIR/bad-shop-$STAMP.mp4" \
+            "$DIR/card.png" \
+            "$DIR/captions.json"
+          echo ""
+          echo "PUBLIC VIDEO URL:"
+          echo "https://github.com/${{ github.repository }}/releases/download/$TAG/bad-shop-$STAMP.mp4"
