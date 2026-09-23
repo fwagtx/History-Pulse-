@@ -21,7 +21,7 @@ Facebook and Instagram:
 | 10:00 AM | Shop Recap | Today's shop: the headline items and prices |
 | 1:30 PM | A game | Rotates daily: This or That · Guess the Price · Which Costs More · Cop or Drop |
 | 3:30 PM | **Quiz** | |
-| 5:00 PM | Value / urgency | Rotates daily: Last Chance · Bundle Math · OG Check · New This Week |
+| 5:00 PM | Last chance | Last Chance (items leaving at the reset), or one of the games on days fewer than 4 items are leaving |
 | 8:00 PM | **Quiz** | |
 
 All three shop times are **before** the shop resets, so no shop video ever shows items that
