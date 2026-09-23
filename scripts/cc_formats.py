@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
 from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, Comp, an, burst,
-                       character, code_badge, countdown, disclosure, esc, label, price_roll,
+                       anton_em, character, code_badge, countdown, disclosure, esc, label, price_roll,
                        progress, sticker, style_anim, tile_bg, words, EASE_BACK)
 
 MIN_SECONDS = 62.0      # over TikTok's 1-minute Creator Rewards bar, with margin
@@ -138,8 +138,12 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     # from nothing): the first frame is the thumbnail in the feed.
     inner += label(f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
                    ACCENT, 800, anim="punch", align="center", spacing=".24em")
+    # Sized to fit on one line with room for the punch-in overshoot, so a long
+    # title ("GUESS THE PRICE") never runs off the sides.
+    size = min(170, 960 / anton_em(title))
     inner += (f'<div class="full" style="transform-origin:50% 480px;{style_anim(an("punch", 0, .55))}">'
-              + words(title, W / 2, 400, 170, 0, "#fff", 0, "none", "center", 1000) + "</div>")
+              + words(title, W / 2, 400 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center", 1000)
+              + "</div>")
     inner += sticker(stick, 640, 700, 56, .9, rot=-5)
     inner += label(sub, W / 2, 1330, 36, 1.1, "#fff", 700, align="center",
                    bg="rgba(10,10,11,.78)", pad="14px 26px")

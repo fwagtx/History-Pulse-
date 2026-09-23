@@ -66,10 +66,11 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
     today's UTC date, schedule NOTHING and say so in the summary. Never schedule a video
     about another day's shop, and never substitute a different video.
 3b. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from today
-    00:00 to today 23:59. Skip any manifest video whose "url" already appears in a
-    scheduled post's media (no duplicates).
-3c. For each entry in "videos" whose post_at_local is still at least 15 minutes in the
-    future in America/Chicago, call createScheduledPost with:
+    00:00 to today 23:59. Skip any manifest video whose "title" already equals the
+    tiktokData.title of a post in that list (no duplicates). Compare titles, not video
+    links: Metricool stores its own copy of each video, so the links never match.
+3c. For each remaining entry in "videos" whose post_at_local is still at least 15 minutes
+    in the future in America/Chicago, call createScheduledPost with:
   blogId: "7066444"   <- verify before calling
   date: the entry's "post_at_iso" (if absent, post_at_local plus the Chicago UTC offset
         in effect that day)
@@ -96,7 +97,7 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
   Do not add videoThumbnailUrl or videoCoverMilliseconds.
   Never claim the code gives a discount - "costs you nothing extra" is the honest phrasing.
 3d. Call getScheduledPosts again and confirm each new draft is there with the right time
-    and video.
+    and title.
 
 STEP 4 - SUMMARY. Short and plain: format used for the script and its hook line, whether
 the script pushed, and for each of the 3 videos its time and format and whether it was

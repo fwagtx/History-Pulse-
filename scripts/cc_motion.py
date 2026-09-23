@@ -117,6 +117,26 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{INK};color:#fff;
   60%{{transform:translateY(8px) scale(1.15);opacity:1}}100%{{transform:none;opacity:1}}}}
 """
 
+# Anton advance widths in em (caps), measured in the render browser. Lets a
+# layout size display text to fit the frame instead of letting it run off.
+ANTON = {
+    'A': .495, 'B': .489, 'C': .484, 'D': .503, 'E': .422, 'F': .409, 'G': .495, 'H': .509,
+    'I': .237, 'J': .476, 'K': .482, 'L': .408, 'M': .756, 'N': .508, 'O': .496, 'P': .482,
+    'Q': .504, 'R': .487, 'S': .472, 'T': .406, 'U': .484, 'V': .479, 'W': .722, 'X': .494,
+    'Y': .456, 'Z': .42, '0': .504, '1': .341, '2': .504, '3': .504, '4': .504, '5': .504,
+    '6': .504, '7': .504, '8': .504, '9': .504, "'": .224, '.': .239, ',': .246, '-': .321,
+    '!': .239, '?': .502, '&': .53, ':': .252, '/': .415, '(': .301, ')': .301, '#': .556,
+    '+': .365, '"': .439,
+}
+
+
+def anton_em(text: str) -> float:
+    """Width of `text` in em as words() sets it: Anton caps, .01em tracking,
+    .18em after every word."""
+    ws = text.upper().split()
+    return sum(ANTON.get(ch, .52) + .01 for w in ws for ch in w) + .18 * len(ws)
+
+
 EASE_OUT = "cubic-bezier(.2,.8,.2,1)"
 EASE_BACK = "cubic-bezier(.34,1.56,.64,1)"
 
@@ -459,6 +479,7 @@ def snapshot(comp: Comp, times: list, out_dir: Path) -> list:
         page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
         page.set_content(comp.document(), wait_until="load")
         page.evaluate(READY_JS)
+        page.screenshot(type="jpeg")                     # first paint, discarded
         for t in times:
             page.evaluate(SETTLE_JS, t * 1000)
             page.screenshot(type="jpeg")                 # warm-up after a jump, discarded
