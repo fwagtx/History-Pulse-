@@ -73,8 +73,10 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
     today's UTC date, schedule NOTHING and say so in the summary. Never schedule a video
     about another day's shop.
 3b. For each entry in "videos", check before using it: its url answers
-    (curl -fsSIL "<url>" succeeds), its duration is at least 60, and its caption contains
-    "#EpicPartner" and "#usecodebad". Skip any entry that fails a check.
+    (curl -fsSL -r 0-1023 -o /dev/null "<url>" succeeds - a ranged GET, never a HEAD
+    request with -I: GitHub's release downloads answer HEAD with 401 even when the file is
+    fine), its duration is at least 60, and its caption contains "#EpicPartner" and
+    "#usecodebad". Skip any entry that fails a check.
 3c. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from today
     00:00 to today 23:59. Skip any manifest video whose "title" already equals the
     tiktokData.title of a post in that list (no duplicates). Compare titles, not video
