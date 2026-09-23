@@ -1,6 +1,6 @@
-# How 3 videos a day reach Metricool, automatically
+# How 3 videos a day get posted, automatically
 
-**Nothing to set up. It runs by itself every day.**
+**Nothing to set up. It runs by itself every day, and posts by itself.**
 
 ---
 
@@ -11,8 +11,8 @@
 music and sound effects. It puts them online as a **release** (that gives each video a
 public link Metricool can pull from).
 
-**7:00 AM Central** — the daily Routine adds all three to Metricool as **drafts** for
-brand **7066444** (`usecodebad`) — TikTok and YouTube Shorts:
+**7:00 AM Central** — the daily Routine schedules all three in Metricool for brand
+**7066444** (`usecodebad`), and they **post by themselves** to TikTok and YouTube Shorts:
 
 | Time (Central) | Video | What it is |
 |---|---|---|
@@ -25,7 +25,8 @@ All three times are **before** the shop resets, so no video ever shows items tha
 If a day's shop can't honestly support a format (say, only 2 items are leaving), that slot
 quietly switches to another format. Every word on screen comes from the real shop data.
 
-**You** — open Metricool, watch the drafts, and publish the ones you like.
+**You** — nothing. Check the account when you like; to pull a video before it goes out,
+delete or edit it in Metricool's planner before its time.
 
 ---
 
@@ -49,8 +50,18 @@ quietly switches to another format. Every word on screen comes from the real sho
 
 ## Draft or live?
 
-Right now everything lands as a **draft**: nothing posts until you press go. When you're
-happy with a week of them, say so and the Routine can switch to posting on its own.
+**Live.** On 2026-09-23 the owner asked for posts to go out automatically, with no
+approval step. Because nobody looks at a video before it's public, the Routine only
+schedules a video when all of these hold, and skips it otherwise:
+
+- the manifest exists and is for **today's** shop
+- the video link works, it's at least 60 seconds long, and its caption carries
+  `#EpicPartner` and `#usecodebad`
+- its time hasn't passed, and it posts before the shop resets
+- it isn't already scheduled (checked by title)
+
+Each morning it also reports any of yesterday's posts that didn't go out. To go back to
+drafts, say so and the Routine's `draft` setting flips back to `true`.
 
 ---
 
@@ -61,4 +72,5 @@ happy with a week of them, say so and the Routine can switch to posting on its o
 | Build step says "Shop source still shows …" | The shop mirror hadn't updated yet. It waits 50 min before giving up, on purpose, so it never posts yesterday's shop. Re-run it. |
 | Fewer than 3 videos | Some formats couldn't be made honestly from that day's shop. Normal on thin days. |
 | No release appears | The build failed — open the run, read the red step, send it to me |
-| Metricool has no drafts | The release didn't exist at 7 AM; the Routine skips rather than guessing |
+| Nothing scheduled in Metricool | The release didn't exist at 7 AM; the Routine skips rather than guessing |
+| A post shows an error in Metricool | TikTok or YouTube refused it; the next morning's Routine summary names it |
