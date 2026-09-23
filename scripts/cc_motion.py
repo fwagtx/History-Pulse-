@@ -366,10 +366,11 @@ def burst(cx: float, cy: float, start: float, seed: int, n: int = 26,
 
 def code_badge(start: float = 0) -> str:
     # On screen and at rest from frame 0 whatever `start` says: the code is the
-    # whole point, and frame 0 is the video's thumbnail. It thumps with the hook's
-    # opening slam (cc_formats.HOOK_SLAM).
+    # whole point. The hook scene (cc_formats._hook_scene) overrides this through
+    # the .codebadge class: while its big CREATOR CODE stamp is on screen, this
+    # corner badge waits, then appears as the stamp shrinks into its spot.
     a = style_anim(an("thump", .2, .4))
-    return (f'<div class="abs" style="left:48px;top:{SAFE_TOP}px;z-index:50;{a}"><div class="pill">'
+    return (f'<div class="abs codebadge" style="left:48px;top:{SAFE_TOP}px;z-index:50;{a}"><div class="pill">'
             f'<span style="font-size:18px;font-weight:800;letter-spacing:.2em;color:#9AA0A6">CODE</span>'
             f'<span class="d" style="font-size:40px;color:{ACCENT}">BAD</span></div></div>')
 

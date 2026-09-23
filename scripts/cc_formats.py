@@ -129,6 +129,42 @@ def _pad(content_end: float) -> float:
 HOOK_WHOOSH_A, HOOK_SLAM, HOOK_WHOOSH_B, HOOK_POP, HOOK_SUB = .15, .2, .3, .9, 1.1
 
 
+# The CREATOR CODE stamp. Measured in the render browser with the embedded
+# fonts: the stamp is 408x123 px, the corner badge (code_badge) 181x60.
+STAMP_X, STAMP_Y, STAMP_ROT = 60, 590, 3
+STAMP_TO_BADGE = 181 / 408
+
+
+def _code_stamp(comp: Comp, end: float) -> str:
+    """CREATOR CODE BAD, big, in the gap between the title and the cosmetics.
+
+    It's the thing the whole account exists to sell, so on the thumbnail it
+    gets real size: BAD at 112px on a lime block. Near the end of the hook it
+    shrinks and flies into the top-left corner, and the small corner badge that
+    stays up for the rest of the video takes over as it lands."""
+    dock_end = min(2.6, end - .7)          # clear of the first scene's wipe at 2.7s
+    dock_start = dock_end - .5
+    dock = comp.uid("dock")
+    comp.css(f"@keyframes {dock}{{0%{{transform:rotate({STAMP_ROT}deg);opacity:1}}55%{{opacity:1}}"
+             f"100%{{transform:translate({48 - STAMP_X}px,{SAFE_TOP - STAMP_Y}px) "
+             f"scale({STAMP_TO_BADGE:.3f}) rotate(0deg);opacity:0}}}}")
+    # The corner badge waits until the stamp gets there.
+    comp.css(f".codebadge{{animation:fadein .15s linear {dock_end - .12:.3f}s both !important}}")
+    comp.cue(dock_start, "whoosh")
+    beats = style_anim(an("thump", HOOK_SLAM, .4, fill="none"),
+                       an("pulse", 1.5, .5, "ease-in-out", fill="none"))
+    return (f'<div class="abs" style="left:{STAMP_X}px;top:{STAMP_Y}px;transform-origin:0 0;z-index:5;'
+            f'{style_anim(an(dock, dock_start, dock_end - dock_start, "cubic-bezier(.6,0,.4,1)"))}">'
+            f'<div style="{beats}">'
+            f'<div class="stamp" style="display:flex;align-items:center;gap:16px;background:{ACCENT};'
+            f'color:{INK};border-radius:18px;padding:12px 26px 10px 24px;'
+            f'box-shadow:0 12px 0 rgba(0,0,0,.38),0 0 60px rgba(232,255,58,.25)">'
+            f'<div style="font-size:30px;font-weight:900;line-height:1.02;letter-spacing:.14em">'
+            f'CREATOR<br>CODE</div>'
+            f'<div class="d" style="font-size:112px;line-height:.9;letter-spacing:.02em">BAD</div>'
+            f'</div></div></div>')
+
+
 def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: float,
                 a_item: dict = None, b_item: dict = None, colors: list = None):
     """The first 3 seconds decide everything: big words, motion, a reason to stay.
@@ -146,6 +182,7 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     if b_item:
         inner += character(ctx.art(b_item), 810, 1150, 760, HOOK_WHOOSH_B, "hop", .45, "sway",
                            b_item["rarity"], b_item["name"])
+    inner += _code_stamp(comp, end)
     inner += label(f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
                    ACCENT, 800, anim="none", align="center", spacing=".24em")
     # Sized to fit on one line with room for the thump, so a long title
@@ -156,8 +193,10 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
               + words(title, W / 2, 400 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center", 1000)
               + "</div>")
     # Long stickers ("GONE AT 8 PM ET") shift left so they never touch the edge.
+    # White, so the lime of the CREATOR CODE stamp is the one brand colour block.
     stick_w = (anton_em(stick) + .84) * 56
-    inner += sticker(stick, min(640, W - 56 - stick_w), 700, 56, HOOK_POP, rot=-5, anim="boing")
+    inner += sticker(stick, min(640, W - 56 - stick_w), 700, 56, HOOK_POP, bg="#ffffff",
+                     rot=-5, anim="boing")
     inner += label(sub, W / 2, 1330, 36, HOOK_SUB, "#fff", 700, align="center",
                    bg="rgba(10,10,11,.78)", pad="14px 26px")
     comp.scene(0, end, inner, fade_in=.01)
