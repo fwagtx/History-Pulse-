@@ -8,7 +8,10 @@ later addition and belongs behind its own explicit config flag — this mirrors 
 Pulse rule that the agent prepares packages but a human owns the publish decision.
 
 Usage:
-    python3 scripts/cc_daily.py [--fixture] [--png]
+    python3 scripts/cc_daily.py [--fixture] [--png] [--video]
+
+    --video also renders one slide per item and assembles the ~61s
+    animated shop video. Needs ffmpeg and Chromium.
 """
 
 import subprocess
@@ -81,9 +84,13 @@ def main():
         shop_args = ["cc_shop.py"] + (["--fixture"] if "--fixture" in sys.argv else [])
         render_args = ["cc_render.py"] + (["--png"] if "--png" in sys.argv else [])
 
-        for name, argv in (("shop", shop_args),
-                           ("render", render_args),
-                           ("captions", ["cc_captions.py"])):
+        steps = [("shop", shop_args), ("render", render_args),
+                 ("captions", ["cc_captions.py"])]
+        if "--video" in sys.argv:
+            steps.append(("slides", ["cc_slides.py"]))
+            steps.append(("slideshow", ["cc_video.py", "--slideshow"]))
+
+        for name, argv in steps:
             if not run_step(name, argv):
                 notify(cfg, f"⚠️ Creator-code pipeline failed at '{name}' for {stamp}.")
                 sys.exit(1)

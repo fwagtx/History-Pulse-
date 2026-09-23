@@ -6,6 +6,11 @@ Two modes:
   Shop video   python3 scripts/cc_video.py
                Today's shop card -> ~18s slow-zoom clip.
 
+  Shop video   python3 scripts/cc_video.py --slideshow
+               Every item gets its own moment: a slow push in/out on the real
+               cosmetic art, crossfading between items. Lands ~61s, which clears
+               TikTok's 1-minute bar.
+
   Gameplay     python3 scripts/cc_video.py --clip raw.mp4
                Your gameplay clip, normalized to 1080x1920, with the branded
                BAD end card appended.
@@ -31,6 +36,13 @@ FFMPEG_CANDIDATES = ("ffmpeg", "/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg",
 
 W, H = 1080, 1920
 SHOP_SECONDS = 18
+
+# Slideshow timing. intro + 8 items + outro, minus the transition overlaps,
+# lands just over 60s: (5 + 8*6.5 + 9) - 9*0.5 = 61.5s
+INTRO_SECONDS = 5.0
+ITEM_SECONDS = 6.5
+OUTRO_SECONDS = 9.0
+XFADE = 0.5
 ENDCARD_SECONDS = 3
 FPS = 30
 ZOOM_TO = 1.15
@@ -92,6 +104,61 @@ def shop_command(binary: str, card: Path, out: Path) -> list[str]:
     ]
 
 
+def slideshow_command(binary: str, slides: list, out: Path) -> list:
+    """Each slide becomes a moving segment, then they crossfade together.
+
+    Motion alternates push-in / pull-out per slide so eight items in a row
+    don't feel like the same shot eight times.
+    """
+    durations = []
+    for i, _ in enumerate(slides):
+        if i == 0:
+            durations.append(INTRO_SECONDS)
+        elif i == len(slides) - 1:
+            durations.append(OUTRO_SECONDS)
+        else:
+            durations.append(ITEM_SECONDS)
+
+    cmd = [binary, "-y"]
+    for path, dur in zip(slides, durations):
+        cmd += ["-loop", "1", "-framerate", str(FPS), "-t", f"{dur:.2f}", "-i", str(path)]
+
+    parts = []
+    for i, dur in enumerate(durations):
+        frames = max(1, int(dur * FPS))
+        step = (ZOOM_TO - 1.0) / frames
+        if i % 2 == 0:            # push in
+            z = f"min(1+{step:.6f}*on,{ZOOM_TO})"
+        else:                     # pull out
+            z = f"max({ZOOM_TO}-{step:.6f}*on,1.0)"
+        parts.append(
+            f"[{i}:v]scale={W*2}:{H*2},"
+            f"zoompan=z='{z}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+            f":d=1:s={W}x{H}:fps={FPS},format=yuv420p,setsar=1[v{i}]"
+        )
+
+    # Chain the crossfades. Each xfade starts XFADE before the running length ends.
+    prev, acc = "v0", durations[0]
+    for i in range(1, len(durations)):
+        offset = acc - XFADE
+        label = f"x{i}"
+        parts.append(f"[{prev}][v{i}]xfade=transition=fade:duration={XFADE}:"
+                     f"offset={offset:.2f}[{label}]")
+        acc = acc + durations[i] - XFADE
+        prev = label
+
+    total = acc
+    parts.append(f"anullsrc=channel_layout=stereo:sample_rate=44100,"
+                 f"atrim=0:{total:.2f}[a]")
+
+    cmd += ["-filter_complex", ";".join(parts),
+            "-map", f"[{prev}]", "-map", "[a]",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-r", str(FPS),
+            "-c:a", "aac", "-b:a", "128k",
+            "-t", f"{total:.2f}", "-movflags", "+faststart", str(out)]
+    return cmd
+
+
 def clip_command(binary: str, clip: Path, card: Path, out: Path) -> list[str]:
     # Scale-then-crop keeps the gameplay full-bleed at 9:16 instead of pillarboxing it.
     fc = (
@@ -151,14 +218,23 @@ def main():
             sys.exit(1)
 
     card = OUT_DIR / stamp / "card.png"
-    if not card.exists():
+    if not card.exists() and "--slideshow" not in args:
         log(f"ERROR: no card.png for {stamp}. Run: python3 scripts/cc_daily.py --png")
         sys.exit(1)
 
     out_dir = Path(cfg.get("video_out_dir") or (OUT_DIR / stamp))
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if clip:
+    if "--slideshow" in args:
+        slides_dir = OUT_DIR / stamp / "slides"
+        slides = sorted(slides_dir.glob("*.png"))
+        if len(slides) < 3:
+            log(f"ERROR: need slides first. Run: python3 scripts/cc_slides.py --date {stamp}")
+            sys.exit(1)
+        log(f"Building slideshow from {len(slides)} slides")
+        out = out_dir / f"bad-shop-{stamp}.mp4"
+        ok = run(slideshow_command(binary, slides, out), dry)
+    elif clip:
         clip_path = Path(clip)
         if not clip_path.exists():
             log(f"ERROR: clip not found: {clip_path}")
