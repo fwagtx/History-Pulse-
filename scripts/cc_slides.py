@@ -76,7 +76,7 @@ def _item_slide(item: dict, uri: str, code: str, idx: int, total: int) -> str:
   <div class="rar">{rar} {kind}</div>
   <div class="name">{name}</div>
   <div class="price">{price}<span class="vb">V-BUCKS</span></div>
-  <div class="disc">#EpicPartner · commission earned on purchases</div>
+  <div class="disc">#EpicPartner</div>
 </body></html>'''
 
 
@@ -94,7 +94,7 @@ def _intro_slide(shop: dict, code: str) -> str:
   <h1>ITEM<br>SHOP</h1>
   <div class="date">{html.escape(shop["fetched"])}</div>
   <div class="n">{shop["item_count"]} ITEMS TODAY</div>
-  <div class="disc">#EpicPartner · commission earned on purchases</div>
+  <div class="disc">#EpicPartner</div>
 </body></html>'''
 
 
@@ -106,13 +106,10 @@ def _outro_slide(code: str) -> str:
     text-transform:uppercase; margin-bottom:14px; }}
   .code {{ font-size:270px; font-weight:850; color:{ACCENT}; line-height:1;
     letter-spacing:-.05em; text-shadow:0 0 90px rgba(232,255,58,.45); }}
-  .sub {{ font-size:38px; color:#C9CDD3; font-weight:650; margin-top:34px;
-    text-align:center; line-height:1.4; }}
 </style></head><body>
   <div class="use">Use creator code</div>
   <div class="code">{html.escape(code)}</div>
-  <div class="sub">Costs you nothing extra<br>and it genuinely helps</div>
-  <div class="disc">#EpicPartner · commission earned on purchases</div>
+  <div class="disc">#EpicPartner</div>
 </body></html>'''
 
 

@@ -137,7 +137,7 @@ def build_html(shop: dict, code: str, images: dict | None = None) -> str:
   <footer>
     <div class="use">Use creator code</div>
     <div class="code">{html.escape(code)}</div>
-    <div class="disc">#EpicPartner · commission earned on purchases</div>
+    <div class="disc">#EpicPartner</div>
   </footer>
 </body></html>'''
 

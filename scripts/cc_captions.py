@@ -19,7 +19,7 @@ from datetime import date
 
 from cc_common import OUT_DIR, log, load_config, creator_code, read_json, write_json, today_stamp
 
-DISCLOSURE = "#EpicPartner — I get a commission from purchases made with code {code}."
+DISCLOSURE = "#EpicPartner"
 
 # Rotated daily so the copy never reads as a byte-identical bot post.
 # Every hook below is provable from the shop payload alone. Claims we cannot verify
@@ -80,8 +80,7 @@ def build(shop: dict, code: str) -> dict:
     item_tags = [i["name"].lower().replace(" ", "").replace("'", "") for i in items[:5]]
     tags = BASE_TAGS + item_tags + [f"code{code.lower()}"]
 
-    cta = (f"Use code {code} in the item shop — costs you nothing extra, "
-           f"and it genuinely helps the channel.")
+    cta = f"Use code {code} in the item shop. It genuinely helps the channel."
 
     long_description = (
         f"{hook}\n\n"
@@ -109,7 +108,7 @@ def build(shop: dict, code: str) -> dict:
         "short": {"title": f"{headline} — Item Shop {pretty_date} | Code {code}"[:100],
                   "caption": short_caption},
         "tiktok": {"caption": short_caption[:2200]},
-        "x": {"post": f"{hook}\n\nUse code {code} at checkout — costs you nothing extra.\n\n"
+        "x": {"post": f"{hook}\n\nUse code {code} at checkout.\n\n"
                       f"{disclosure}"[:280]},
         "discord": {"message": f"**Item Shop — {pretty_date}**\n\n{listing}\n\n{cta}"},
         "disclosure": disclosure,

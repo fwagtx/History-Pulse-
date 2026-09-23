@@ -295,7 +295,6 @@ def _outro_scene(comp: Comp, ctx: Ctx, start: float, end: float, ask: str, items
     inner += (f'<div class="abs d" style="left:0;right:0;top:420px;text-align:center;font-size:330px;'
               f'color:{ACCENT};text-shadow:0 0 90px rgba(232,255,58,.45),0 14px 0 rgba(0,0,0,.35);'
               f'{style_anim(an("slam", start + .25, .6))}">BAD</div>')
-    inner += label("costs you nothing extra", W / 2, 790, 40, start + .7, "#fff", 700, align="center")
     inner += sticker(ask, 110, 1300, 50, start + 1.1, rot=-3)
     inner += burst(W / 2, 560, start + .5, ctx.seed)
     comp.scene(start, end, inner, fade_out=.01, z=2)
