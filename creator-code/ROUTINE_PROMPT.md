@@ -23,11 +23,13 @@ Then tell me it's set up and I'll delete the older script-only Routine so you do
 
 ```
 Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script, and
-schedule today's THREE auto-made shop videos in Metricool to post automatically.
+schedule today's THREE auto-made shop videos in Metricool to post automatically to TikTok,
+YouTube Shorts and Facebook.
 
 === ACCOUNT ISOLATION - NON-NEGOTIABLE ===
 This account has TWO Metricool brands. You may ONLY touch brand id 7066444
-(TikTok usecodebad, YouTube UCA9fkJZbLeR5uXTU82Ur74Q).
+(TikTok usecodebad, YouTube UCA9fkJZbLeR5uXTU82Ur74Q, and the usecodebad Facebook Page
+connected to it on 2026-09-23).
 The other brand belongs to an unrelated venture. NEVER read it, write to it,
 schedule to it, or mention it. Before ANY Metricool call, verify the brandId/blogId is
 exactly 7066444. If it is not, stop and do nothing.
@@ -83,7 +85,7 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
         in effect that day)
   info: {
     "publicationDate": {"dateTime": <post_at_local>, "timezone": "America/Chicago"},
-    "providers": [{"network": "tiktok"}, {"network": "youtube"}],
+    "providers": [{"network": "tiktok"}, {"network": "youtube"}, {"network": "facebook"}],
     "media": [<the entry's url>],
     "text": <the entry's caption, exactly as given - it already carries the #EpicPartner
              disclosure and the #usecodebad #creatorcodebad #codebad tags>,
@@ -94,9 +96,14 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
                    "autoAddMusic": false, "isAigc": false},
     "youtubeData": {"title": <the entry's yt_title>, "type": "short", "privacy": "public",
                     "madeForKids": false, "category": "GAMING", "tags": <the entry's hashtags>,
-                    "isAiGeneratedContent": false}
+                    "isAiGeneratedContent": false},
+    "facebookData": {"type": "REEL"}   <- "POST" instead if the entry's duration is over 90
   }
   draft is false and autoPublish is true, so each post goes live by itself at its time.
+  Facebook Reels can be at most 90 seconds, so a longer video goes to Facebook as a normal
+  video post (type POST). If createScheduledPost fails and the error is about Facebook,
+  create the same post again without the facebook provider and facebookData, so TikTok
+  and YouTube still post, and name the Facebook error in the summary.
   commercialContentThirdParty is true because code BAD earns a commission from Epic;
   TikTok requires that to be labelled as branded content.
   Every post time in the manifest is before the shop resets (7 PM CDT / 6 PM CST). Never
@@ -105,14 +112,14 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
   designed thumbnail, and TikTok uses the first frame as the cover when none is set.
   Never claim the code gives a discount, and never add wording to the caption.
 3e. Call getScheduledPosts again and confirm each new post is there with the right time
-    and title, and with draft false.
+    and title, draft false, and all three networks (tiktok, youtube, facebook).
 3f. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
-    America/Chicago). Anything from yesterday still in that list did not publish - name it
-    in the summary so the owner knows.
+    America/Chicago). Anything from yesterday still in that list did not fully publish -
+    name it, and which network shows the error, in the summary so the owner knows.
 
 STEP 4 - SUMMARY. Short and plain: format used for the script and its hook line, whether
-the script pushed, for each of the 3 videos its time and format and whether it is
-scheduled to post (or why not), and any of yesterday's posts that did not go out.
+the script pushed, for each of the 3 videos its time, format and the networks it is
+scheduled on (or why not), and any of yesterday's posts that did not go out.
 ```
 
 ---
@@ -124,3 +131,8 @@ asked for posting to be fully automatic, so the Routine now schedules with `draf
 The checks in step 3 are what stand in for a human look: a video that fails any of them
 is skipped, never swapped for another. To go back to drafts, set `"draft": true` in step 3d
 (and ask Claude to update the live Routine to match).
+
+On 2026-09-23 the owner connected a Facebook Page to the usecodebad brand and asked for
+it to get the same three posts a day. Each video goes to Facebook as a Reel (a normal
+video post if it is ever over 90 seconds, Facebook's Reel limit). If Facebook refuses a
+post, TikTok and YouTube still get it, and the summary says what Facebook said.

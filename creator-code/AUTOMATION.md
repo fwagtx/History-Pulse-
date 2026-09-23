@@ -12,7 +12,8 @@ music and sound effects. It puts them online as a **release** (that gives each v
 public link Metricool can pull from).
 
 **7:00 AM Central** — the daily Routine schedules all three in Metricool for brand
-**7066444** (`usecodebad`), and they **post by themselves** to TikTok and YouTube Shorts:
+**7066444** (`usecodebad`), and they **post by themselves** to TikTok, YouTube Shorts and
+Facebook:
 
 | Time (Central) | Video | What it is |
 |---|---|---|
@@ -60,6 +61,8 @@ delete or edit it in Metricool's planner before its time.
 - `#EpicPartner` on screen and in every description (the owner dropped the longer
   "I get a commission…" sentence on 2026-09-23)
 - TikTok's **branded content** switch on (the rules require it for a creator code)
+- On Facebook, each video goes out as a **Reel** (a normal video post if one is ever over
+  90 seconds, Facebook's Reel limit)
 - Never the word "discount" — the code isn't one
 
 ---
@@ -99,3 +102,4 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 | No release appears | The build failed — open the run, read the red step, send it to me |
 | Nothing scheduled in Metricool | The release didn't exist at 7 AM; the Routine skips rather than guessing |
 | A post shows an error in Metricool | TikTok or YouTube refused it; the next morning's Routine summary names it |
+| A video went to TikTok and YouTube but not Facebook | Facebook refused it, or the Page came unlinked in Metricool. The Routine posts to the other two anyway and names the error; if it says the Page is disconnected, reconnect it in Metricool |
