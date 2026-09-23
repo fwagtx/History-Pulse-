@@ -1,0 +1,112 @@
+name: Quiz videos
+
+# Builds @usecodebad's quiz videos from creator-code/quiz/plan.json: three per
+# day, published as one release per day (quiz-YYYY-MM-DD) that the daily
+# Routine schedules from. The nightly run builds the day two weeks out, so
+# there is always a two-week queue; a manual run can build a range of days.
+on:
+  schedule:
+    - cron: "40 1 * * *"      # after the shop build (00:20 UTC)
+  workflow_dispatch:
+    inputs:
+      from:
+        description: First day to build, YYYY-MM-DD. Empty = the day 14 days from today.
+        required: false
+        default: ""
+      days:
+        description: How many days to build from there (1-31).
+        required: false
+        default: "1"
+
+permissions:
+  contents: write           # needed to publish the releases that host the videos
+
+jobs:
+  days:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.list.outputs.list }}
+    steps:
+      - id: list
+        env:
+          FROM: ${{ inputs.from }}
+          DAYS: ${{ inputs.days }}
+        run: |
+          set -e
+          FROM="${FROM:-$(date -u -d '+14 days' +%F)}"
+          DAYS="${DAYS:-1}"
+          [[ "$FROM" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::from must look like 2026-09-24"; exit 1; }
+          [[ "$DAYS" =~ ^[0-9]+$ ]] && [ "$DAYS" -ge 1 ] && [ "$DAYS" -le 31 ] || { echo "::error::days must be 1-31"; exit 1; }
+          LIST=$(python3 -c "import datetime as d, json; s = d.date.fromisoformat('$FROM'); print(json.dumps([(s + d.timedelta(i)).isoformat() for i in range($DAYS)]))")
+          echo "list=$LIST" >> "$GITHUB_OUTPUT"
+          echo "Building: $LIST"
+
+  build:
+    needs: days
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        day: ${{ fromJSON(needs.days.outputs.list) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/creator-code-bad-automation-0jjc1k
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Playwright drives Chromium frame by frame; numpy synthesizes the
+      # soundtrack. Both are free and open source.
+      - name: Install ffmpeg, Chromium, Python deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q playwright==1.56.0 numpy
+          python -m playwright install --with-deps chromium
+
+      - name: Build the day's quiz videos
+        env:
+          DAY: ${{ matrix.day }}
+        run: |
+          set -e
+          python3 scripts/cc_quiz_build.py --date "$DAY"
+          if [ -f "creator-code/out/quiz-$DAY/manifest.json" ]; then
+            ls -la "creator-code/out/quiz-$DAY/"
+            cat "creator-code/out/quiz-$DAY/manifest.json"
+          fi
+
+      - name: Publish to a release (this is what gives each video a public URL)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DAY: ${{ matrix.day }}
+        run: |
+          set -e
+          DIR="creator-code/out/quiz-$DAY"
+          TAG="quiz-$DAY"
+          [ -f "$DIR/manifest.json" ] || { echo "Nothing planned for $DAY."; exit 0; }
+          TITLE="Quiz videos $DAY"
+          NOTES="Auto-generated quiz videos for $DAY. manifest.json lists post times, titles and captions."
+          FILES=("$DIR"/bad-quiz-*.mp4 "$DIR"/bad-quiz-*-cover.png "$DIR"/bad-quiz-*-qa.jpg "$DIR/manifest.json")
+          if gh release view "$TAG" --json isDraft >/dev/null 2>&1; then
+            # Re-run: swap the files in place and keep the tag.
+            for a in $(gh release view "$TAG" --json assets -q '.assets[].name'); do
+              gh release delete-asset "$TAG" "$a" --yes
+            done
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+            gh release edit "$TAG" --draft=false --title "$TITLE" --notes "$NOTES"
+          else
+            gh release create "$TAG" --title "$TITLE" --notes "$NOTES" "${FILES[@]}"
+          fi
+          # Metricool can only fetch from a public release; make sure it isn't a draft.
+          for i in 1 2 3 4 5 6; do
+            [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "false" ] && break
+            sleep 5
+            gh release edit "$TAG" --draft=false || true
+          done
+          [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "false" ] || { echo "::error::release $TAG is still a draft"; exit 1; }
+          curl -fsSL -o /dev/null "https://github.com/${{ github.repository }}/releases/download/$TAG/manifest.json"
+          echo "Public: https://github.com/${{ github.repository }}/releases/tag/$TAG"
