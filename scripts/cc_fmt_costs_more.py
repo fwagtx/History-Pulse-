@@ -24,7 +24,7 @@ import math
 from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_RIGHT, EASE_BACK, Comp, an, burst,
                        character, code_badge, countdown, disclosure, esc, hexcol, price_roll,
                        progress, sticker, style_anim, tile_bg, words)
-from cc_formats import (Ctx, Video, _caption, _hashtags, _hook_scene, _outro_scene, _pad, rng,
+from cc_formats import (Ctx, Video, num, _caption, _hashtags, _hook_scene, _outro_scene, _pad, rng,
                         singles)
 
 FORMAT = "costs_more"
@@ -538,16 +538,16 @@ def build(ctx: Ctx):
     comp.add(code_badge(.4))
     comp.add(disclosure())
 
-    rounds = "\n".join(f"Round {k}: {a['name']} vs {b['name']} ({a['type']}"
-                       + ("" if a["type"] == b["type"] else f" vs {b['type']}") + ")"
+    rounds = "\n".join(f"{num(k)} {a['name']} 🆚 {b['name']} · {a['type']}"
+                       + ("" if a["type"] == b["type"] else f" vs {b['type']}")
                        for k, (a, b) in enumerate(pairs, 1))
-    body = (f"{rounds}\n\nLock in your answer before each reveal. "
-            f"Prices are today's item shop prices, in V-Bucks.")
+    body = rounds          # no prices here: they're the answers
     tags = _hashtags("whichcostsmore", *(it["name"] for it in pairs[0]))
     return Video(
         FORMAT, comp,
-        title=f"Which Costs More? Fortnite shop {ctx.day_label}",
+        title=f"Which Costs More? Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"Which Costs More? Fortnite Item Shop Quiz {ctx.day_label} #shorts",
-        caption=_caption(f"WHICH COSTS MORE? 🤔 {n} rounds from today's Fortnite item shop ({ctx.day_label})",
-                         body, f"How many did you get right out of {n}? Comment your score 👇", tags),
+        caption=_caption(f"🤔 WHICH COSTS MORE? — Fortnite Item Shop, {ctx.day_label}\n"
+                         f"{n} rounds from today's shop. Lock in your answer before each reveal 👇",
+                         body, f"How many did you get right out of {n}? Comment your score", tags),
         hashtags=tags)

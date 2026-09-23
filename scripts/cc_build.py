@@ -189,6 +189,23 @@ def contact_sheet(pngs: list, dest: Path, cols: int = 6) -> Path | None:
         return None
 
 
+def post_problems(v) -> list:
+    """What would stop this video's words from posting cleanly, unattended."""
+    problems = []
+    if len(v.yt_title) > 100:
+        problems.append(f"YouTube title is {len(v.yt_title)} characters (limit 100)")
+    if len(v.title) > 90:
+        problems.append(f"TikTok title is {len(v.title)} characters (limit 90)")
+    if F._u16(v.caption) > F.CAPTION_MAX:
+        problems.append(f"description is {F._u16(v.caption)} units (limit {F.CAPTION_MAX})")
+    if "#EpicPartner" not in v.caption:
+        problems.append("description is missing the #EpicPartner disclosure")
+    missing = [t for t in F.BRAND_TAGS if f"#{t}" not in v.caption.split()]
+    if missing:
+        problems.append("description is missing " + " ".join("#" + t for t in missing))
+    return problems
+
+
 def build_all(shop: dict, art, day: date, only: list | None) -> list:
     ctx = F.Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
     chosen, used = [], set()
@@ -212,6 +229,11 @@ def build_all(shop: dict, art, day: date, only: list | None) -> list:
                 continue
             if video.comp.duration < F.MIN_SECONDS - .01:
                 log(f"  slot {slot['slot']}: {name} is only {video.comp.duration:.1f}s, skipping")
+                video = None
+                continue
+            problems = post_problems(video)
+            if problems:
+                log(f"  slot {slot['slot']}: {name} skipped: {'; '.join(problems)}")
                 video = None
                 continue
             used.add(name)

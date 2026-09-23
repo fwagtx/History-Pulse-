@@ -32,7 +32,10 @@ from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RI
 
 MIN_SECONDS = 62.0      # over TikTok's 1-minute Creator Rewards bar, with margin
 DISCLOSE = "#EpicPartner — I get a commission from purchases made with code BAD."
-CODE_LINE = "Using code BAD in the item shop costs you nothing extra 💛"
+CODE_CREDIT = "💚 Creator Code: BAD"
+# TikTok's API takes captions up to 2,200 UTF-16 units (an emoji counts as 2);
+# YouTube descriptions allow 5,000. Stay under the smaller with room to spare.
+CAPTION_MAX = 2150
 
 
 @dataclass
@@ -54,6 +57,12 @@ class Ctx:
 
     @property
     def day_label(self) -> str:
+        """The video's date, in full: "September 23, 2026"."""
+        return self.day.strftime("%B %-d, %Y")
+
+    @property
+    def day_short(self) -> str:
+        """For tight spots only: "Sep 23"."""
         return self.day.strftime("%b %-d")
 
     @property
@@ -97,9 +106,48 @@ def _hashtags(*extra) -> list:
     return out + specific[:3]
 
 
+def _u16(s: str) -> int:
+    """Length the way TikTok counts it: UTF-16 units, so an emoji is 2."""
+    return len(s.encode("utf-16-le")) // 2
+
+
+KEYCAPS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+
+
+def num(k: int) -> str:
+    """1️⃣ .. 🔟 for list numbers, plain "11." after that."""
+    return KEYCAPS[k - 1] if 1 <= k <= len(KEYCAPS) else f"{k}."
+
+
 def _caption(hook: str, body: str, ask: str, tags: list) -> str:
-    return (f"{hook}\n\n{body}\n\n{ask}\n\n{CODE_LINE}\n\n{DISCLOSE}\n\n"
-            + " ".join("#" + t for t in tags))[:2150]
+    """Every post's description, one layout for all formats:
+
+        <hook: what it is + the full date>      <- all TikTok shows before "more"
+        <body: short lines, one item per line>
+        💬 <the ask>
+        💚 Creator Code: BAD
+        #EpicPartner disclosure
+        #hashtags
+
+    Blank lines between the blocks. If it's ever too long, whole lines drop from
+    the end of the body -- never the ask, the code, the disclosure or the tags."""
+    ask = ask if ask.startswith("💬") else f"💬 {ask}"
+    foot = f"{CODE_CREDIT}\n{DISCLOSE}\n\n" + " ".join("#" + t for t in tags)
+    lines = [ln.rstrip() for ln in body.strip().split("\n")]
+
+    def build(ls, cut):
+        b = "\n".join(ls) + ("\n…and more in the video 🎥" if cut else "")
+        text = f"{hook.strip()}\n\n{b}\n\n{ask}\n\n{foot}"
+        return re.sub(r"\n{3,}", "\n\n", text)
+
+    text, cut = build(lines, False), False
+    while _u16(text) > CAPTION_MAX and len(lines) > 1:
+        lines.pop()
+        while lines and not lines[-1].strip():
+            lines.pop()
+        cut = True
+        text = build(lines, cut)
+    return text
 
 
 def singles(ctx: Ctx, need_art: bool = True) -> list:
@@ -184,7 +232,7 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
                            b_item["rarity"], b_item["name"])
     inner += _code_stamp(comp, end)
     inner += label(f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
-                   ACCENT, 800, anim="none", align="center", spacing=".24em")
+                   ACCENT, 800, anim="none", align="center", spacing=".17em")
     # Sized to fit on one line with room for the thump, so a long title
     # ("GUESS THE PRICE") never runs off the sides.
     size = min(170, 960 / anton_em(title))
@@ -294,12 +342,14 @@ def this_or_that(ctx: Ctx):
     comp.add(code_badge(.4))
     comp.add(disclosure())
 
-    rounds = "\n".join(f"Round {k}: {a['name']} vs {b['name']}" for k, (a, b) in enumerate(pairs, 1))
+    rounds = "\n".join(f"{num(k)} {a['name']} 🆚 {b['name']}" for k, (a, b) in enumerate(pairs, 1))
     tags = _hashtags("thisorthat", *(p[0]["name"] for p in pairs[:2]))
+    example = "ABBAB"[:len(pairs)]
     return Video(
         "this_or_that", comp,
-        title=f"This or That — Fortnite shop {ctx.day_label}",
+        title=f"This or That — Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"This or That: Fortnite Item Shop {ctx.day_label} #shorts",
-        caption=_caption(f"THIS OR THAT — today's Fortnite item shop ({ctx.day_label})",
-                         rounds, "Comment your picks in order, like ABBAB 👇", tags),
+        caption=_caption(f"⚔️ THIS OR THAT — Fortnite Item Shop, {ctx.day_label}\n"
+                         f"{len(pairs)} rounds, every item from today's shop. Pick A or B 👇",
+                         rounds, f"Comment your picks in order, like {example}", tags),
         hashtags=tags)

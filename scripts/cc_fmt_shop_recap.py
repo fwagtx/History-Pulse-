@@ -499,27 +499,32 @@ def build(ctx: Ctx):
         hname = head.get("section") or _clean_name(head["name"])
         hsize = int(head.get("bundle_size") or 0)
         if head.get("discounted") and head["regular_price"] > head["price"]:
-            lines.append(f"🔥 {hname} bundle ({hsize} items): {head['price']:,} V-Bucks today, regular price "
-                         f"{head['regular_price']:,} (save {head['regular_price'] - head['price']:,})")
+            lines += [f"🔥 BUNDLE DEAL: {hname} ({hsize} items)",
+                      f"{head['price']:,} V-Bucks today · regular {head['regular_price']:,} · "
+                      f"you save {head['regular_price'] - head['price']:,}", ""]
         else:
-            lines.append(f"🎁 {hname} bundle ({hsize} items): {head['price']:,} V-Bucks")
+            lines += [f"🎁 BUNDLE: {hname} ({hsize} items) · {head['price']:,} V-Bucks", ""]
+    lines.append("⭐ STANDOUT ITEMS")
+    new_today = leaving = False
     for it in items:
-        extra = []
-        for kind, text in _facts(it, ctx):
-            if kind == "leaves":
-                extra.append("leaves at reset")
-            elif kind == "added":
-                extra.append(f"added {date.fromisoformat(it['in_day']).strftime('%b %-d')}")
-            else:
-                intro = it.get("introduction") or {}
-                s = str(intro.get("season") or "")
-                ch = str(intro.get("chapter"))
-                extra.append(("OG, Chapter 1" if ch == "1" else f"from Chapter {ch}")
-                             + (f" Season {s}" if s else ""))
-        lines.append(f"• {it['name']} — {it['rarity_label']} {it['type']}, {it['price']:,} V-Bucks"
-                     + (f" ({'; '.join(extra)})" if extra else ""))
-    if any(k == "leaves" for it in items for k, _ in _facts(it, ctx)):
-        lines.append(f"⏰ \"Leaves at reset\" = it leaves the shop at the next reset ({ctx.reset_et}).")
+        s = f"▸ {it['name']} · {it['rarity_label']} {it['type']} · {it['price']:,}"
+        intro = it.get("introduction") or {}
+        ch, se = str(intro.get("chapter") or ""), str(intro.get("season") or "")
+        if ch in ("1", "2"):
+            s += (" · OG" if ch == "1" else " ·") + f" Ch{ch}" + (f" S{se}" if se else "")
+        if it.get("in_day") == ctx.day.isoformat():
+            s += " 🆕"
+            new_today = True
+        if any(k == "leaves" for k, _ in _facts(it, ctx)):
+            s += " ⏰"
+            leaving = True
+        lines.append(s)
+    legend = "Prices in V-Bucks."
+    if new_today:
+        legend += " 🆕 = new today."
+    if leaving:
+        legend += f" ⏰ = leaves at the next reset ({ctx.reset_et})."
+    lines += ["", legend]
 
     names = ([head.get("section") or _clean_name(head["name"])] if head else []) + [i["name"] for i in items]
     tags = _hashtags("itemshoptoday", *names)
@@ -536,7 +541,7 @@ def build(ctx: Ctx):
         FORMAT, comp,
         title=title[:60],
         yt_title=yt,
-        caption=_caption(f"TODAY'S FORTNITE ITEM SHOP ({ctx.day_label}) — {offers} offers, "
-                         f"here's everything worth knowing 🛒",
-                         "\n".join(lines), "What are you buying? 👇", tags),
+        caption=_caption(f"🛒 FORTNITE ITEM SHOP — {ctx.day_label}\n"
+                         f"{offers} offers today. Here's everything worth knowing 👇",
+                         "\n".join(lines), "What are you buying?", tags),
         hashtags=tags)

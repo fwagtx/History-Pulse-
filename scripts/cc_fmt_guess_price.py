@@ -22,7 +22,7 @@ from datetime import date
 from cc_motion import (ACCENT, INK, RARITY, EASE_BACK, EASE_OUT, Comp, an, burst, character,
                        code_badge, countdown, disclosure, esc, hexcol, price_roll, progress, sticker,
                        style_anim, tile_bg, words)
-from cc_formats import (Ctx, Video, _caption, _hashtags, _hook_scene, _outro_scene, _pad, rng,
+from cc_formats import (Ctx, Video, num, _caption, _hashtags, _hook_scene, _outro_scene, _pad, rng,
                         singles)
 
 FORMAT = "guess_price"
@@ -397,14 +397,14 @@ def build(ctx: Ctx):
     comp.add(code_badge(.4))
     comp.add(disclosure())
 
-    rounds = "\n".join(f"Round {k}: {it['name']} ({it['type']})" for k, it in enumerate(items, 1))
-    body = (f"{rounds}\n\nPause before each reveal and lock in your guess. "
-            f"Prices are today's item shop prices, in V-Bucks.")
+    rounds = "\n".join(f"{num(k)} {it['name']} · {it['type']}" for k, it in enumerate(items, 1))
+    body = rounds          # no prices here: they're the answers
     tags = _hashtags("guesstheprice", *(it["name"] for it in items[:2]))
     return Video(
         FORMAT, comp,
-        title=f"Guess the Price — Fortnite shop {ctx.day_label}",
+        title=f"Guess the Price — Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"Guess the Price: Fortnite Item Shop {ctx.day_label} #shorts",
-        caption=_caption(f"GUESS THE PRICE 💸 today's Fortnite item shop ({ctx.day_label})",
-                         body, f"How many did you get out of {n}? Comment your score 👇", tags),
+        caption=_caption(f"💸 GUESS THE PRICE — Fortnite Item Shop, {ctx.day_label}\n"
+                         f"{n} items from today's shop. Pause, guess, then watch the reveal 👇",
+                         body, f"How many did you get out of {n}? Comment your score", tags),
         hashtags=tags)

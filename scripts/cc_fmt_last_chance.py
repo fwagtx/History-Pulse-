@@ -572,35 +572,27 @@ def build(ctx: Ctx):
     def line(it):
         if it.get("is_bundle"):
             bn = int(it.get("bundle_size") or 0) or len(_members(it))
-            s = f"• {_shown_name(it)} bundle ({bn} items) — {int(it['price']):,} V-Bucks"
+            s = f"🔥 {_shown_name(it)} bundle ({bn} items) · {int(it['price']):,}"
             reg = _regular(it)
-            return s + (f" (regular price {reg:,})" if reg else "")
-        s = f"• {it['name']} — {it.get('rarity_label') or it['rarity']} {it['type']}, {int(it['price']):,} V-Bucks"
-        d = it.get("in_day") or ""
-        if d and d != ctx.day.isoformat():
-            s += f" (in the shop since {_mon_d(d)})"
-        elif d:
-            s += " (added today)"
-        return s
+            return s + (f" (regular {reg:,})" if reg else "")
+        s = f"▸ {it['name']} · {it.get('rarity_label') or it['rarity']} {it['type']} · {int(it['price']):,}"
+        return s + (" 🆕" if it.get("in_day") == ctx.day.isoformat() else "")
 
-    head = (f"LAST CHANCE ⏰ {n} offers leaving the Fortnite item shop at the next reset "
-            f"({ctx.reset_et}, {ctx.day_label})")
-    tail = (f"All of these are scheduled to leave the shop at the next reset ({ctx.reset_et}). "
-            f"{len(leaving)} offers in today's shop leave at that reset; these are {n} of them, "
-            f"priciest first.")
+    head = (f"⏰ LAST CHANCE — Fortnite Item Shop, {ctx.day_label}\n"
+            f"These leave the shop at the next reset ({ctx.reset_et}) 👇")
+    tail = (f"{len(leaving)} offers leave at this reset; these are {n} of them, priciest first. "
+            f"Prices in V-Bucks."
+            + (" 🆕 = added today." if any(i.get("in_day") == ctx.day.isoformat() for i in picked) else ""))
     names = [_shown_name(i) for i in picked]
     tags = _hashtags("lastchance", *names)
     tags = BRAND_TAGS + [t for t in tags if t not in BRAND_TAGS]      # brand tags always lead
     lines = [line(i) for i in picked]
-    ask = "Which one are you grabbing? 👇"
+    ask = "Which one are you grabbing?"
+    # _caption keeps it under the platform limit by dropping whole offer lines,
+    # never the disclosure or the hashtags.
     caption = _caption(head, "\n".join(lines) + "\n\n" + tail, ask, tags)
-    # _caption trims to the platform limit from the end, where the hashtags are:
-    # drop offer lines rather than ever losing the brand tags.
-    while lines and not all(f"#{t}" in caption.split() for t in BRAND_TAGS):
-        lines.pop()
-        caption = _caption(head, "\n".join(lines) + "\n\n" + tail, ask, tags)
 
-    title = f"Last Chance — Fortnite shop {ctx.day_label}"
+    title = f"Last Chance — Fortnite Item Shop, {ctx.day_label}"
     yt = f"Last Chance: Leaving the Fortnite Item Shop at Reset ({ctx.day_label}) #shorts"
     if len(yt) > 100:
         yt = f"Last Chance: Fortnite Item Shop {ctx.day_label} #shorts"

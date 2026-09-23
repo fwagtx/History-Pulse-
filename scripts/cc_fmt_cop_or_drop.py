@@ -26,7 +26,7 @@ from datetime import date
 from cc_motion import (ACCENT, INK, RARITY, EASE_BACK, RAIL_TOP, SAFE_RIGHT, W, Comp, an, burst, character,
                        code_badge, countdown, disclosure, esc, hexcol, price_roll, progress,
                        sticker, style_anim, tile_bg, words)
-from cc_formats import (MIN_SECONDS, Ctx, Video, _caption, _hashtags, _hook_scene, _outro_scene,
+from cc_formats import (MIN_SECONDS, Ctx, Video, num, _caption, _hashtags, _hook_scene, _outro_scene,
                         _pad, rng, singles)
 
 FORMAT = "cop_or_drop"
@@ -541,16 +541,19 @@ def build(ctx: Ctx):
     comp.add(disclosure())
 
     def line(k, it):
-        s = f"{k}. {it['name']} — {it['type']}, {it['price']:,} V-Bucks"
-        return s + (" (leaves at the next reset)" if _leaves_today(ctx, it) else "")
+        s = f"{num(k)} {it['name']} · {it['type']} · {it['price']:,}"
+        return s + (" ⏰" if _leaves_today(ctx, it) else "")
 
-    body = ("\n".join(line(k, it) for k, it in enumerate(items, 1))
-            + "\n\nPrices are today's item shop prices, in V-Bucks.")
+    legend = "Prices in V-Bucks."
+    if any(_leaves_today(ctx, it) for it in items):
+        legend += f" ⏰ = leaves at the next reset ({ctx.reset_et})."
+    body = "\n".join(line(k, it) for k, it in enumerate(items, 1)) + "\n\n" + legend
     tags = _hashtags("copordrop", *(it["name"] for it in items[:2]))
     return Video(
         FORMAT, comp,
-        title=f"Cop or Drop — Fortnite shop {ctx.day_label}",
+        title=f"Cop or Drop — Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"Cop or Drop: Fortnite Item Shop {ctx.day_label} #shorts",
-        caption=_caption(f"COP OR DROP? 🛒 today's Fortnite item shop ({ctx.day_label})",
-                         body, f"Comment COP or DROP for each one, numbered 1–{n} 👇", tags),
+        caption=_caption(f"✅❌ COP OR DROP? — Fortnite Item Shop, {ctx.day_label}\n"
+                         f"{n} items from today's shop. You decide 👇",
+                         body, f"Comment COP or DROP for each one, numbered 1–{n}", tags),
         hashtags=tags)
