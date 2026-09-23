@@ -26,7 +26,9 @@ jobs:
           ffmpeg -version | head -1
           (command -v chromium || command -v chromium-browser) && echo "chromium ok"
 
-      - name: Write config from secret
+      # The shop comes from a keyless GitHub mirror, so no secret is required.
+      # If FORTNITE_API_KEY is set it is used as a fallback source; if not, fine.
+      - name: Write config
         env:
           FORTNITE_API_KEY: ${{ secrets.FORTNITE_API_KEY }}
         run: |

@@ -4,17 +4,13 @@
 
 ---
 
-## The one setup step (2 minutes, no Terminal)
+## Setup: none
 
-GitHub needs your Fortnite API key so it can fetch the shop.
+The shop data now comes from a public GitHub mirror that needs **no API key and no
+Discord sign-up**. There is nothing to configure.
 
-1. Get the free key at **https://dash.fortnite-api.com/** (no card needed)
-2. Go to **[repo Settings → Secrets → Actions](https://github.com/fwagtx/History-Pulse-/settings/secrets/actions)**
-3. Click **New repository secret**
-4. Name: `FORTNITE_API_KEY` — Value: paste your key
-5. Click **Add secret**
-
-That's it. That's the whole setup.
+*(Optional: if you ever do get a fortnite-api.com key, add it as a repo secret named
+`FORTNITE_API_KEY` and it'll be used as a backup source. Not needed.)*
 
 ---
 
