@@ -64,18 +64,32 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -e
           STAMP="${{ steps.build.outputs.stamp }}"
           DIR="creator-code/out/$STAMP"
           TAG="shop-$STAMP"
-          # Re-runs should replace, not fail.
-          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
-          gh release create "$TAG" \
-            --title "Item shop $STAMP" \
-            --notes "Three auto-generated shop videos for $STAMP. manifest.json lists post times, titles and captions." \
-            "$DIR"/bad-*.mp4 \
-            "$DIR"/bad-*-cover.png \
-            "$DIR"/bad-*-qa.jpg \
-            "$DIR/manifest.json"
-          echo ""
-          echo "VIDEO URLS:"
+          NOTES="Three auto-generated shop videos for $STAMP. manifest.json lists post times, titles and captions."
+          FILES=("$DIR"/bad-*.mp4 "$DIR"/bad-*-cover.png "$DIR"/bad-*-qa.jpg "$DIR/manifest.json")
+          if gh release view "$TAG" --json isDraft >/dev/null 2>&1; then
+            # Same-day re-run: swap the files in place and keep the tag. Deleting
+            # and re-creating a tag seconds apart can leave the release stuck as
+            # a private draft.
+            for a in $(gh release view "$TAG" --json assets -q '.assets[].name'); do
+              gh release delete-asset "$TAG" "$a" --yes
+            done
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+            gh release edit "$TAG" --draft=false --title "Item shop $STAMP" --notes "$NOTES"
+          else
+            gh release create "$TAG" --title "Item shop $STAMP" --notes "$NOTES" "${FILES[@]}"
+          fi
+          # gh uploads into a draft and then publishes it. Make sure that took:
+          # Metricool can only fetch from a public release.
+          for i in 1 2 3 4 5 6; do
+            [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "false" ] && break
+            sleep 5
+            gh release edit "$TAG" --draft=false || true
+          done
+          [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "false" ] || { echo "::error::release $TAG is still a draft"; exit 1; }
+          curl -fsSL -o /dev/null "https://github.com/${{ github.repository }}/releases/download/$TAG/manifest.json"
+          echo "Public. VIDEO URLS:"
           python3 -c "import json;[print(v['post_at_local'], v['url']) for v in json.load(open('$DIR/manifest.json'))['videos']]"
