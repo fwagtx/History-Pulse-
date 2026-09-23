@@ -101,7 +101,8 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
   TikTok requires that to be labelled as branded content.
   Every post time in the manifest is before the shop resets (7 PM CDT / 6 PM CST). Never
   move a post later. If a slot's time has already passed, skip it.
-  Do not add videoThumbnailUrl or videoCoverMilliseconds.
+  Do not add videoThumbnailUrl or videoCoverMilliseconds: each video's first frame is its
+  designed thumbnail, and TikTok uses the first frame as the cover when none is set.
   Never claim the code gives a discount, and never add wording to the caption.
 3e. Call getScheduledPosts again and confirm each new post is there with the right time
     and title, and with draft false.
