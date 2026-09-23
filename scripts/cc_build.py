@@ -203,6 +203,9 @@ def post_problems(v) -> list:
     missing = [t for t in F.BRAND_TAGS if f"#{t}" not in v.caption.split()]
     if missing:
         problems.append("description is missing " + " ".join("#" + t for t in missing))
+    ig = F.ig_caption(v.caption)
+    if F.hashtag_count(ig) > F.IG_MAX_TAGS or "#EpicPartner" not in ig:
+        problems.append(f"Instagram description has {F.hashtag_count(ig)} hashtags (limit {F.IG_MAX_TAGS})")
     return problems
 
 
@@ -318,6 +321,7 @@ def main():
             "title": v.title,
             "yt_title": v.yt_title,
             "caption": v.caption,
+            "ig_caption": F.ig_caption(v.caption),     # Instagram allows 5 hashtags
             "hashtags": v.hashtags,
         })
 

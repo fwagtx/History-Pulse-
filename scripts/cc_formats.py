@@ -109,6 +109,26 @@ def _hashtags(*extra) -> list:
     return out + specific[:3]
 
 
+# Instagram caps a post at five hashtags (since December 2025), and #EpicPartner
+# is one of them. So Instagram gets its own copy of each description: the same
+# words, with the hashtag line cut to our three brand tags and #fortnite, and
+# any "#<number>" ("Quiz #3") written without the "#" so it can't count as one.
+IG_TAGS = BRAND_TAGS + ["fortnite"]
+IG_MAX_TAGS = 5
+
+
+def ig_caption(caption: str) -> str:
+    body, _, last = caption.rpartition("\n")
+    if not last.startswith("#"):
+        body = caption.rstrip() + "\n"
+    body = re.sub(r"#(\d)", r"\1", body)
+    return body + "\n" + " ".join("#" + t for t in IG_TAGS)
+
+
+def hashtag_count(text: str) -> int:
+    return len(re.findall(r"#\w*[^\W\d_]\w*", text))
+
+
 def _u16(s: str) -> int:
     """Length the way TikTok counts it: UTF-16 units, so an emoji is 2."""
     return len(s.encode("utf-16-le")) // 2

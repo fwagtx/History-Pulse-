@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cc_quiz as Q  # noqa: E402
 from cc_build import COVER_T, REPO, _render_one, post_problems  # noqa: E402
 from cc_common import CC_DIR, OUT_DIR, log, write_json  # noqa: E402
-from cc_formats import MIN_SECONDS, Ctx  # noqa: E402
+from cc_formats import MIN_SECONDS, Ctx, ig_caption  # noqa: E402
 
 PLAN = CC_DIR / "quiz" / "plan.json"
 LOCAL_TZ = ZoneInfo("America/Chicago")
@@ -145,6 +145,7 @@ def main():
             "title": v.title,
             "yt_title": v.yt_title,
             "caption": v.caption,
+            "ig_caption": ig_caption(v.caption),       # Instagram allows 5 hashtags
             "hashtags": v.hashtags,
         })
     manifest = {
