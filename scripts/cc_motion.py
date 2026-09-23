@@ -379,8 +379,8 @@ def code_badge(start: float = 0) -> str:
 def disclosure() -> str:
     """Under the code badge: always on screen, never under TikTok's caption."""
     return (f'<div class="abs" style="left:50px;top:{SAFE_TOP + 76}px;width:600px;z-index:50;'
-            f'font-size:20px;font-weight:600;line-height:1.3;color:rgba(255,255,255,.78);'
-            f'text-shadow:0 2px 6px rgba(0,0,0,.9)">#EpicPartner · I earn a commission on code BAD purchases</div>')
+            f'font-size:23px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.88);'
+            f'text-shadow:0 2px 6px rgba(0,0,0,.9)">#EpicPartner</div>')
 
 
 def progress(start: float, end: float, index: int, total: int) -> str:

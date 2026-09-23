@@ -31,7 +31,10 @@ from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RI
                        progress, sticker, style_anim, tile_bg, words, EASE_BACK)
 
 MIN_SECONDS = 62.0      # over TikTok's 1-minute Creator Rewards bar, with margin
-DISCLOSE = "#EpicPartner — I get a commission from purchases made with code BAD."
+# The disclosure is the #EpicPartner tag, on screen and in every description, on
+# top of TikTok's "Paid partnership" label (commercialContentThirdParty). The
+# owner dropped the longer "I get a commission..." sentence on 2026-09-23.
+DISCLOSE = "#EpicPartner"
 CODE_CREDIT = "💚 Creator Code: BAD"
 # TikTok's API takes captions up to 2,200 UTF-16 units (an emoji counts as 2);
 # YouTube descriptions allow 5,000. Stay under the smaller with room to spare.
@@ -125,14 +128,13 @@ def _caption(hook: str, body: str, ask: str, tags: list) -> str:
         <hook: what it is + the full date>      <- all TikTok shows before "more"
         <body: short lines, one item per line>
         💬 <the ask>
-        💚 Creator Code: BAD
-        #EpicPartner disclosure
+        💚 Creator Code: BAD · #EpicPartner
         #hashtags
 
     Blank lines between the blocks. If it's ever too long, whole lines drop from
     the end of the body -- never the ask, the code, the disclosure or the tags."""
     ask = ask if ask.startswith("💬") else f"💬 {ask}"
-    foot = f"{CODE_CREDIT}\n{DISCLOSE}\n\n" + " ".join("#" + t for t in tags)
+    foot = f"{CODE_CREDIT} · {DISCLOSE}\n\n" + " ".join("#" + t for t in tags)
     lines = [ln.rstrip() for ln in body.strip().split("\n")]
 
     def build(ls, cut):

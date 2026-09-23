@@ -49,8 +49,7 @@ delete or edit it in Metricool's planner before its time.
 
   💬 Comment your picks in order, like ABBAB
 
-  💚 Creator Code: BAD
-  #EpicPartner — I get a commission from purchases made with code BAD.
+  💚 Creator Code: BAD · #EpicPartner
 
   #usecodebad #creatorcodebad #codebad #fortnite …
   ```
@@ -58,7 +57,8 @@ delete or edit it in Metricool's planner before its time.
   Games never list prices in the description (they're the answers). If a description
   ever runs long, list lines drop from the end — the disclosure and hashtags never do.
 - `#usecodebad #creatorcodebad #codebad` first in the hashtags, every time
-- `#EpicPartner` and "I get a commission from purchases made with code BAD"
+- `#EpicPartner` on screen and in every description (the owner dropped the longer
+  "I get a commission…" sentence on 2026-09-23)
 - TikTok's **branded content** switch on (the rules require it for a creator code)
 - Never the word "discount" — the code isn't one
 
