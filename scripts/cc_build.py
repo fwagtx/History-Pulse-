@@ -289,6 +289,7 @@ def main():
             "cover_ms": int(COVER_T * 1000),
             "duration": round(v.comp.duration, 2),
             "post_at_local": post.strftime("%Y-%m-%dT%H:%M:%S"),
+            "post_at_iso": post.isoformat(timespec="seconds"),       # with offset, for Metricool
             "post_at_utc": post.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "title": v.title,
             "yt_title": v.yt_title,
