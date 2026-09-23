@@ -12,8 +12,8 @@ music and sound effects. It puts them online as a **release** (that gives each v
 public link Metricool can pull from).
 
 **7:00 AM Central** — the daily Routine schedules all three in Metricool for brand
-**7066444** (`usecodebad`), and they **post by themselves** to TikTok, YouTube Shorts and
-Facebook:
+**7066444** (`usecodebad`), and they **post by themselves** to TikTok, YouTube Shorts,
+Facebook and Instagram:
 
 | Time (Central) | Video | What it is |
 |---|---|---|
@@ -96,6 +96,10 @@ upcoming videos. To go past March 2027, ask Claude to extend the plan.
 - TikTok's **branded content** switch on (the rules require it for a creator code)
 - On Facebook, each video goes out as a **Reel** (a normal video post if one is ever over
   90 seconds, Facebook's Reel limit)
+- On Instagram, each video goes out as a **Reel** in its own post, because Instagram allows
+  only **5 hashtags** (since December 2025) and #EpicPartner is one of them: the same
+  description, with the hashtags cut to `#EpicPartner #usecodebad #creatorcodebad #codebad
+  #fortnite`
 - Never the word "discount" — the code isn't one
 
 ---

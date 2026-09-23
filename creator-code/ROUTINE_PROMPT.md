@@ -24,13 +24,13 @@ Then tell me it's set up and I'll delete the older script-only Routine so you do
 ```
 Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script,
 schedule today's THREE auto-made shop videos, and keep TWO WEEKS of auto-made quiz videos
-(three a day) scheduled - all in Metricool, posting automatically to TikTok, YouTube Shorts
-and Facebook.
+(three a day) scheduled - all in Metricool, posting automatically to TikTok, YouTube Shorts,
+Facebook and Instagram.
 
 === ACCOUNT ISOLATION - NON-NEGOTIABLE ===
 This account has TWO Metricool brands. You may ONLY touch brand id 7066444
-(TikTok usecodebad, YouTube UCA9fkJZbLeR5uXTU82Ur74Q, and the usecodebad Facebook Page
-connected to it on 2026-09-23).
+(TikTok usecodebad, YouTube UCA9fkJZbLeR5uXTU82Ur74Q, and the usecodebad Facebook Page and
+Instagram account connected to it on 2026-09-23).
 The other brand belongs to an unrelated venture. NEVER read it, write to it,
 schedule to it, or mention it. Before ANY Metricool call, verify the brandId/blogId is
 exactly 7066444. If it is not, stop and do nothing.
@@ -81,6 +81,8 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
     00:00 to today 23:59. Skip any manifest video whose "title" already equals the
     tiktokData.title of a post in that list (no duplicates). Compare titles, not video
     links: Metricool stores its own copy of each video, so the links never match.
+    Likewise skip a video's Instagram post (3d) if a post in the list has instagram among
+    its providers and its text equals the entry's "ig_caption".
 3d. For each remaining entry whose post_at_local is still at least 15 minutes in the
     future in America/Chicago, call createScheduledPost with:
   blogId: "7066444"   <- verify before calling
@@ -114,8 +116,17 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
   Do not add videoThumbnailUrl or videoCoverMilliseconds: each video's first frame is its
   designed thumbnail, and TikTok uses the first frame as the cover when none is set.
   Never claim the code gives a discount, and never add wording to the caption.
+  INSTAGRAM gets its own post for each video, because Instagram allows only 5 hashtags
+  (#EpicPartner is one) and the main caption has about ten. Call createScheduledPost a
+  second time with the same blogId "7066444", date and publicationDate, and info:
+    {"providers": [{"network": "instagram"}], "media": [<the entry's url>],
+     "text": <the entry's "ig_caption", exactly as given>, "draft": false, "autoPublish": true,
+     "instagramData": {"type": "REEL", "showReelOnFeed": true, "isAiGenerated": false}}
+  If the entry has no "ig_caption", skip Instagram for it and say so in the summary. If
+  the Instagram call fails, the main post is unaffected: name the error in the summary.
 3e. Call getScheduledPosts again and confirm each new post is there with the right time
-    and title, draft false, and all three networks (tiktok, youtube, facebook).
+    and title, draft false, all three networks (tiktok, youtube, facebook) on the main
+    post, and its Instagram post beside it.
 3f. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
     America/Chicago). Anything from yesterday still in that list did not fully publish -
     name it, and which network shows the error, in the summary so the owner knows.
@@ -137,9 +148,12 @@ Central), built ahead of time from a fixed plan and published one release per da
 4d. For each remaining video whose post_at_local is at least 15 minutes in the future,
     call createScheduledPost exactly as in 3d - same blogId "7066444", providers,
     tiktokData, youtubeData, facebookData ("REEL"), draft false, autoPublish true - with
-    date = its "post_at_iso" and publicationDate.dateTime = its "post_at_local". Quiz
-    videos are not tied to the shop reset, so the 8:00 PM slot is fine.
-4e. Call getScheduledPosts again and confirm each quiz post you added is there.
+    date = its "post_at_iso" and publicationDate.dateTime = its "post_at_local", and give
+    it its Instagram post exactly as in 3d (ig_caption; skip it if a post in the 4c list
+    already has instagram among its providers and that exact text). Quiz videos are not
+    tied to the shop reset, so the 8:00 PM slot is fine.
+4e. Call getScheduledPosts again and confirm each quiz post you added is there, with its
+    Instagram post.
 
 STEP 5 - SUMMARY. Short and plain: format used for the script and its hook line, whether
 the script pushed, for each of the 3 shop videos its time, format and the networks it is
