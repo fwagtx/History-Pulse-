@@ -1,0 +1,282 @@
+"""
+Soundtrack for @usecodebad videos, synthesized from scratch.
+
+Every sound is generated here from sine waves and noise, so there is nothing to
+license, nothing for TikTok's or YouTube's copyright matching to flag, and no
+download that can break. Two layers:
+
+  - a music bed: drums, bass and chords, with tempo and key varied per video so
+    three posts a day don't share one identical track
+  - sound effects placed exactly on the visual cues the formats record with
+    comp.cue(t, kind): whoosh, slam, tick, pop, reveal, cash
+
+Needs numpy (pip install numpy). Writes a 44.1 kHz stereo 16-bit WAV that
+cc_motion.render() muxes into the MP4 as AAC.
+"""
+
+import random
+import wave
+from pathlib import Path
+
+import numpy as np
+
+SR = 44100
+
+
+# ------------------------------------------------------------------ building blocks
+
+def _t(dur: float) -> np.ndarray:
+    return np.arange(int(dur * SR)) / SR
+
+
+def _env(n: int, attack: float, decay: float) -> np.ndarray:
+    """Fast attack, exponential decay."""
+    t = np.arange(n) / SR
+    a = np.clip(t / max(attack, 1e-4), 0, 1)
+    return a * np.exp(-t / max(decay, 1e-4))
+
+
+def _noise(n: int, rs: np.random.RandomState) -> np.ndarray:
+    return rs.uniform(-1, 1, n)
+
+
+def _band(x: np.ndarray, lo: float, hi: float) -> np.ndarray:
+    """Band-pass by FFT with soft edges. Fine for short one-shots."""
+    X = np.fft.rfft(x)
+    f = np.fft.rfftfreq(len(x), 1 / SR)
+    lo_gain = 1 / (1 + (lo / np.maximum(f, 1)) ** 4)
+    hi_gain = 1 / (1 + (f / hi) ** 4)
+    return np.fft.irfft(X * lo_gain * hi_gain, len(x))
+
+
+def _saw(freq: float, t: np.ndarray, harmonics: int = 10, phase: float = 0.0) -> np.ndarray:
+    """Band-limited sawtooth by additive synthesis: warm, no aliasing."""
+    out = np.zeros_like(t)
+    for k in range(1, harmonics + 1):
+        if freq * k > SR / 2.2:
+            break
+        out += np.sin(2 * np.pi * freq * k * t + phase * k) / k
+    return out * (2 / np.pi)
+
+
+def _norm(x: np.ndarray, peak: float = 1.0) -> np.ndarray:
+    m = np.max(np.abs(x)) if len(x) else 0
+    return x * (peak / m) if m > 0 else x
+
+
+def _midi(n: float) -> float:
+    return 440.0 * 2 ** ((n - 69) / 12)
+
+
+# ------------------------------------------------------------------ sound effects
+
+def sfx(kind: str, rs: np.random.RandomState) -> np.ndarray:
+    """One mono effect, peak-normalized. Unknown kinds are silent, never fatal."""
+    if kind == "whoosh":
+        n = int(.42 * SR)
+        t = np.arange(n) / SR
+        # Two noise bands crossfaded low -> high reads as air rushing past.
+        low, high = _band(_noise(n, rs), 300, 1400), _band(_noise(n, rs), 1400, 6000)
+        mix = np.clip(t / t[-1], 0, 1)
+        shape = np.sin(np.pi * np.clip(t / t[-1], 0, 1)) ** 1.6
+        return _norm((low * (1 - mix) + high * mix) * shape) * .8
+    if kind == "slam":
+        n = int(.7 * SR)
+        t = np.arange(n) / SR
+        pitch = 42 + 110 * np.exp(-t / .045)
+        boom = np.sin(2 * np.pi * np.cumsum(pitch) / SR) * np.exp(-t / .22)
+        crack = _band(_noise(n, rs), 900, 7000) * np.exp(-t / .025)
+        return _norm(np.tanh(2.4 * (boom + .55 * crack)))
+    if kind == "tick":
+        n = int(.09 * SR)
+        t = np.arange(n) / SR
+        click = (np.sin(2 * np.pi * 1850 * t) + .5 * np.sin(2 * np.pi * 3700 * t)) * np.exp(-t / .012)
+        wood = _band(_noise(n, rs), 1500, 5000) * np.exp(-t / .006)
+        return _norm(click + .6 * wood) * .55
+    if kind == "pop":
+        n = int(.14 * SR)
+        t = np.arange(n) / SR
+        f = 380 + 900 * (t / t[-1]) ** .5
+        return _norm(np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / .045)) * .7
+    if kind == "reveal":
+        # A quick rising arpeggio with a shimmer tail.
+        n = int(1.1 * SR)
+        out = np.zeros(n)
+        for i, semis in enumerate((0, 4, 7, 12, 16)):
+            start = int(i * .06 * SR)
+            m = n - start
+            tt = np.arange(m) / SR
+            f = _midi(72 + semis)
+            tone = (np.sin(2 * np.pi * f * tt) + .3 * np.sin(2 * np.pi * 2 * f * tt)) * _env(m, .004, .35)
+            out[start:] += tone
+        shimmer = _band(_noise(n, rs), 5000, 12000) * _env(n, .2, .3) * .25
+        return _norm(out + shimmer) * .75
+    if kind == "cash":
+        # Register "ka" (noise hit) then bell "ching" (inharmonic partials).
+        n = int(.9 * SR)
+        t = np.arange(n) / SR
+        ka = _band(_noise(n, rs), 1200, 6000) * np.exp(-t / .02)
+        bell = np.zeros(n)
+        d = int(.07 * SR)
+        tb = np.arange(n - d) / SR
+        for f, a in ((2093, 1), (2637, .7), (4186, .45), (5274, .3)):
+            bell[d:] += a * np.sin(2 * np.pi * f * tb) * np.exp(-tb / .32)
+        return _norm(ka * .8 + bell) * .7
+    return np.zeros(1)
+
+
+# ------------------------------------------------------------------ music bed
+
+PROGRESSIONS = [
+    [0, -4, 3, -2],     # i  VI  III VII  (minor pop)
+    [0, 3, -2, -4],     # i  III VII VI
+    [0, -4, -2, 0],     # i  VI  VII i
+]
+
+
+def music(duration: float, seed: int) -> np.ndarray:
+    """A driving, loopable bed. Stereo (n, 2). Varies by seed."""
+    r = random.Random(seed)
+    rs = np.random.RandomState(seed % (2 ** 32))
+    bpm = r.choice([112, 116, 120, 124, 128])
+    key = r.choice([45, 46, 47, 48, 49, 50, 52])       # A2..E3 roots
+    prog = r.choice(PROGRESSIONS)
+    beat = 60 / bpm
+    bar = beat * 4
+    n = int(duration * SR)
+    L, R = np.zeros(n), np.zeros(n)
+
+    def put(buf, start_s, sig):
+        s = int(start_s * SR)
+        if s >= n:
+            return
+        e = min(n, s + len(sig))
+        buf[s:e] += sig[:e - s]
+
+    # Drum one-shots, rendered once.
+    kt = _t(.35)
+    kick = np.sin(2 * np.pi * np.cumsum(48 + 120 * np.exp(-kt / .03)) / SR) * np.exp(-kt / .16)
+    kick = np.tanh(1.8 * kick)
+    st = _t(.25)
+    snare = (_band(_noise(len(st), rs), 1200, 8000) * np.exp(-st / .07)
+             + .4 * np.sin(2 * np.pi * 190 * st) * np.exp(-st / .05))
+    ht = _t(.05)
+    hat = np.diff(_noise(len(ht) + 1, rs)) * np.exp(-ht / .012)
+
+    # Sidechain envelope: everything melodic ducks under each kick -- the pump
+    # that makes short-form music feel alive.
+    duck = np.ones(n)
+    kicks = np.arange(0, duration, beat)
+    for k in kicks:
+        s = int(k * SR)
+        m = min(n - s, int(beat * SR))
+        tt = np.arange(m) / SR
+        duck[s:s + m] = np.minimum(duck[s:s + m], 1 - .65 * np.exp(-tt / .11))
+
+    # Drums
+    fill_every = r.choice([4, 8])
+    for i, k in enumerate(kicks):
+        put(L, k, kick * .9); put(R, k, kick * .9)
+        if i % 4 in (1, 3):
+            put(L, k, snare * .38); put(R, k, snare * .42)
+        for off in (0, .5):
+            vel = .16 if off else .09
+            put(L, k + off * beat, hat * vel * .8)
+            put(R, k + off * beat, hat * vel)
+        bar_i = i // 4
+        if bar_i % fill_every == fill_every - 1 and i % 4 == 3:
+            for f in (.25, .5, .75):
+                put(L, k + f * beat, snare * .22); put(R, k + f * beat, snare * .24)
+
+    # Bass: root on 8ths with an octave pop on the offbeat.
+    mel_L, mel_R = np.zeros(n), np.zeros(n)
+    bars = int(np.ceil(duration / bar))
+    note8 = beat / 2
+    for b in range(bars):
+        root = key + prog[b % len(prog)]
+        for s8 in range(8):
+            t0 = b * bar + s8 * note8
+            f = _midi(root + (12 if s8 % 2 else 0))
+            tt = _t(note8 * .92)
+            tone = _saw(f, tt, 6) * _env(len(tt), .004, .12) * .30
+            put(mel_L, t0, tone); put(mel_R, t0, tone)
+
+        # Chords: detuned saws, a minor triad voiced an octave up, whole bar.
+        tt = _t(bar)
+        env = np.minimum(1, tt / .03) * np.exp(-tt / (bar * 1.4))
+        chord_root = root + 12
+        for semis in (0, 3, 7, 12):
+            f = _midi(chord_root + semis)
+            put(mel_L, b * bar, _saw(f * 1.004, tt, 7) * env * .045)
+            put(mel_R, b * bar, _saw(f * .996, tt, 7, phase=.7) * env * .045)
+
+        # A plucked 16th arpeggio on the second half of each bar keeps motion.
+        arp = [0, 7, 12, 15, 12, 7, 3, 7]
+        for j, semis in enumerate(arp):
+            t0 = b * bar + 2 * beat + j * beat / 4
+            f = _midi(chord_root + 12 + semis)
+            tt = _t(beat / 4)
+            pl = np.sin(2 * np.pi * f * tt) * _env(len(tt), .002, .06) * .07
+            put(mel_L if j % 2 else mel_R, t0, pl)
+            put(mel_R if j % 2 else mel_L, t0 + .012, pl * .5)  # tiny ping-pong
+
+    L += mel_L * duck
+    R += mel_R * duck
+    stereo = np.stack([L, R], axis=1)
+
+    # Fade in fast, fade out over the last 1.5 s.
+    fade = np.ones(n)
+    fi, fo = int(.15 * SR), int(1.5 * SR)
+    fade[:fi] = np.linspace(0, 1, fi)
+    fade[-fo:] = np.linspace(1, 0, fo)
+    return stereo * fade[:, None]
+
+
+# ------------------------------------------------------------------ mix
+
+def mix(duration: float, cues: list, seed: int, music_gain: float = .34) -> np.ndarray:
+    n = int(duration * SR)
+    bed = music(duration, seed)
+    bed = bed / (np.max(np.abs(bed)) or 1) * music_gain
+    fx = np.zeros((n, 2))
+    rs = np.random.RandomState((seed * 7 + 3) % (2 ** 32))
+    cache = {}
+    gains = {"whoosh": .5, "slam": .8, "tick": .5, "pop": .45, "reveal": .55, "cash": .6}
+    for t, kind in cues:
+        if kind not in cache:
+            cache[kind] = sfx(kind, rs)
+        s = int(t * SR)
+        if s >= n:
+            continue
+        sig = cache[kind] * gains.get(kind, .5)
+        e = min(n, s + len(sig))
+        pan = .5 + .15 * np.sin(t * 1.7)        # slight movement between effects
+        fx[s:e, 0] += sig[:e - s] * np.cos(pan * np.pi / 2) * 1.414
+        fx[s:e, 1] += sig[:e - s] * np.sin(pan * np.pi / 2) * 1.414
+    out = bed + fx
+    # Soft limiter: gentle saturation, then peak to -1 dBFS.
+    out = np.tanh(out * 1.2) / np.tanh(1.2)
+    return _norm(out, .89)
+
+
+def write_wav(samples: np.ndarray, path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pcm = (np.clip(samples, -1, 1) * 32767).astype("<i2")
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes(pcm.tobytes())
+    return path
+
+
+def soundtrack(comp, seed: int, path: Path) -> Path:
+    """Write the mixed soundtrack for a composition and return its path."""
+    return write_wav(mix(comp.duration, comp.cues, seed), path)
+
+
+if __name__ == "__main__":
+    import sys
+    dur = float(sys.argv[1]) if len(sys.argv) > 1 else 20
+    demo = [(i * 1.0, k) for i, k in enumerate(["whoosh", "slam", "tick", "pop", "reveal", "cash"] * 3)]
+    print(write_wav(mix(dur, demo, 20260923), Path(sys.argv[2] if len(sys.argv) > 2 else "demo.wav")))

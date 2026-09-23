@@ -1,30 +1,37 @@
 name: Daily shop video
 
-# The Fortnite shop rotates at 00:00 UTC. Build just after so the video is
-# ready before anyone's awake.
+# The Fortnite shop rotates at 00:00 UTC. Build just after, so the day's three
+# videos are ready long before the first post slot (10:00 America/Chicago).
 on:
   schedule:
     - cron: "20 0 * * *"
   workflow_dispatch:        # lets you run it by hand from the Actions tab
 
 permissions:
-  contents: write           # needed to publish the release that hosts the video
+  contents: write           # needed to publish the release that hosts the videos
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
           ref: claude/creator-code-bad-automation-0jjc1k
 
-      - name: Install ffmpeg and Chromium
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Playwright drives Chromium frame by frame; numpy synthesizes the
+      # soundtrack. Both are free and open source.
+      - name: Install ffmpeg, Chromium, Python deps
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg chromium-browser || \
-          sudo apt-get install -y -qq ffmpeg chromium
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q playwright==1.56.0 numpy
+          python -m playwright install --with-deps chromium
           ffmpeg -version | head -1
-          (command -v chromium || command -v chromium-browser) && echo "chromium ok"
 
       # The shop comes from a keyless GitHub mirror, so no secret is required.
       # If FORTNITE_API_KEY is set it is used as a fallback source; if not, fine.
@@ -38,21 +45,22 @@ jobs:
           cfg["fortnite_api_key"] = os.environ.get("FORTNITE_API_KEY", "")
           cfg["telegram_bot_token"] = ""
           cfg["telegram_chat_id"] = ""
-          cfg["video_out_dir"] = ""        # keep output inside creator-code/out/<date>/
+          cfg["video_out_dir"] = ""
           pathlib.Path("creator-code/config.json").write_text(json.dumps(cfg, indent=2))
           print("config written, key present:", bool(cfg["fortnite_api_key"]))
           PY
 
-      - name: Build card, slides and video
+      - name: Build today's 3 videos
         id: build
         run: |
           set -e
           STAMP=$(date -u +%F)
           echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
-          python3 scripts/cc_daily.py --png --video
+          python3 scripts/cc_build.py
           ls -la "creator-code/out/$STAMP/"
+          cat "creator-code/out/$STAMP/manifest.json"
 
-      - name: Publish to a release (this is what gives the video a public URL)
+      - name: Publish to a release (this is what gives each video a public URL)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -63,10 +71,11 @@ jobs:
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$TAG" \
             --title "Item shop $STAMP" \
-            --notes "Auto-generated shop video and card for $STAMP." \
-            "$DIR/bad-shop-$STAMP.mp4" \
-            "$DIR/card.png" \
-            "$DIR/captions.json"
+            --notes "Three auto-generated shop videos for $STAMP. manifest.json lists post times, titles and captions." \
+            "$DIR"/bad-*.mp4 \
+            "$DIR"/bad-*-cover.png \
+            "$DIR"/bad-*-qa.jpg \
+            "$DIR/manifest.json"
           echo ""
-          echo "PUBLIC VIDEO URL:"
-          echo "https://github.com/${{ github.repository }}/releases/download/$TAG/bad-shop-$STAMP.mp4"
+          echo "VIDEO URLS:"
+          python3 -c "import json;[print(v['post_at_local'], v['url']) for v in json.load(open('$DIR/manifest.json'))['videos']]"

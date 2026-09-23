@@ -60,12 +60,28 @@ def data_uri(path: Path | None) -> str:
     return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
 
+def fetch_first(urls: list, max_tries: int = 4) -> str:
+    """data URI for the first URL in `urls` that downloads, or '' if none do.
+
+    Tries at most `max_tries` so a 59-URL bundle can't stall a build."""
+    for url in [u for u in urls if u][:max_tries]:
+        uri = data_uri(fetch(url))
+        if uri:
+            return uri
+    return ""
+
+
+def candidates(item: dict) -> list:
+    """Ordered image URLs for a shop row: the full fallback list when present."""
+    return list(item.get("images") or []) or ([item["image"]] if item.get("image") else [])
+
+
 def fetch_all(items: list, limit: int) -> dict:
     """{item name: data URI} for the first `limit` items. Missing images are
     simply absent, and the card falls back to a rarity tile for those."""
     out, got = {}, 0
     for item in items[:limit]:
-        uri = data_uri(fetch(item.get("image") or ""))
+        uri = fetch_first(candidates(item))
         if uri:
             out[item["name"]] = uri
             got += 1

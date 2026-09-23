@@ -71,12 +71,53 @@ def _iter_raw_entries(data: dict):
             yield from node["entries"]
 
 
-def _best_image(item: dict) -> str:
+def _item_images(item: dict) -> list:
+    """Every usable image URL for a cosmetic, best first."""
     images = item.get("images") or {}
-    for key in ("featured", "icon", "smallIcon"):
-        if images.get(key):
-            return images[key]
-    return ""
+    return [images[k] for k in ("featured", "icon", "smallIcon") if images.get(k)]
+
+
+def _best_image(item: dict) -> str:
+    urls = _item_images(item)
+    return urls[0] if urls else ""
+
+
+def _entry_render_images(entry: dict) -> list:
+    """The shop's own offer artwork. For bundles this is the proper group render
+    rather than whichever cosmetic happened to be listed first."""
+    nda = entry.get("newDisplayAsset") or {}
+    out = []
+    for r in nda.get("renderImages") or []:
+        url = (r or {}).get("image")
+        if url:
+            out.append(url)
+    return out
+
+
+def _day(ts: str) -> str:
+    """'2026-09-23T23:59:59.999Z' -> '2026-09-23' (UTC calendar day)."""
+    return (ts or "")[:10]
+
+
+def _tile_colors(entry: dict) -> list:
+    """Epic's own shop-tile colours for this offer, as #rrggbb, darkest first.
+
+    Using the colours the in-game shop uses is what makes a tile read as
+    Fortnite rather than as a generic template."""
+    raw = entry.get("colors") or {}
+    out = []
+    for key in ("color1", "color2", "color3", "textBackgroundColor"):
+        v = (raw.get(key) or "").strip().lstrip("#")
+        if len(v) >= 6:
+            out.append("#" + v[:6].lower())
+    return out
+
+
+def _intro(item: dict) -> dict:
+    intro = item.get("introduction") or {}
+    return {"chapter": str(intro.get("chapter") or ""),
+            "season": str(intro.get("season") or ""),
+            "text": intro.get("text") or ""}
 
 
 def _is_placeholder(name: str) -> bool:
@@ -122,6 +163,14 @@ def normalize(payload: dict) -> dict:
             "price": price,
             "regular_price": regular,
             "discounted": bool(regular and price and price < regular),
+            # inDate is 00:00Z of the UTC day the offer arrived; outDate is
+            # 23:59:59Z of its LAST UTC day. An offer whose out_day equals the
+            # shop day disappears at the next 00:00 UTC rotation.
+            "in_day": _day(entry.get("inDate")),
+            "out_day": _day(entry.get("outDate")),
+            "offer_id": entry.get("offerId") or "",
+            "section": ((entry.get("layout") or {}).get("name") or "").strip(),
+            "tile_colors": _tile_colors(entry),
         }
 
         offer_key = entry.get("offerId") or ""
@@ -145,6 +194,8 @@ def normalize(payload: dict) -> dict:
                 "is_bundle": False,
                 "bundle_size": 1,
                 "image": _best_image(item),
+                "images": _item_images(item) + _entry_render_images(entry),
+                "introduction": _intro(item),
                 **common,
             })
         else:
@@ -165,7 +216,13 @@ def normalize(payload: dict) -> dict:
                 "rarity_label": "Bundle",
                 "is_bundle": True,
                 "bundle_size": len(raw_items),
-                "image": _best_image(raw_items[0]),
+                "image": (_entry_render_images(entry) or [_best_image(raw_items[0])])[0],
+                # Group render first, then every member's art in order, so one
+                # dead URL can never blank the tile.
+                "images": _entry_render_images(entry)
+                          + [u for it in raw_items for u in _item_images(it)],
+                "member_names": [i["name"] for i in raw_items],
+                "introduction": _intro(raw_items[0]),
                 **common,
             })
 
@@ -181,6 +238,7 @@ def normalize(payload: dict) -> dict:
     rows = bundles[:2] + singles + bundles[2:]
 
     return {
+        "shop_day": _day(data.get("date")) or today_stamp(),
         "date": data.get("date") or today_stamp(),
         "fetched": today_stamp(),
         "hash": data.get("hash", ""),
