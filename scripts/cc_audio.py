@@ -8,7 +8,8 @@ download that can break. Two layers:
   - a music bed: drums, bass and chords, with tempo and key varied per video so
     three posts a day don't share one identical track
   - sound effects placed exactly on the visual cues the formats record with
-    comp.cue(t, kind): whoosh, slam, tick, pop, reveal, cash
+    comp.cue(t, kind): whoosh, slam, tick, pop, reveal, cash, and for the quizzes
+    drumroll, ding, clap, airhorn
 
 Needs numpy (pip install numpy). Writes a 44.1 kHz stereo 16-bit WAV that
 cc_motion.render() muxes into the MP4 as AAC.
@@ -122,6 +123,62 @@ def sfx(kind: str, rs: np.random.RandomState) -> np.ndarray:
         for f, a in ((2093, 1), (2637, .7), (4186, .45), (5274, .3)):
             bell[d:] += a * np.sin(2 * np.pi * f * tb) * np.exp(-tb / .32)
         return _norm(ka * .8 + bell) * .7
+    # The quiz set: game-show sounds, made here like everything else. Real emote
+    # audio is off limits -- many emotes carry licensed songs whose licence covers
+    # the game only, not uploads, and they draw copyright strikes.
+    if kind == "drumroll":
+        # A snare roll that speeds up (13 -> 28 hits a second) and swells for
+        # 1.6 s, straight into the answer.
+        dur = 1.6
+        n = int(dur * SR)
+        out = np.zeros(n)
+        ht = _t(.06)
+        t = 0.0
+        while t < dur - .03:
+            p = t / dur
+            hit = (_band(_noise(len(ht), rs), 1500, 9000) * np.exp(-ht / .018)
+                   + .35 * np.sin(2 * np.pi * 210 * ht) * np.exp(-ht / .02))
+            s = int(t * SR)
+            e = min(n, s + len(hit))
+            out[s:e] += hit[:e - s] * (.25 + .75 * p ** 1.5) * rs.uniform(.8, 1)
+            t += 1 / (13 + 15 * p)
+        return _norm(out) * .8
+    if kind == "ding":
+        # "Ding-ding": two bright bell strikes a major third apart (E6, G#6).
+        n = int(1.2 * SR)
+        out = np.zeros(n)
+        for i, note in enumerate((88, 92)):
+            s = int(i * .11 * SR)
+            tt = np.arange(n - s) / SR
+            f = _midi(note)
+            bell = sum(a * np.sin(2 * np.pi * f * m * tt) * np.exp(-tt / d)
+                       for m, a, d in ((1, 1, .45), (2.76, .35, .18), (5.4, .15, .08)))
+            out[s:] += bell * np.minimum(1, tt / .002)
+        return _norm(out) * .7
+    if kind == "clap":
+        # A small crowd clapping: seventy short noise claps, swelling then fading.
+        dur = 1.6
+        n = int(dur * SR)
+        out = np.zeros(n)
+        ct = _t(.03)
+        base = _band(_noise(len(ct) * 4, rs), 900, 5000)
+        for _ in range(70):
+            s = int(rs.uniform(0, dur - .05) * SR)
+            k = rs.randint(0, 3) * len(ct)
+            clap = base[k:k + len(ct)] * np.exp(-ct / .006) * rs.uniform(.4, 1)
+            out[s:s + len(clap)] += clap
+        tt = _t(dur)
+        return _norm(out * np.minimum(1, tt / .15) * np.exp(-tt / .7)) * .6
+    if kind == "airhorn":
+        # Three blasts on a brassy A-major chord: short, short, long.
+        out = np.zeros(int(1.05 * SR))
+        for start, length in ((0, .13), (.18, .13), (.36, .6)):
+            tt = _t(length)
+            env = np.minimum(1, tt / .01) * np.minimum(1, (length - tt) / .05)
+            tone = sum(_saw(_midi(m) * d, tt, 14) for m in (57, 61, 64) for d in (.997, 1.003))
+            s = int(start * SR)
+            out[s:s + len(tt)] += np.tanh(2.2 * tone / 6) * env
+        return _norm(out) * .75
     return np.zeros(1)
 
 
@@ -241,7 +298,8 @@ def mix(duration: float, cues: list, seed: int, music_gain: float = .34) -> np.n
     fx = np.zeros((n, 2))
     rs = np.random.RandomState((seed * 7 + 3) % (2 ** 32))
     cache = {}
-    gains = {"whoosh": .5, "slam": .8, "tick": .5, "pop": .45, "reveal": .55, "cash": .6}
+    gains = {"whoosh": .5, "slam": .8, "tick": .5, "pop": .45, "reveal": .55, "cash": .6,
+             "drumroll": .45, "ding": .55, "clap": .32, "airhorn": .5}
     for t, kind in cues:
         if kind not in cache:
             cache[kind] = sfx(kind, rs)

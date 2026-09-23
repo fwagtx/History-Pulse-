@@ -216,8 +216,14 @@ def _code_stamp(comp: Comp, end: float) -> str:
             f'</div></div></div>')
 
 
+# A cosmetic as a solid shape with a thin light rim, for quizzes that ask who it is.
+SILHOUETTE = ("brightness(0) drop-shadow(0 0 4px rgba(255,255,255,.95)) "
+              "drop-shadow(0 0 22px rgba(232,255,58,.45))")
+
+
 def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: float,
-                a_item: dict = None, b_item: dict = None, colors: list = None):
+                a_item: dict = None, b_item: dict = None, colors: list = None,
+                kicker: str = "", silhouette: bool = False):
     """The first 3 seconds decide everything: big words, motion, a reason to stay.
 
     Frame 0 IS the thumbnail. TikTok shows the first frame as a video lands in
@@ -225,16 +231,22 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     is already there on frame 0: title, date, the video's own cosmetics, the
     sticker and code BAD. Nothing flies in from off screen. The motion comes
     from beats that start and end at rest -- the cosmetics hop, the title thumps,
-    the sticker boings -- each on its sound cue."""
+    the sticker boings -- each on its sound cue.
+
+    `kicker` replaces the shop date line (the quizzes aren't about a day's
+    shop); `silhouette` blacks the cosmetics out so a quiz's thumbnail never
+    gives an answer away."""
     inner = tile_bg(colors or ["#232329", "#0d0d10"], "", 0)
+    chars = ""
     if a_item:
-        inner += character(ctx.art(a_item), 270, 1150, 760, HOOK_WHOOSH_A, "hop", .45, "float",
+        chars += character(ctx.art(a_item), 270, 1150, 760, HOOK_WHOOSH_A, "hop", .45, "float",
                            a_item["rarity"], a_item["name"])
     if b_item:
-        inner += character(ctx.art(b_item), 810, 1150, 760, HOOK_WHOOSH_B, "hop", .45, "sway",
+        chars += character(ctx.art(b_item), 810, 1150, 760, HOOK_WHOOSH_B, "hop", .45, "sway",
                            b_item["rarity"], b_item["name"])
+    inner += f'<div class="full" style="filter:{SILHOUETTE}">{chars}</div>' if silhouette else chars
     inner += _code_stamp(comp, end)
-    inner += label(f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
+    inner += label(kicker or f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
                    ACCENT, 800, anim="none", align="center", spacing=".17em")
     # Sized to fit on one line with room for the thump, so a long title
     # ("GUESS THE PRICE") never runs off the sides.
