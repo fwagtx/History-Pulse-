@@ -269,9 +269,14 @@ class Planner:
                 block = FORMATS[:]
                 self.r.shuffle(block)
             today, block = block[:3], block[3:]
+            done_today = set()
             for (slot, at), fmt in zip(SLOTS, today):
                 got = None
-                for f in [fmt] + [x for x in FORMATS if x not in today]:
+                # If a format has run out of fresh items, fall back to one the day
+                # hasn't had yet, so no day shows the same quiz twice.
+                for f in [fmt] + [x for x in FORMATS if x not in today] + [x for x in today if x != fmt]:
+                    if f in done_today:
+                        continue
                     got = getattr(self, f)()
                     if got:
                         fmt = f
@@ -280,6 +285,7 @@ class Planner:
                     log(f"{start + timedelta(d)} slot {slot}: nothing plannable")
                     continue
                 spec, items = got
+                done_today.add(fmt)
                 self.take(items)
                 self.episodes[fmt] += 1
                 for it in items:
