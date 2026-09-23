@@ -2,7 +2,7 @@
 Build the day's three @usecodebad videos from the live item shop.
 
     python3 scripts/cc_build.py [--art DIR] [--preview] [--only FORMAT,...]
-                                [--wait MINUTES] [--no-video]
+                                [--wait MINUTES] [--no-video] [--release TAG]
 
 What it does, in order:
   1. Fetches the shop and checks it is TODAY's shop. The mirror can lag the
@@ -255,6 +255,8 @@ def main():
     ap.add_argument("--shop", help="use this shop.json instead of fetching (QA)")
     ap.add_argument("--no-video", action="store_true", help="plan + stills only")
     ap.add_argument("--jobs", type=int, default=0, help="videos to render at once (default: cores/2)")
+    ap.add_argument("--release", help="release tag the videos will live under (default shop-DAY; "
+                                      "a remake of chosen formats uses shop-DAY-remake)")
     args = ap.parse_args()
 
     import json
@@ -274,7 +276,7 @@ def main():
     if not chosen:
         raise SystemExit("No video could be built today.")
 
-    tag = f"shop-{day.isoformat()}"
+    tag = args.release or f"shop-{day.isoformat()}"
     base = f"https://github.com/{REPO}/releases/download/{tag}/"
     rot = rotation(day)
     ext = "webm" if args.preview else "mp4"

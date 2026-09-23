@@ -6,6 +6,14 @@ on:
   schedule:
     - cron: "20 0 * * *"
   workflow_dispatch:        # lets you run it by hand from the Actions tab
+    inputs:
+      formats:
+        description: >-
+          Optional: re-make only these formats for today's shop, e.g.
+          this_or_that,guess_price. They go to a release of their own
+          (shop-DATE-remake), so the day's main set is left alone.
+        required: false
+        default: ""
 
 permissions:
   contents: write           # needed to publish the release that hosts the videos
@@ -50,25 +58,38 @@ jobs:
           print("config written, key present:", bool(cfg["fortnite_api_key"]))
           PY
 
-      - name: Build today's 3 videos
+      - name: Build today's videos
         id: build
+        env:
+          FORMATS: ${{ inputs.formats }}
         run: |
           set -e
           STAMP=$(date -u +%F)
           echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
-          python3 scripts/cc_build.py
+          if [ -n "$FORMATS" ]; then
+            [[ "$FORMATS" =~ ^[a-z_]+(,[a-z_]+)*$ ]] || { echo "::error::formats must look like this_or_that,guess_price"; exit 1; }
+            TAG="shop-$STAMP-remake"
+            echo "title=Item shop $STAMP (remade: $FORMATS)" >> "$GITHUB_OUTPUT"
+            python3 scripts/cc_build.py --only "$FORMATS" --release "$TAG"
+          else
+            TAG="shop-$STAMP"
+            echo "title=Item shop $STAMP" >> "$GITHUB_OUTPUT"
+            python3 scripts/cc_build.py
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           ls -la "creator-code/out/$STAMP/"
           cat "creator-code/out/$STAMP/manifest.json"
 
       - name: Publish to a release (this is what gives each video a public URL)
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.build.outputs.tag }}
+          TITLE: ${{ steps.build.outputs.title }}
         run: |
           set -e
           STAMP="${{ steps.build.outputs.stamp }}"
           DIR="creator-code/out/$STAMP"
-          TAG="shop-$STAMP"
-          NOTES="Three auto-generated shop videos for $STAMP. manifest.json lists post times, titles and captions."
+          NOTES="Auto-generated shop videos for $STAMP. manifest.json lists post times, titles and captions."
           FILES=("$DIR"/bad-*.mp4 "$DIR"/bad-*-cover.png "$DIR"/bad-*-qa.jpg "$DIR/manifest.json")
           if gh release view "$TAG" --json isDraft >/dev/null 2>&1; then
             # Same-day re-run: swap the files in place and keep the tag. Deleting
@@ -78,9 +99,9 @@ jobs:
               gh release delete-asset "$TAG" "$a" --yes
             done
             gh release upload "$TAG" "${FILES[@]}" --clobber
-            gh release edit "$TAG" --draft=false --title "Item shop $STAMP" --notes "$NOTES"
+            gh release edit "$TAG" --draft=false --title "$TITLE" --notes "$NOTES"
           else
-            gh release create "$TAG" --title "Item shop $STAMP" --notes "$NOTES" "${FILES[@]}"
+            gh release create "$TAG" --title "$TITLE" --notes "$NOTES" "${FILES[@]}"
           fi
           # gh uploads into a draft and then publishes it. Make sure that took:
           # Metricool can only fetch from a public release.
