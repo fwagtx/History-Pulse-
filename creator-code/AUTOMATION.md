@@ -99,7 +99,8 @@ upcoming videos. To go past March 2027, ask Claude to extend the plan.
 - On Instagram, each video goes out as a **Reel** in its own post, because Instagram allows
   only **5 hashtags** (since December 2025) and #EpicPartner is one of them: the same
   description, with the hashtags cut to `#EpicPartner #usecodebad #creatorcodebad #codebad
-  #fortnite`
+  #fortnite`. So in Metricool's planner every video shows twice at the same time, and
+  that's intended: don't tick Instagram on the main post, or Instagram gets it twice
 - Never the word "discount" — the code isn't one
 
 ---
