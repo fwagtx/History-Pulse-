@@ -101,7 +101,7 @@ To change the code or wording, edit the text at the bottom of the file — no co
 ## Do this on stream
 
 - **Put the code in the stream title.** Free, permanent, seen in the LIVE tab before anyone clicks.
-- **Say it naturally, occasionally.** "Code BAD if you're shopping, costs you nothing" — once
+- **Say it naturally, occasionally.** "Code BAD if you're shopping, I'm an Epic partner" — once
   every 20 minutes or so, not every two minutes.
 - **Rename your Fortnite display name to `usecodebad`.** ~99 players see it every match whether
   you're streaming or not. Passive, permanent, free.

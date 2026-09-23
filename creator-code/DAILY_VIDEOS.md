@@ -181,6 +181,6 @@ new habit.
 
 - Don't open with the code. You'll lose the first three seconds, which are the only ones that matter.
 - Don't say it more than once per video.
-- Don't claim it's a discount. It isn't — "costs you nothing extra" is true and sounds the same.
+- Don't claim it's a discount. It isn't.
 - Don't skip the disclosure. `#EpicPartner` in the caption, said once out loud. The overlay
   carries it automatically.

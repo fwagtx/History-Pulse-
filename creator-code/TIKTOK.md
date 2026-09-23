@@ -173,12 +173,11 @@ One of each per day beats five of one. If you can only do one thing, do the shop
 
 ## Two compliance notes
 
-- **Disclose.** Epic requires it and so does TikTok. Say "I get a commission, costs you nothing
-  extra" in the video, plus `#EpicPartner` in the caption, and flip TikTok's commercial-content
-  toggle. Keep it casual — it's one line, not a disclaimer.
-- **Never say the code gives a discount.** It doesn't. It costs the buyer nothing extra, which is
-  true and sounds just as good. Claiming a discount is the kind of deceptive claim that gets
-  codes revoked.
+- **Disclose.** Epic requires it and so does TikTok. Say "I'm an Epic partner" in the video,
+  plus `#EpicPartner` in the caption, and flip TikTok's commercial-content toggle. Keep it
+  casual — it's one line, not a disclaimer.
+- **Never say the code gives a discount.** It doesn't. Claiming a discount is the kind of
+  deceptive claim that gets codes revoked.
 
 `scripts/cc_daily.py` already generates a 1080×1920 shop card every day — correct TikTok
 dimensions, ready to drop straight into a clip as your B-roll or end card.
