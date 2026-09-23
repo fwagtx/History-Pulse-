@@ -1,67 +1,64 @@
-# How the daily video reaches Metricool, automatically
+# How 3 videos a day reach Metricool, automatically
 
-**You do one thing, once. After that it runs by itself.**
-
----
-
-## Setup: none
-
-The shop data now comes from a public GitHub mirror that needs **no API key and no
-Discord sign-up**. There is nothing to configure.
-
-*(Optional: if you ever do get a fortnite-api.com key, add it as a repo secret named
-`FORTNITE_API_KEY` and it'll be used as a backup source. Not needed.)*
+**Nothing to set up. It runs by itself every day.**
 
 ---
 
 ## What happens every day, without you
 
-**00:20 UTC** — GitHub Actions wakes up (free, unlimited on public repos), fetches the day's
-shop, downloads every cosmetic's real artwork, renders the slides, builds the ~61-second video,
-and publishes it as a **release**.
+**Right after the shop resets (7 PM Central now, 6 PM after Nov 1)** — GitHub builds
+**three** videos from the new shop, each over a minute long, with real cosmetic art, motion,
+music and sound effects. It puts them online as a **release** (that gives each video a
+public link Metricool can pull from).
 
-That last part is the trick: a GitHub release gives the video a **public URL**, which is exactly
-what Metricool needs to pull it in. No Google Drive, no uploading, no your-Mac-being-on.
+**7:00 AM Central** — the daily Routine adds all three to Metricool as **drafts** for
+brand **7066444** (`usecodebad`) — TikTok and YouTube Shorts:
 
-The URL is predictable:
-```
-https://github.com/fwagtx/History-Pulse-/releases/download/shop-YYYY-MM-DD/bad-shop-YYYY-MM-DD.mp4
-```
+| Time (Central) | Video | What it is |
+|---|---|---|
+| 10:00 AM | Shop Recap | Today's shop: the headline items and prices |
+| 1:30 PM | A game | Rotates daily: This or That · Guess the Price · Which Costs More · Cop or Drop |
+| 5:00 PM | Value / urgency | Rotates daily: Last Chance · Bundle Math · OG Check · New This Week |
 
-**07:00 Central** — the daily routine fires, writes that day's script, and schedules the shop
-video into Metricool against brand **7066444** (`usecodebad`).
+All three times are **before** the shop resets, so no video ever shows items that are gone.
 
-**You** — film your gameplay video whenever you like. The shop video covers the days you don't.
+If a day's shop can't honestly support a format (say, only 2 items are leaving), that slot
+quietly switches to another format. Every word on screen comes from the real shop data.
+
+**You** — open Metricool, watch the drafts, and publish the ones you like.
 
 ---
 
-## Test it right now, without waiting
+## Every post includes
 
-1. Go to **[Actions → Daily shop video](https://github.com/fwagtx/History-Pulse-/actions/workflows/daily-shop-video.yml)**
-2. Click **Run workflow** → pick the `claude/creator-code-bad-automation-0jjc1k` branch → **Run**
-3. Wait ~3 minutes
-4. Check **[Releases](https://github.com/fwagtx/History-Pulse-/releases)** — the video will be there
+- `#usecodebad #creatorcodebad #codebad` first, every time
+- `#EpicPartner` and "I get a commission from purchases made with code BAD"
+- TikTok's **branded content** switch on (the rules require it for a creator code)
+- "costs you nothing extra" — never "discount", because it isn't one
 
-If it fails, open the run and read the red step. Send me what it says and I'll fix it.
+---
+
+## Test it right now
+
+1. **[Actions → Daily shop video](https://github.com/fwagtx/History-Pulse-/actions/workflows/daily-shop-video.yml)** → **Run workflow** → **Run**
+2. Wait ~25 minutes
+3. **[Releases](https://github.com/fwagtx/History-Pulse-/releases)** — three videos, their covers,
+   a quick-look sheet per video (`-qa.jpg`) and `manifest.json` (times + captions)
 
 ---
 
 ## Draft or live?
 
-Scheduled posts can be created as **drafts** (they sit in Metricool and publish nothing) or
-**live** (they go out automatically at the scheduled time).
-
-**Start with drafts.** Watch a few, confirm they look right, then switch to live. Once it's live
-it is posting to a public account with no human in the loop, so it's worth earning that trust
-first.
+Right now everything lands as a **draft**: nothing posts until you press go. When you're
+happy with a week of them, say so and the Routine can switch to posting on its own.
 
 ---
 
 ## If something breaks
 
-| Symptom | Cause |
+| Symptom | What it means |
 |---|---|
-| Action fails at "Write config" | The `FORTNITE_API_KEY` secret isn't set |
-| Action fails at "Build" | Shop API changed or key expired — send me the log |
-| No release appears | The build step failed earlier in the run |
-| Metricool post has no video | The release didn't exist when it was scheduled |
+| Build step says "Shop source still shows …" | The shop mirror hadn't updated yet. It waits 50 min before giving up, on purpose, so it never posts yesterday's shop. Re-run it. |
+| Fewer than 3 videos | Some formats couldn't be made honestly from that day's shop. Normal on thin days. |
+| No release appears | The build failed — open the run, read the red step, send it to me |
+| Metricool has no drafts | The release didn't exist at 7 AM; the Routine skips rather than guessing |
