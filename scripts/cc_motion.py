@@ -66,6 +66,7 @@ BASE_CSS = f"""
 @property --p {{ syntax:'<number>'; inherits:false; initial-value:1; }}
 @property --n {{ syntax:'<integer>'; inherits:false; initial-value:0; }}
 *{{margin:0;padding:0;box-sizing:border-box}}
+*,*::before,*::after{{animation-play-state:paused !important}}
 html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{INK};color:#fff;
   font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}}
 .d{{font-family:'Anton',Impact,sans-serif;text-transform:uppercase;letter-spacing:.01em;
@@ -403,9 +404,13 @@ SETTLE_JS = """async (t) => {
   for (const a of document.getAnimations()) { a.pause(); a.currentTime = t; }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }"""
-# Chromium's very first capture after load can come back with unpainted tiles
-# (black), so every render begins with a throwaway warm-up capture. Measured: 1 in
-# 24 probe frames failed, always the first; none after warm-up.
+# Chromium's first capture after load or after a big jump can show a stale frame:
+# unpainted tiles (black), or the page as it looked a second or two into playback.
+# Two guards: every animation is created paused (BASE_CSS), so real time never
+# moves the page; and the captures that matter most -- frame 0, which is the
+# thumbnail, and QA stills -- go through stable_shot(), which re-captures until
+# two in a row agree. Under parallel load 1 in 4 first frames were stale before;
+# 0 in 8 after.
 CHROME_ARGS = ["--no-sandbox", "--font-render-hinting=none", "--force-color-profile=srgb",
                "--hide-scrollbars", "--run-all-compositor-stages-before-draw",
                "--disable-checker-imaging", "--disable-new-content-rendering-timeout"]
@@ -414,6 +419,27 @@ READY_JS = """async () => {
   await document.fonts.ready;
   await Promise.all([...document.images].map(i => i.decode ? i.decode().catch(() => {}) : null));
 }"""
+
+
+def stable_shot(page, t_ms: float, kind: str = "jpeg", tries: int = 8) -> bytes:
+    """Seek to t_ms and screenshot until two captures in a row are identical.
+
+    The first capture after a big jump can show a frame the compositor drew
+    earlier (seen on the build machine under load: frame 0 showing the page a
+    second or two in). Asking again until the picture stops changing makes the
+    frame we keep the frame that is actually on screen at t_ms."""
+    opts = {"type": kind}
+    if kind == "jpeg":
+        opts["quality"] = 90
+    page.evaluate(SETTLE_JS, t_ms)
+    prev = page.screenshot(**opts)
+    for _ in range(tries):
+        page.evaluate(SETTLE_JS, t_ms)
+        cur = page.screenshot(**opts)
+        if cur == prev:
+            return cur
+        prev = cur
+    return prev
 
 
 def find_ffmpeg() -> str:
@@ -459,20 +485,20 @@ def render(comp: Comp, out: Path, audio: Path | None = None, preview: bool = Fal
         page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
         page.set_content(doc, wait_until="load")
         page.evaluate(READY_JS)
-        page.evaluate(SETTLE_JS, 0)
-        page.screenshot(type="jpeg")                     # warm-up, discarded
+        first = stable_shot(page, 0)                     # frame 0 is the thumbnail: be sure of it
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         try:
             for i in range(n):
                 t = i / fps
+                if i == 0:
+                    proc.stdin.write(first)
+                    continue
                 page.evaluate(SEEK_JS, t * 1000)
                 proc.stdin.write(page.screenshot(type="jpeg", quality=90))
                 if i % (fps * 10) == 0:
                     log(f"  frame {i}/{n} ({t:.0f}s)")
             for s in stills:
-                page.evaluate(SETTLE_JS, s * 1000)
-                page.screenshot(type="jpeg")             # warm-up after a jump, discarded
-                page.screenshot(path=str(stills_dir / f"t{s:06.2f}.png"))
+                (stills_dir / f"t{s:06.2f}.png").write_bytes(stable_shot(page, s * 1000, "png"))
         finally:
             proc.stdin.close()
             code = proc.wait()
@@ -494,11 +520,8 @@ def snapshot(comp: Comp, times: list, out_dir: Path) -> list:
         page.evaluate(READY_JS)
         page.screenshot(type="jpeg")                     # first paint, discarded
         for t in times:
-            page.evaluate(SETTLE_JS, t * 1000)
-            page.screenshot(type="jpeg")                 # warm-up after a jump, discarded
-            page.evaluate(SETTLE_JS, t * 1000)
             path = out_dir / f"t{t:06.2f}.png"
-            page.screenshot(path=str(path))
+            path.write_bytes(stable_shot(page, t * 1000, "png"))
             paths.append(path)
         browser.close()
     return paths

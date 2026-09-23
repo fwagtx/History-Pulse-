@@ -197,7 +197,8 @@ def _code_stamp(comp: Comp, end: float) -> str:
              f"100%{{transform:translate({48 - STAMP_X}px,{SAFE_TOP - STAMP_Y}px) "
              f"scale({STAMP_TO_BADGE:.3f}) rotate(0deg);opacity:0}}}}")
     # The corner badge waits until the stamp gets there.
-    comp.css(f".codebadge{{animation:fadein .15s linear {dock_end - .12:.3f}s both !important}}")
+    # ("paused" like every animation: the renderer moves them, real time never does)
+    comp.css(f".codebadge{{animation:fadein .15s linear {dock_end - .12:.3f}s both paused !important}}")
     comp.cue(dock_start, "whoosh")
     beats = style_anim(an("thump", HOOK_SLAM, .4, fill="none"),
                        an("pulse", 1.5, .5, "ease-in-out", fill="none"))
