@@ -1,5 +1,18 @@
 # Creator Code BAD — Operating Rules
 
+## ⛔ ACCOUNT ISOLATION — read this first
+
+This project touches **@usecodebad ONLY**.
+
+- Metricool brand ID **7066444** — TikTok `usecodebad`, YouTube `UCA9fkJZbLeR5uXTU82Ur74Q`
+- Every scheduled post, every analytics call, every account action uses that brand id and no other.
+- The account holder has a separate, unrelated venture in the same Metricool account. **Never read
+  it, never write to it, never schedule to it, never reference it.** If a task seems to call for
+  it, stop and ask instead.
+- Before any post is scheduled, confirm the brand id is 7066444. If it is not, do not proceed.
+
+This is not a preference. Treat it as a hard boundary.
+
 These are the guardrails the scripts in `scripts/cc_*.py` are built against. They exist because
 **the code is the asset.** A revoked code earns $0 permanently, which is strictly worse than a
 slower compliant ramp. Don't trade the asset for a short-term spike.
