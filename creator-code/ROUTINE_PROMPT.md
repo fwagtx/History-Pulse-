@@ -128,8 +128,10 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
     and title, draft false, all three networks (tiktok, youtube, facebook) on the main
     post, and its Instagram post beside it.
 3f. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
-    America/Chicago). Anything from yesterday still in that list did not fully publish -
-    name it, and which network shows the error, in the summary so the owner knows.
+    America/Chicago). Posts stay in that list after they go out: a network that posted
+    shows status "PUBLISHED" under "providers". Name any post where a network shows any
+    other status, with its detailedStatus, in the summary so the owner knows it did not go
+    out there.
 
 STEP 4 - KEEP TWO WEEKS OF QUIZ VIDEOS SCHEDULED.
 On top of the shop videos there are three quiz videos a day (8:00 AM, 3:30 PM and 8:00 PM
