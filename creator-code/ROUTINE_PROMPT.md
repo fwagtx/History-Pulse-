@@ -102,7 +102,7 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
   Every post time in the manifest is before the shop resets (7 PM CDT / 6 PM CST). Never
   move a post later. If a slot's time has already passed, skip it.
   Do not add videoThumbnailUrl or videoCoverMilliseconds.
-  Never claim the code gives a discount - "costs you nothing extra" is the honest phrasing.
+  Never claim the code gives a discount, and never add wording to the caption.
 3e. Call getScheduledPosts again and confirm each new post is there with the right time
     and title, and with draft false.
 3f. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59

@@ -32,10 +32,35 @@ delete or edit it in Metricool's planner before its time.
 
 ## Every post includes
 
-- `#usecodebad #creatorcodebad #codebad` first, every time
+- **A thumbnail on the first frame**: title, the full date, the video's own items, the
+  format's sticker and a big **CREATOR CODE BAD**. TikTok uses a video's first frame as its
+  cover when none is picked, so this is what shows on the profile grid.
+- **The full date with the year** ("September 23, 2026") in the titles, the description
+  and on screen
+- **A clean description**, same layout every time:
+
+  ```
+  ⚔️ THIS OR THAT — Fortnite Item Shop, September 23, 2026
+  5 rounds, every item from today's shop. Pick A or B 👇
+
+  1️⃣ ISuperSpeed 🆚 Aeronaut
+  2️⃣ PAC-MAN's Gloves 🆚 Bow of the Vanquisher
+  …
+
+  💬 Comment your picks in order, like ABBAB
+
+  💚 Creator Code: BAD
+  #EpicPartner — I get a commission from purchases made with code BAD.
+
+  #usecodebad #creatorcodebad #codebad #fortnite …
+  ```
+
+  Games never list prices in the description (they're the answers). If a description
+  ever runs long, list lines drop from the end — the disclosure and hashtags never do.
+- `#usecodebad #creatorcodebad #codebad` first in the hashtags, every time
 - `#EpicPartner` and "I get a commission from purchases made with code BAD"
 - TikTok's **branded content** switch on (the rules require it for a creator code)
-- "costs you nothing extra" — never "discount", because it isn't one
+- Never the word "discount" — the code isn't one
 
 ---
 
