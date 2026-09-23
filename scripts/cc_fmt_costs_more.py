@@ -19,6 +19,8 @@ Truth rules this format keeps:
 Nothing else is claimed: no "most people picked", no rating, no "back"/"rare".
 """
 
+import math
+
 from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_RIGHT, EASE_BACK, Comp, an, burst,
                        character, code_badge, countdown, disclosure, esc, hexcol, price_roll,
                        progress, sticker, style_anim, tile_bg, words)
@@ -48,7 +50,7 @@ T_GAP = T_LAND + .45             # gap badge
 
 # Layout (px). Everything important sits in y 190..1480; below y=880 it stays left
 # of x=960 (TikTok's like/comment rail).
-HEAD_Y, HEAD_SIZE = 318, 92
+HEAD_Y, HEAD_SIZE = 326, 92
 A_CX, B_CX = 282, 798
 CHAR_BOTTOM = 1110
 MID_X, MID_Y, RING = W / 2, 780, 220
@@ -56,7 +58,7 @@ COL_L, COL_R, COL_W = 60, SAFE_RIGHT - 10, 410  # name columns: A from 60, B end
 NAME_BOTTOM = 1282
 PLATE_Y, PLATE_W, PLATE_H = 1300, 400, 160
 SPLIT = 120                                  # the seam leans this far across the frame
-CROWN_MIN_TOP = 458                          # header tape ends ~423; the crown bobs up 22px
+CROWN_MIN_TOP = 466                          # header tape ends ~431; the crown bobs up 22px
 
 # Anton advance widths in em, measured in the render browser. Used to size names
 # so they never wrap awkwardly or run off their half of the frame.
@@ -257,7 +259,6 @@ def _panel(item: dict, left: bool, t0: float, winner: bool, cx: float, cy: float
 
 def _seam(t0: float) -> str:
     """The dark diagonal between the halves draws itself top to bottom."""
-    import math
     deg = math.degrees(math.atan2(SPLIT, H))
     return (f'<div class="abs" style="left:{MID_X - 5:.0f}px;top:-40px;width:10px;height:{H + 80}px;'
             f'transform:rotate({deg:.3f}deg)"><div class="full" style="background:{INK};'
