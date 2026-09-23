@@ -22,9 +22,10 @@ Then tell me it's set up and I'll delete the older script-only Routine so you do
 ## Paste this as the prompt
 
 ```
-Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script, and
-schedule today's THREE auto-made shop videos in Metricool to post automatically to TikTok,
-YouTube Shorts and Facebook.
+Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script,
+schedule today's THREE auto-made shop videos, and keep TWO WEEKS of auto-made quiz videos
+(three a day) scheduled - all in Metricool, posting automatically to TikTok, YouTube Shorts
+and Facebook.
 
 === ACCOUNT ISOLATION - NON-NEGOTIABLE ===
 This account has TWO Metricool brands. You may ONLY touch brand id 7066444
@@ -117,9 +118,31 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
     America/Chicago). Anything from yesterday still in that list did not fully publish -
     name it, and which network shows the error, in the summary so the owner knows.
 
-STEP 4 - SUMMARY. Short and plain: format used for the script and its hook line, whether
-the script pushed, for each of the 3 videos its time, format and the networks it is
-scheduled on (or why not), and any of yesterday's posts that did not go out.
+STEP 4 - KEEP TWO WEEKS OF QUIZ VIDEOS SCHEDULED.
+On top of the shop videos there are three quiz videos a day (8:00 AM, 3:30 PM and 8:00 PM
+Central), built ahead of time from a fixed plan and published one release per day:
+    https://github.com/fwagtx/History-Pulse-/releases/download/quiz-YYYY-MM-DD/manifest.json
+4a. For each day D from today to today + 13 (YYYY-MM-DD in UTC, like the shop), download
+    that day's quiz manifest with curl -fsSL. If it is missing, that day isn't built yet:
+    skip it (mention it in the summary only if D is within the next 3 days). Use a
+    manifest only if its "quiz_day" equals D.
+4b. Check every video in it like 3b (its url answers, duration at least 60, caption
+    contains "#EpicPartner" and "#usecodebad") and also that its duration is at most 90.
+    Skip any video that fails.
+4c. Call getScheduledPosts ONCE for brandId "7066444", timezone "America/Chicago", from
+    today 00:00 to today + 14 at 23:59. Skip any quiz video whose "title" already equals
+    the tiktokData.title of a post in that list (no duplicates).
+4d. For each remaining video whose post_at_local is at least 15 minutes in the future,
+    call createScheduledPost exactly as in 3d - same blogId "7066444", providers,
+    tiktokData, youtubeData, facebookData ("REEL"), draft false, autoPublish true - with
+    date = its "post_at_iso" and publicationDate.dateTime = its "post_at_local". Quiz
+    videos are not tied to the shop reset, so the 8:00 PM slot is fine.
+4e. Call getScheduledPosts again and confirm each quiz post you added is there.
+
+STEP 5 - SUMMARY. Short and plain: format used for the script and its hook line, whether
+the script pushed, for each of the 3 shop videos its time, format and the networks it is
+scheduled on (or why not), how many quiz posts you added and the furthest day now queued,
+and any of yesterday's posts that did not go out.
 ```
 
 ---

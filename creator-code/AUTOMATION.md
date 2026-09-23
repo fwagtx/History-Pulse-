@@ -17,17 +17,50 @@ Facebook:
 
 | Time (Central) | Video | What it is |
 |---|---|---|
+| 8:00 AM | **Quiz** | One of the six quiz types below |
 | 10:00 AM | Shop Recap | Today's shop: the headline items and prices |
 | 1:30 PM | A game | Rotates daily: This or That · Guess the Price · Which Costs More · Cop or Drop |
+| 3:30 PM | **Quiz** | |
 | 5:00 PM | Value / urgency | Rotates daily: Last Chance · Bundle Math · OG Check · New This Week |
+| 8:00 PM | **Quiz** | |
 
-All three times are **before** the shop resets, so no video ever shows items that are gone.
+All three shop times are **before** the shop resets, so no shop video ever shows items that
+are gone. The quizzes aren't about the day's shop, so they can go out in the evening.
 
 If a day's shop can't honestly support a format (say, only 2 items are leaving), that slot
 quietly switches to another format. Every word on screen comes from the real shop data.
 
 **You** — nothing. Check the account when you like; to pull a video before it goes out,
 delete or edit it in Metricool's planner before its time.
+
+---
+
+## Quiz videos (three more a day)
+
+Added 2026-09-23. **540 are planned, three a day through March 22, 2027**, in
+`creator-code/quiz/plan.json`:
+
+- **Guess the Season** — six cosmetics; which season did each come out in?
+- **Who's That Skin?** — six silhouettes, four names each
+- **Which Came First?** — five pairs; which skin is older?
+- **Zoomed In** — six extreme close-ups that pull back
+- **Odd One Out** — five rounds of four skins; three share a set
+- **Season Throwback** — eight skins from one season, starting at Chapter 1 Season 1
+
+Every answer comes from Epic's own item data (the cosmetics mirror the shop uses), never
+from memory. The descriptions never give answers away.
+
+Each quiz promotes the code like the shop videos: the CREATOR CODE BAD sticker on the first
+frame, the code badge and #EpicPartner the whole way through, the USE CREATOR CODE BAD
+ending, and `💚 Creator Code: BAD · #EpicPartner` in the description. The sounds (drumroll,
+ding, clapping, air horn) are made from scratch: real emote audio would draw copyright
+strikes.
+
+**How they get out:** every night GitHub builds the day two weeks ahead
+(**[Actions → Quiz videos](https://github.com/fwagtx/History-Pulse-/actions/workflows/quiz-videos.yml)**,
+one release per day called `quiz-YYYY-MM-DD`), and the 7 AM Routine keeps the next two weeks
+scheduled in Metricool. Building only two weeks ahead means a design change still reaches the
+upcoming videos. To go past March 2027, ask Claude to extend the plan.
 
 ---
 

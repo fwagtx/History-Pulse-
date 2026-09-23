@@ -64,17 +64,18 @@ These are the ones that get codes revoked and accounts banned.
 
 ## Mandatory disclosure
 
-Every promotional post needs it. `scripts/cc_captions.py` appends this automatically — don't
-strip it out.
+Every promotional post needs it: **#EpicPartner**, on screen and in the description. The
+generators (`scripts/cc_formats.py`, `scripts/cc_quiz.py`) end every description with
+`💚 Creator Code: BAD · #EpicPartner` and keep #EpicPartner on screen for the whole video —
+don't strip either out. TikTok posts also carry TikTok's branded-content label.
 
-> `#EpicPartner — I get a commission from purchases made with code BAD.`
+On 2026-09-23 the owner dropped the longer "I get a commission from purchases made with code
+BAD" sentence and the "costs you nothing extra" line from the posts. Don't add them back.
 
-Say it in the video too, not just the description. Short forms that work:
-- "Use code BAD in the item shop — I get a cut, costs you nothing extra."
-- "#EpicPartner"
+In a filmed script, a short spoken form works: "Use code BAD in the Item Shop — I'm an Epic
+partner."
 
-Note the honest framing: it costs the buyer nothing extra, but it is **not a discount**. Never
-imply otherwise.
+It is **not a discount**. Never imply otherwise.
 
 ---
 
