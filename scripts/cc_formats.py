@@ -124,28 +124,41 @@ def _pad(content_end: float) -> float:
     return max(7.5, MIN_SECONDS - content_end)
 
 
+# The hook's beats. Every format cues its opening sounds at these times (whoosh
+# .15 and .3, slam .2, pop .9), so the motion lands on the sound.
+HOOK_WHOOSH_A, HOOK_SLAM, HOOK_WHOOSH_B, HOOK_POP, HOOK_SUB = .15, .2, .3, .9, 1.1
+
+
 def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: float,
                 a_item: dict = None, b_item: dict = None, colors: list = None):
-    """The first 3 seconds decide everything: big words, motion, a reason to stay."""
+    """The first 3 seconds decide everything: big words, motion, a reason to stay.
+
+    Frame 0 IS the thumbnail. TikTok shows the first frame as a video lands in
+    the feed and, on a personal account, as its cover, so the finished picture
+    is already there on frame 0: title, date, the video's own cosmetics, the
+    sticker and code BAD. Nothing flies in from off screen. The motion comes
+    from beats that start and end at rest -- the cosmetics hop, the title thumps,
+    the sticker boings -- each on its sound cue."""
     inner = tile_bg(colors or ["#232329", "#0d0d10"], "", 0)
     if a_item:
-        inner += character(ctx.art(a_item), 270, 1150, 760, .15, "fromL", .7, "float",
+        inner += character(ctx.art(a_item), 270, 1150, 760, HOOK_WHOOSH_A, "hop", .45, "float",
                            a_item["rarity"], a_item["name"])
     if b_item:
-        inner += character(ctx.art(b_item), 810, 1150, 760, .3, "fromR", .7, "sway",
+        inner += character(ctx.art(b_item), 810, 1150, 760, HOOK_WHOOSH_B, "hop", .45, "sway",
                            b_item["rarity"], b_item["name"])
-    # Title and date are on screen from frame 0 (they punch in, never fade up
-    # from nothing): the first frame is the thumbnail in the feed.
     inner += label(f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
-                   ACCENT, 800, anim="punch", align="center", spacing=".24em")
-    # Sized to fit on one line with room for the punch-in overshoot, so a long
-    # title ("GUESS THE PRICE") never runs off the sides.
+                   ACCENT, 800, anim="none", align="center", spacing=".24em")
+    # Sized to fit on one line with room for the thump, so a long title
+    # ("GUESS THE PRICE") never runs off the sides.
     size = min(170, 960 / anton_em(title))
-    inner += (f'<div class="full" style="transform-origin:50% 480px;{style_anim(an("punch", 0, .55))}">'
+    inner += (f'<div class="full" style="transform-origin:50% 480px;'
+              f'{style_anim(an("thump", HOOK_SLAM, .4))}">'
               + words(title, W / 2, 400 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center", 1000)
               + "</div>")
-    inner += sticker(stick, 640, 700, 56, .9, rot=-5)
-    inner += label(sub, W / 2, 1330, 36, 1.1, "#fff", 700, align="center",
+    # Long stickers ("GONE AT 8 PM ET") shift left so they never touch the edge.
+    stick_w = (anton_em(stick) + .84) * 56
+    inner += sticker(stick, min(640, W - 56 - stick_w), 700, 56, HOOK_POP, rot=-5, anim="boing")
+    inner += label(sub, W / 2, 1330, 36, HOOK_SUB, "#fff", 700, align="center",
                    bg="rgba(10,10,11,.78)", pad="14px 26px")
     comp.scene(0, end, inner, fade_in=.01)
 
@@ -188,6 +201,10 @@ def this_or_that(ctx: Ctx):
             break
     if len(pairs) < 4:
         return None
+    # Round 1 is the pair on the thumbnail, and two full characters sell it best,
+    # so the first outfit pair (if any) moves to the front; the rest keep their mix.
+    lead = next((k for k, (a, _) in enumerate(pairs) if a["type"] == "Outfit"), 0)
+    pairs.insert(0, pairs.pop(lead))
 
     HOOK, R = 3.0, 10.4
     content_end = HOOK + len(pairs) * R

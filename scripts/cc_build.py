@@ -136,7 +136,7 @@ def slot_time(day: date, hm: tuple) -> datetime:
 
 # ------------------------------------------------------------------ build
 
-COVER_T = 1.2       # everything has landed on screen by here
+COVER_T = 0.0       # frame 0 is designed as the thumbnail (see cc_formats._hook_scene)
 
 
 def _render_one(job):
@@ -259,7 +259,7 @@ def main():
     jobs = []
     for slot, v in chosen:
         stem = f"bad-{day.isoformat()}-{slot['slot']}-{v.format.replace('_', '-')}"
-        qa_times = ([COVER_T] + [float(t) for t in range(4, int(v.comp.duration), 6)]
+        qa_times = ([COVER_T, 1.2] + [float(t) for t in range(4, int(v.comp.duration), 6)]
                     + [round(v.comp.duration - 2, 2)])
         seed = int(day.strftime("%Y%m%d")) * 10 + slot["slot"]
         jobs.append((v.comp, out, stem, ext, qa_times, seed, args.preview, args.no_video))

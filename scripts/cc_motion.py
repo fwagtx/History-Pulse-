@@ -90,6 +90,11 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{INK};color:#fff;
 @keyframes slam{{0%{{transform:scale(2.6);opacity:0}}60%{{transform:scale(.94);opacity:1}}
   100%{{transform:scale(1);opacity:1}}}}
 @keyframes punch{{0%{{transform:scale(1.1);opacity:1}}55%{{transform:scale(.97)}}100%{{transform:scale(1);opacity:1}}}}
+@keyframes thump{{0%,100%{{transform:scale(1)}}35%{{transform:scale(1.07)}}}}
+@keyframes hop{{0%,100%{{transform:none}}35%{{transform:translateY(-38px) rotate(-2deg)}}
+  70%{{transform:translateY(5px) scaleY(.97)}}}}
+@keyframes boing{{0%,100%{{transform:scale(1) rotate(0)}}40%{{transform:scale(1.16) rotate(3deg)}}
+  70%{{transform:scale(.96) rotate(-1deg)}}}}
 @keyframes rise{{0%{{transform:translateY(60px);opacity:0}}100%{{transform:none;opacity:1}}}}
 @keyframes fromL{{0%{{transform:translateX(-120%) rotate(-10deg)}}70%{{transform:translateX(4%) rotate(1deg)}}
   100%{{transform:none}}}}
@@ -229,6 +234,9 @@ def tile_bg(colors: list, rarity: str = "", start: float = 0, rays: bool = True)
             f'{c2} 58%,#050507 100%)"></div>{ray}<div class="grain"></div><div class="vig"></div>')
 
 
+IN_PLACE = {"hop", "thump", "punch", "none"}      # entrances that start already on screen
+
+
 def character(uri: str, cx: float, cy: float, h: float, start: float,
               enter: str = "pop", enter_dur: float = .8, idle: str = "float",
               rarity: str = "rare", label: str = "") -> str:
@@ -246,10 +254,13 @@ def character(uri: str, cx: float, cy: float, h: float, start: float,
     idle_a = an(idle, start + enter_dur, idle_dur, "ease-in-out", "infinite", "alternate", "both")
     enter_a = an(enter, start, enter_dur, EASE_BACK if enter in ("pop",) else EASE_OUT)
     shadow_a = an("shadow", start + enter_dur, idle_dur, "ease-in-out", "infinite", "alternate", "both")
+    # An in-place entrance (hop/thump/punch) means the cosmetic is already standing
+    # there on frame 0, so its shadow is too; the others arrive, so it fades in.
+    shadow_in = "" if enter in IN_PLACE else an("fadein", start, .4)
     return (f'<div class="abs" style="left:{cx:.0f}px;top:{cy:.0f}px;transform:translate(-50%,-50%)">'
             f'<div class="abs" style="left:50%;bottom:-{h*.06:.0f}px;width:{h*.5:.0f}px;height:{h*.07:.0f}px;'
             f'margin-left:-{h*.25:.0f}px;border-radius:50%;background:radial-gradient(closest-side,'
-            f'rgba(0,0,0,.6),transparent);{style_anim(an("fadein", start, .4), shadow_a)}"></div>'
+            f'rgba(0,0,0,.6),transparent);{style_anim(shadow_in, shadow_a)}"></div>'
             f'<div style="{style_anim(enter_a)}"><div style="transform-origin:50% 100%;{style_anim(idle_a)}">'
             f"{art}</div></div></div>")
 
@@ -354,9 +365,10 @@ def burst(cx: float, cy: float, start: float, seed: int, n: int = 26,
 
 
 def code_badge(start: float = 0) -> str:
-    # On screen from frame 0 whatever `start` says: the code is the whole point,
-    # and frame 0 doubles as the feed thumbnail.
-    a = style_anim(an("punch", 0, .6))
+    # On screen and at rest from frame 0 whatever `start` says: the code is the
+    # whole point, and frame 0 is the video's thumbnail. It thumps with the hook's
+    # opening slam (cc_formats.HOOK_SLAM).
+    a = style_anim(an("thump", .2, .4))
     return (f'<div class="abs" style="left:48px;top:{SAFE_TOP}px;z-index:50;{a}"><div class="pill">'
             f'<span style="font-size:18px;font-weight:800;letter-spacing:.2em;color:#9AA0A6">CODE</span>'
             f'<span class="d" style="font-size:40px;color:{ACCENT}">BAD</span></div></div>')
