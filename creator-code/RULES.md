@@ -70,7 +70,8 @@ generators (`scripts/cc_formats.py`, `scripts/cc_quiz.py`) end every description
 don't strip either out. TikTok posts also carry TikTok's branded-content label.
 
 On 2026-09-23 the owner dropped the longer "I get a commission from purchases made with code
-BAD" sentence and the "costs you nothing extra" line from the posts. Don't add them back.
+BAD" sentence from the posts (screen and descriptions) and the "costs you nothing extra" line
+from the descriptions. Don't add them back.
 
 In a filmed script, a short spoken form works: "Use code BAD in the Item Shop — I'm an Epic
 partner."
