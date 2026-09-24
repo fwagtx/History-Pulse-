@@ -1,15 +1,23 @@
 """
-Plan @usecodebad's quiz videos: three a day for months, from the cosmetics database.
+Plan @usecodebad's quiz videos (three a day) and the series beside them (On This
+Day every day, Fortnitemares every day in October; see cc_series_plan.py), for
+months ahead, from the cosmetics database.
 
-    python3 scripts/cc_quiz_plan.py [--start 2026-09-24] [--days 180] [--db br.json]
+    python3 scripts/cc_quiz_plan.py [--start 2026-09-24] [--days 180] [--db br-full.json.gz]
+                                    [--from 2026-10-09]
 
 Writes creator-code/quiz/plan.json: every video's date, post time, format, episode
 number and the exact items and answer options it will show. cc_quiz_build.py
-renders a day's three videos from it; nothing is picked at render time, so a
-video can be re-made later and come out the same.
+renders a day's videos from it; nothing is picked at render time, so a video can
+be re-made later and come out the same.
 
-Every answer comes from the database (the keyless Fortnite-Datamining mirror of
-fortnite-api.com, the same source as the daily shop):
+--from keeps the current plan before that day exactly as it is (those videos
+are built and scheduled) and re-plans from it. The series are planned over
+their whole run either way, and take their slot over from a quiz there.
+
+The database is fortnite-api.com's full cosmetics list with shop history, kept
+on this repo's "cosmetics-data" release by .github/workflows/cosmetics-data.yml.
+Every answer comes from it:
   - "Introduced in Chapter 1, Season 5"  <- the cosmetic's `introduction`
   - which came first                     <- introduction.backendValue, which counts
                                             seasons in release order (Chapter 2 Remix
@@ -23,23 +31,26 @@ name is always a single, unambiguous answer. An item isn't reused within 60 days
 """
 
 import argparse
+import gzip
 import json
 import random
 import sys
+import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from cc_common import CC_DIR, log, http_get_json  # noqa: E402
+from cc_common import CC_DIR, OUT_DIR, log  # noqa: E402
+import cc_series_plan as S  # noqa: E402
 
-DB_URL = ("https://raw.githubusercontent.com/Fortnite-Datamining/"
-          "Fortnite-Datamining/main/data/cosmetics/br.json")
+DB_URL = "https://github.com/fwagtx/History-Pulse-/releases/download/cosmetics-data/br-full.json.gz"
 PLAN = CC_DIR / "quiz" / "plan.json"
+SEASONS = CC_DIR / "quiz" / "seasons.json"
 
 # Post times, America/Chicago, between the shop videos (10:00, 13:30, 17:00).
 # Quizzes don't go stale when the shop rotates, so the evening slot is fine.
 SLOTS = [(1, "08:00"), (2, "15:30"), (3, "20:00")]
-FORMATS = ["guess_season", "whos_that", "which_first", "zoomed_in", "odd_one_out", "throwback"]
+FORMATS = ["guess_season", "whos_that", "which_first", "zoomed_in", "odd_one_out", "throwback", "loadout"]
 REUSE_DAYS = 60
 SPARES = 2          # extra rounds per video, used if an item's artwork won't download
 
@@ -47,6 +58,9 @@ SPARES = 2          # extra rounds per video, used if an item's artwork won't do
 FAMOUS_SERIES = {"Icon Series", "MARVEL SERIES", "DC SERIES", "Star Wars Series",
                  "Gaming Legends Series"}
 BAD_NAMES = {"tbd", "null", "npc", ""}
+# Build Your Loadout: one round per slot of the locker, three choices each.
+LOADOUT = ["outfit", "backpack", "pickaxe", "glider", "emote"]
+NICE = {"legendary", "epic", "marvel", "dc", "icon", "starwars", "gaminglegends"}
 
 
 def season_label(chapter: str, season: str) -> str:
@@ -78,11 +92,13 @@ def normalize(raw: dict) -> dict | None:
         "order": int(intro["backendValue"]),
         "has_featured": bool(images.get("featured")),
         "images": urls,
+        "first_shop": min((d[:10] for d in raw.get("shopHistory") or []), default=""),
     }
 
 
 class Pools:
     def __init__(self, raw_items: list):
+        history = {r["id"]: r.get("shopHistory") or [] for r in raw_items if r.get("id")}
         items = [n for n in (normalize(r) for r in raw_items) if n]
         # A name two outfits share can't be a quiz answer.
         count = {}
@@ -94,6 +110,12 @@ class Pools:
         self.famous = [it for it in self.outfits if it["has_featured"]
                        and (it["rarity"] == "legendary" or it["series"] in FAMOUS_SERIES)]
         self.gear = [it for it in self.items if it["kind"] in ("pickaxe", "glider", "backpack")]
+        # The days each outfit was in the Item Shop, for On This Day.
+        self.shop_days = {it["id"]: sorted({d[:10] for d in history.get(it["id"], [])})
+                          for it in self.outfits if it["has_featured"]}
+        self.loadout = {k: [it for it in self.items if it["kind"] == k and it["rarity"] in NICE]
+                        for k in LOADOUT}
+        self.loadout["outfit"] = self.famous
         self.labels = {}
         for it in self.items:
             self.labels.setdefault(it["order"], it["season_label"])
@@ -258,19 +280,64 @@ class Planner:
         return ({"season": self.p.labels[order], "order": order, "edition": "gear" if gear else "outfits",
                  "items": [x["id"] for x in items]}, items)
 
+    def loadout(self):
+        """Build Your Loadout: outfit, back bling, pickaxe, glider, emote, three
+        choices each. No right answers: people comment their combo. A fourth
+        item per round stands in if one's artwork won't load."""
+        rounds, items = [], []
+        for kind in LOADOUT:
+            # Sets share names across types (a "Dopamine Blades" back bling and
+            # pickaxe): one name per video, so no round looks like a repeat.
+            names = {it["name"].lower() for it in items}
+            got = self.pick([it for it in self.p.loadout[kind] if it["name"].lower() not in names], 4)
+            if not got:
+                return None
+            rounds.append({"kind": kind, "items": [it["id"] for it in got]})
+            items += got
+        return {"rounds": rounds}, items
+
     # ------------------------------------------------------------ calendar
 
-    def plan(self, start: date, days: int) -> dict:
+    def replay(self, kept: list, start: date):
+        """Pick up where already-planned quiz videos left off: their items count
+        as used on their days, and episode numbers carry on after theirs."""
+        for v in sorted(kept, key=lambda v: (v["date"], v["slot"])):
+            day = (date.fromisoformat(v["date"]) - start).days
+            ids = [rd[k] for rd in v.get("rounds", []) for k in ("item", "a", "b") if k in rd]
+            ids += [i for rd in v.get("rounds", []) for i in rd.get("items", [])] + v.get("items", [])
+            for i in ids:
+                self.last_used[i] = day
+            self.episodes[v["format"]] = max(self.episodes[v["format"]], v["episode"])
+            if v["format"] == "throwback":
+                self.throwback_cycle = 1 if v.get("edition") == "gear" else 0
+                self.throwback_seasons.append(v["order"])
+
+    def _todays(self, block: list, n: int) -> tuple:
+        """The next n different formats. Each format comes round equally often:
+        they're dealt from shuffled decks of all of them."""
+        today = []
+        while len(today) < n:
+            if not [f for f in block if f not in today]:
+                deck = FORMATS[:]
+                self.r.shuffle(deck)
+                block = block + deck
+            f = next(f for f in block if f not in today)
+            block.remove(f)
+            today.append(f)
+        return today, block
+
+    def plan(self, start: date, first: date, last: date, reserved: set) -> tuple:
+        """Quizzes for every day from `first` to `last`, in every slot a series
+        hasn't taken (`reserved`: (date, slot) pairs)."""
         videos, used_items = [], {}
         block = []
-        for d in range(days):
-            self.day = d
-            if not block:
-                block = FORMATS[:]
-                self.r.shuffle(block)
-            today, block = block[:3], block[3:]
+        d = first
+        while d <= last:
+            self.day = (d - start).days
+            slots = [(s, at) for s, at in SLOTS if (d.isoformat(), s) not in reserved]
+            today, block = self._todays(block, len(slots))
             done_today = set()
-            for (slot, at), fmt in zip(SLOTS, today):
+            for (slot, at), fmt in zip(slots, today):
                 got = None
                 # If a format has run out of fresh items, fall back to one the day
                 # hasn't had yet, so no day shows the same quiz twice.
@@ -282,7 +349,7 @@ class Planner:
                         fmt = f
                         break
                 if not got:
-                    log(f"{start + timedelta(d)} slot {slot}: nothing plannable")
+                    log(f"{d} slot {slot}: nothing plannable")
                     continue
                 spec, items = got
                 done_today.add(fmt)
@@ -290,31 +357,105 @@ class Planner:
                 self.episodes[fmt] += 1
                 for it in items:
                     used_items[it["id"]] = it
-                videos.append({"date": (start + timedelta(d)).isoformat(), "slot": slot, "at": at,
+                videos.append({"date": d.isoformat(), "slot": slot, "at": at,
                                "format": fmt, "episode": self.episodes[fmt], **spec})
-        return {"start": start.isoformat(), "days": days, "timezone": "America/Chicago",
-                "source": DB_URL, "items": used_items, "videos": videos}
+            d += timedelta(days=1)
+        return videos, used_items
+
+
+def load_db(path: str | None) -> list:
+    """The cosmetics list: a local file (.json or .json.gz), or the release copy."""
+    if not path:
+        cache = OUT_DIR / "_data" / "br-full.json.gz"
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        log(f"Downloading {DB_URL}")
+        with urllib.request.urlopen(DB_URL, timeout=180) as resp:
+            cache.write_bytes(resp.read())
+        path = str(cache)
+    opener = gzip.open if path.endswith(".gz") else open
+    with opener(path, "rt", encoding="utf-8") as f:
+        return json.load(f)["data"]
+
+
+def item_ids(v: dict) -> list:
+    """Every item id a planned video uses."""
+    ids = list(v.get("items", []))
+    for rd in v.get("rounds", []):
+        ids += [rd[k] for k in ("item", "a", "b") if k in rd] + list(rd.get("items", []))
+        ids += [p["item"] for p in rd.get("picks", [])]
+    return ids
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--start", default=(date.today() + timedelta(days=1)).isoformat())
+    ap.add_argument("--start", default=(date.today() + timedelta(days=1)).isoformat(),
+                    help="first day of a new plan (ignored with --from: the plan keeps its start)")
     ap.add_argument("--days", type=int, default=180)
-    ap.add_argument("--db", help="a local copy of the mirror's br.json (default: download it)")
+    ap.add_argument("--from", dest="from_day",
+                    help="keep the current plan before this day as it is, and re-plan from it")
+    ap.add_argument("--otd-start", help="first On This Day video (default: the plan's first day)")
+    ap.add_argument("--db", help="a local copy of br-full.json(.gz) (default: download it)")
     ap.add_argument("--seed", type=int, default=7066444)
     args = ap.parse_args()
 
-    raw = json.loads(Path(args.db).read_text()) if args.db else http_get_json(DB_URL, timeout=120)
-    pools = Pools(raw["data"])
+    old = json.loads(PLAN.read_text()) if args.from_day and PLAN.exists() else None
+    start = date.fromisoformat(old["start"] if old else args.start)
+    last = start + timedelta(days=args.days - 1)
+    first = date.fromisoformat(args.from_day) if args.from_day else start
+    kept = [v for v in (old or {}).get("videos", []) if v["date"] < first.isoformat()]
+
+    pools = Pools(load_db(args.db))
     log(f"{len(pools.items)} usable cosmetics: {len(pools.outfits)} outfits "
-        f"({len(pools.famous)} famous), {len(pools.gear)} gear, {len(pools.by_set)} sets")
-    plan = Planner(pools, args.seed).plan(date.fromisoformat(args.start), args.days)
+        f"({len(pools.famous)} famous), {len(pools.gear)} gear, {len(pools.by_set)} sets, "
+        f"{sum(1 for d in pools.shop_days.values() if d)} outfits with shop history")
+
+    # The series first: they take their slot over from a quiz. Videos of theirs
+    # that are already built stay exactly as they are.
+    seasons = json.loads(SEASONS.read_text())
+    # On This Day counts its episodes from its first day, so a re-plan keeps that day.
+    kept_otd = sorted(v["date"] for v in kept if v["format"] == "on_this_day")
+    otd_start = date.fromisoformat(kept_otd[0] if kept_otd else args.otd_start or start.isoformat())
+    otd, otd_items = S.plan_otd(pools, otd_start, last, args.seed,
+                                {v["date"]: v for v in kept if v["format"] == "on_this_day"})
+    fm, fm_items = [], {}
+    for year in range(start.year, last.year + 1):
+        got = S.plan_fortnitemares(pools, seasons, year, start, last, args.seed,
+                                   {v["date"]: v for v in kept if v.get("series") == "fortnitemares"})
+        fm += got[0]
+        fm_items.update(got[1])
+    series = otd + fm
+    reserved = {(v["date"], v["slot"]) for v in series}
+
+    kept_quiz = [v for v in kept if v["format"] != "on_this_day" and not v.get("series")
+                 and (v["date"], v["slot"]) not in reserved]
+    dropped = [v for v in kept if v["format"] != "on_this_day" and not v.get("series")
+               and (v["date"], v["slot"]) in reserved]
+    for v in dropped:
+        log(f"  {v['date']} slot {v['slot']}: {v['format']} #{v['episode']} gives way to a series")
+    planner = Planner(pools, args.seed)
+    planner.replay(kept_quiz, start)
+    quiz, quiz_items = planner.plan(start, first, last, reserved)
+
+    videos = sorted(kept_quiz + quiz + series, key=lambda v: (v["date"], v["slot"]))
+    items = {}
+    for v in videos:
+        for i in item_ids(v):
+            # The Fortnitemares copy first: it carries the item's Fortnitemares year.
+            it = fm_items.get(i) or otd_items.get(i) or quiz_items.get(i) or (old or {}).get("items", {}).get(i)
+            if it is None:
+                it = next((x for x in pools.items if x["id"] == i), None)
+            if it is None:
+                raise SystemExit(f"item {i} is in the plan but not in the database")
+            items[i] = it
+    plan = {"start": start.isoformat(), "days": args.days, "timezone": "America/Chicago",
+            "source": DB_URL, "items": items, "videos": videos}
     PLAN.parent.mkdir(parents=True, exist_ok=True)
     PLAN.write_text(json.dumps(plan, ensure_ascii=False, indent=1))
     counts = {}
-    for v in plan["videos"]:
-        counts[v["format"]] = counts.get(v["format"], 0) + 1
-    log(f"{len(plan['videos'])} videos over {args.days} days -> {PLAN}")
+    for v in videos:
+        k = f"{v['series']}:{v['format']}" if v.get("series") else v["format"]
+        counts[k] = counts.get(k, 0) + 1
+    log(f"{len(videos)} videos from {start} to {last} ({len(kept)} kept as they were) -> {PLAN}")
     log("  " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
 
 

@@ -1,0 +1,787 @@
+{
+ "fortnitemares": {
+  "about": "Item Shop cosmetics the Fortnite Wiki lists for each year's Fortnitemares (its 'Item Shop Cosmetics' tables). The planner only uses an item that ALSO first appeared in the Item Shop between the window dates of that year, per the shop history in the cosmetics-data release.",
+  "source": "https://fortnite.fandom.com/wiki/Fortnitemares",
+  "retrieved": "2026-09-24",
+  "window": [
+   "09-15",
+   "11-15"
+  ],
+  "years": {
+   "2017": [
+    [
+     "Skull Trooper",
+     "Outfit"
+    ],
+    [
+     "Ghoul Trooper",
+     "Outfit"
+    ],
+    [
+     "Reaper",
+     "Pickaxe"
+    ]
+   ],
+   "2018": [
+    [
+     "Dark Bomber",
+     "Outfit"
+    ],
+    [
+     "Hay Man",
+     "Outfit"
+    ],
+    [
+     "Straw Ops",
+     "Outfit"
+    ],
+    [
+     "Skull Ranger",
+     "Outfit"
+    ],
+    [
+     "Plague",
+     "Outfit"
+    ],
+    [
+     "Scourge",
+     "Outfit"
+    ],
+    [
+     "Hollowhead",
+     "Outfit"
+    ],
+    [
+     "Sanctum",
+     "Outfit"
+    ],
+    [
+     "Jack Gourdon",
+     "Outfit"
+    ],
+    [
+     "Spider Knight",
+     "Outfit"
+    ],
+    [
+     "Arachne",
+     "Outfit"
+    ],
+    [
+     "Deadfire",
+     "Outfit"
+    ],
+    [
+     "Brainiac",
+     "Outfit"
+    ],
+    [
+     "Bunnymoon",
+     "Outfit"
+    ],
+    [
+     "Patch Patroller",
+     "Outfit"
+    ],
+    [
+     "Spooky Team Leader",
+     "Outfit"
+    ],
+    [
+     "Rosa",
+     "Outfit"
+    ],
+    [
+     "Dante",
+     "Outfit"
+    ],
+    [
+     "Howl",
+     "Emote"
+    ],
+    [
+     "Treat Yourself",
+     "Emote"
+    ]
+   ],
+   "2019": [
+    [
+     "Catrina",
+     "Outfit"
+    ],
+    [
+     "Willow",
+     "Outfit"
+    ],
+    [
+     "Blacklight",
+     "Outfit"
+    ],
+    [
+     "Snuggs",
+     "Outfit"
+    ],
+    [
+     "Teef",
+     "Outfit"
+    ],
+    [
+     "Jawbreaker",
+     "Outfit"
+    ],
+    [
+     "Chaos Agent",
+     "Outfit"
+    ],
+    [
+     "Delirium",
+     "Outfit"
+    ],
+    [
+     "Sinister Striker",
+     "Outfit"
+    ],
+    [
+     "Midfield Monstrosity",
+     "Outfit"
+    ],
+    [
+     "Burial Threat",
+     "Outfit"
+    ],
+    [
+     "Soulless Sweeper",
+     "Outfit"
+    ],
+    [
+     "Decaying Dribbler",
+     "Outfit"
+    ],
+    [
+     "Putrid Playmaker",
+     "Outfit"
+    ],
+    [
+     "Fatal Finisher",
+     "Outfit"
+    ],
+    [
+     "Crypt Crosser",
+     "Outfit"
+    ],
+    [
+     "Big Mouth",
+     "Outfit"
+    ],
+    [
+     "Wrath",
+     "Outfit"
+    ],
+    [
+     "Haze",
+     "Outfit"
+    ],
+    [
+     "Peely Bone",
+     "Outfit"
+    ],
+    [
+     "Hemlock",
+     "Outfit"
+    ],
+    [
+     "Grim Fable",
+     "Outfit"
+    ],
+    [
+     "Storm King Fist",
+     "Pickaxe"
+    ],
+    [
+     "Zombified",
+     "Emote"
+    ],
+    [
+     "Pump It Up",
+     "Emote"
+    ],
+    [
+     "Fright Funk",
+     "Emote"
+    ]
+   ],
+   "2020": [
+    [
+     "Gnash",
+     "Outfit"
+    ],
+    [
+     "Violet",
+     "Outfit"
+    ],
+    [
+     "Grave",
+     "Outfit"
+    ],
+    [
+     "Grimoire",
+     "Outfit"
+    ],
+    [
+     "Arachne Couture",
+     "Outfit"
+    ],
+    [
+     "Midnight Dusk",
+     "Outfit"
+    ],
+    [
+     "Nightsurf Bomber",
+     "Outfit"
+    ],
+    [
+     "Party Trooper",
+     "Outfit"
+    ],
+    [
+     "Fishskull",
+     "Outfit"
+    ],
+    [
+     "Skull Squad Leader",
+     "Outfit"
+    ],
+    [
+     "Bone Boss",
+     "Outfit"
+    ],
+    [
+     "Bone Ravage",
+     "Outfit"
+    ],
+    [
+     "Aura Analyzer",
+     "Outfit"
+    ],
+    [
+     "Phantom Commando",
+     "Outfit"
+    ],
+    [
+     "Curse Buster",
+     "Outfit"
+    ],
+    [
+     "Spirit Sniper",
+     "Outfit"
+    ],
+    [
+     "Specter Inspector",
+     "Outfit"
+    ],
+    [
+     "Paranormal Guide",
+     "Outfit"
+    ],
+    [
+     "Containment Specialist",
+     "Outfit"
+    ],
+    [
+     "P.K.E. Ranger",
+     "Outfit"
+    ],
+    [
+     "Ecto Expert",
+     "Outfit"
+    ],
+    [
+     "Haunt Officer",
+     "Outfit"
+    ],
+    [
+     "Headlock",
+     "Outfit"
+    ],
+    [
+     "Baba Yaga",
+     "Outfit"
+    ],
+    [
+     "The Good Doctor",
+     "Outfit"
+    ],
+    [
+     "Ravina",
+     "Outfit"
+    ],
+    [
+     "Punk",
+     "Outfit"
+    ],
+    [
+     "Patch",
+     "Outfit"
+    ],
+    [
+     "Victoria Saint",
+     "Outfit"
+    ],
+    [
+     "Witch Way",
+     "Emote"
+    ],
+    [
+     "Fortnitemares 2020",
+     "Lobby Music"
+    ],
+    [
+     "Zombie Shambles",
+     "Emote"
+    ]
+   ],
+   "2021": [
+    [
+     "Frankenstein's Monster",
+     "Outfit"
+    ],
+    [
+     "Curdle Scream Leader",
+     "Outfit"
+    ],
+    [
+     "Skeletara",
+     "Outfit"
+    ],
+    [
+     "Rick Grimes",
+     "Outfit"
+    ],
+    [
+     "All-Hallow's Steve",
+     "Outfit"
+    ],
+    [
+     "Tricksy",
+     "Outfit"
+    ],
+    [
+     "Gummy Fishstick",
+     "Outfit"
+    ],
+    [
+     "KAWS Skeleton",
+     "Outfit"
+    ],
+    [
+     "Paul Atreides",
+     "Outfit"
+    ],
+    [
+     "Chani",
+     "Outfit"
+    ],
+    [
+     "Spacefarer Ariana Grande",
+     "Outfit"
+    ],
+    [
+     "The Mummy",
+     "Outfit"
+    ],
+    [
+     "Graven",
+     "Outfit"
+    ],
+    [
+     "Chris Redfield",
+     "Outfit"
+    ],
+    [
+     "Jill Valentine",
+     "Outfit"
+    ],
+    [
+     "Grisabelle",
+     "Outfit"
+    ],
+    [
+     "The Batman Who Laughs",
+     "Outfit"
+    ],
+    [
+     "Jolterror",
+     "Outfit"
+    ],
+    [
+     "Doom Dancer",
+     "Outfit"
+    ],
+    [
+     "Extinguished Firebrand",
+     "Outfit"
+    ],
+    [
+     "Putrid Polarity",
+     "Outfit"
+    ],
+    [
+     "They're Back-Lash",
+     "Outfit"
+    ],
+    [
+     "Haunted Hunter",
+     "Outfit"
+    ],
+    [
+     "The Bitey Volt",
+     "Outfit"
+    ],
+    [
+     "Boo-lastoff",
+     "Outfit"
+    ],
+    [
+     "Horrorsonic",
+     "Outfit"
+    ],
+    [
+     "Wanderlost",
+     "Outfit"
+    ],
+    [
+     "Kernel Poppy",
+     "Outfit"
+    ],
+    [
+     "Shadow Midas",
+     "Outfit"
+    ],
+    [
+     "Frankenstein's Bride",
+     "Outfit"
+    ],
+    [
+     "Driftwalker",
+     "Outfit"
+    ],
+    [
+     "Ione",
+     "Outfit"
+    ],
+    [
+     "Geometrik",
+     "Outfit"
+    ],
+    [
+     "Jett",
+     "Outfit"
+    ],
+    [
+     "Gourdy",
+     "Back Bling"
+    ],
+    [
+     "Blood Moon Rising",
+     "Back Bling"
+    ],
+    [
+     "Butter Buddy",
+     "Emote"
+    ]
+   ],
+   "2022": [
+    [
+     "Desdemona",
+     "Outfit"
+    ],
+    [
+     "Undying Sorrow",
+     "Outfit"
+    ],
+    [
+     "Sinister Glare",
+     "Outfit"
+    ],
+    [
+     "Mr. Meeseeks",
+     "Outfit"
+    ],
+    [
+     "Queen Summer",
+     "Outfit"
+    ],
+    [
+     "Ash Williams",
+     "Outfit"
+    ],
+    [
+     "Vivica Saint",
+     "Outfit"
+    ],
+    [
+     "Bonejamin",
+     "Outfit"
+    ],
+    [
+     "Ava",
+     "Outfit"
+    ],
+    [
+     "Abyss",
+     "Outfit"
+    ],
+    [
+     "Jack O'Sassin",
+     "Outfit"
+    ],
+    [
+     "Remi",
+     "Outfit"
+    ],
+    [
+     "Chrome Punk",
+     "Outfit"
+    ],
+    [
+     "Salvador",
+     "Outfit"
+    ],
+    [
+     "It's a Trick!",
+     "Emote"
+    ],
+    [
+     "Monster Mash",
+     "Emote"
+    ],
+    [
+     "November 2022 Crew Pack",
+     "Limited Time Offer"
+    ]
+   ],
+   "2023": [
+    [
+     "Alan Wake",
+     "Outfit"
+    ],
+    [
+     "Michael Myers",
+     "Outfit"
+    ],
+    [
+     "Jack Skellington",
+     "Outfit"
+    ],
+    [
+     "Phantom Meowscles",
+     "Outfit"
+    ],
+    [
+     "Bogstick",
+     "Outfit"
+    ],
+    [
+     "Seth",
+     "Outfit"
+    ],
+    [
+     "Festival Phaedra",
+     "Outfit"
+    ],
+    [
+     "October 2023 Crew Pack",
+     "Limited Time Offer"
+    ],
+    [
+     "Sweet!",
+     "Emote"
+    ],
+    [
+     "Lock, Shock and Barrel's Tub",
+     "Emote"
+    ],
+    [
+     "Live From Haddonfield",
+     "Emote"
+    ]
+   ],
+   "2024": [
+    [
+     "Leatherface",
+     "Outfit"
+    ],
+    [
+     "Billy",
+     "Outfit"
+    ],
+    [
+     "Sally",
+     "Outfit"
+    ],
+    [
+     "Pumpkin King",
+     "Outfit"
+    ],
+    [
+     "Mephisto",
+     "Outfit"
+    ],
+    [
+     "Ultima Carver",
+     "Outfit"
+    ],
+    [
+     "Edward Scissorhands",
+     "Outfit"
+    ],
+    [
+     "Lexa Hexbringer",
+     "Outfit"
+    ],
+    [
+     "She-Venom",
+     "Outfit"
+    ],
+    [
+     "Agony",
+     "Outfit"
+    ],
+    [
+     "Phantom Guff",
+     "Outfit"
+    ],
+    [
+     "Shadow Monks",
+     "Outfit"
+    ],
+    [
+     "Andy Fangerson",
+     "Outfit"
+    ],
+    [
+     "Dark Ruby",
+     "Outfit"
+    ],
+    [
+     "Knightmare",
+     "Outfit"
+    ],
+    [
+     "Ghoul Punk Pack",
+     "Limited Time Offer"
+    ]
+   ],
+   "2025": [
+    [
+     "Mother of Thorns Doja",
+     "Outfit"
+    ],
+    [
+     "Doja Cat",
+     "Outfit"
+    ],
+    [
+     "Queen Persephone",
+     "Outfit"
+    ],
+    [
+     "Pig the Butcher",
+     "Outfit"
+    ],
+    [
+     "Ghost Face",
+     "Outfit"
+    ],
+    [
+     "Scooby-Doo",
+     "Outfit"
+    ],
+    [
+     "Shaggy Rogers",
+     "Outfit"
+    ],
+    [
+     "Helsie Midnight",
+     "Outfit"
+    ],
+    [
+     "Lycan West",
+     "Outfit"
+    ],
+    [
+     "Red Ruin Joni",
+     "Outfit"
+    ],
+    [
+     "The Grabber",
+     "Outfit"
+    ],
+    [
+     "Jason",
+     "Outfit"
+    ],
+    [
+     "Daphne Blake",
+     "Outfit"
+    ],
+    [
+     "Fred Jones",
+     "Outfit"
+    ],
+    [
+     "Velma Dinkley",
+     "Outfit"
+    ],
+    [
+     "The Dark Maw",
+     "Outfit"
+    ],
+    [
+     "Art the Clown",
+     "Outfit"
+    ],
+    [
+     "Huggy Wuggy",
+     "Outfit"
+    ],
+    [
+     "Wednesday Addams",
+     "Outfit"
+    ],
+    [
+     "The Final Peel",
+     "Outfit"
+    ],
+    [
+     "Semibot",
+     "Outfit"
+    ],
+    [
+     "Lady Marigold",
+     "Outfit"
+    ],
+    [
+     "The Mothman",
+     "Outfit"
+    ],
+    [
+     "Spice",
+     "Outfit"
+    ],
+    [
+     "Spooky Stroll",
+     "Emote"
+    ],
+    [
+     "Lil' Spiced Pumpkin",
+     "Emote"
+    ],
+    [
+     "Boo Box",
+     "Emote"
+    ]
+   ]
+  }
+ }
+}

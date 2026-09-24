@@ -243,7 +243,7 @@ SILHOUETTE = ("brightness(0) drop-shadow(0 0 4px rgba(255,255,255,.95)) "
 
 def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: float,
                 a_item: dict = None, b_item: dict = None, colors: list = None,
-                kicker: str = "", silhouette: bool = False):
+                kicker: str = "", silhouette: bool = False, kicker_color: str = ACCENT, extra: str = ""):
     """The first 3 seconds decide everything: big words, motion, a reason to stay.
 
     Frame 0 IS the thumbnail. TikTok shows the first frame as a video lands in
@@ -255,8 +255,9 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
 
     `kicker` replaces the shop date line (the quizzes aren't about a day's
     shop); `silhouette` blacks the cosmetics out so a quiz's thumbnail never
-    gives an answer away."""
-    inner = tile_bg(colors or ["#232329", "#0d0d10"], "", 0)
+    gives an answer away. `extra` is drawn over the background, under the
+    cosmetics (a series' decorations)."""
+    inner = tile_bg(colors or ["#232329", "#0d0d10"], "", 0) + extra
     chars = ""
     if a_item:
         chars += character(ctx.art(a_item), 270, 1150, 760, HOOK_WHOOSH_A, "hop", .45, "float",
@@ -267,7 +268,7 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     inner += f'<div class="full" style="filter:{SILHOUETTE}">{chars}</div>' if silhouette else chars
     inner += _code_stamp(comp, end)
     inner += label(kicker or f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
-                   ACCENT, 800, anim="none", align="center", spacing=".17em")
+                   kicker_color, 800, anim="none", align="center", spacing=".17em")
     # Sized to fit on one line with room for the thump, so a long title
     # ("GUESS THE PRICE") never runs off the sides.
     size = min(170, 960 / anton_em(title))

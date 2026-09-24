@@ -1,5 +1,6 @@
 """
-Build one day's three quiz videos from creator-code/quiz/plan.json.
+Build one day's videos from creator-code/quiz/plan.json: the quizzes, On This Day
+and, in their season, the seasonal series (see cc_quiz.py and cc_series.py).
 
     python3 scripts/cc_quiz_build.py --date 2026-09-24 [--art DIR] [--no-video]
                                      [--jobs N] [--release TAG]
@@ -70,7 +71,7 @@ def main():
 
     plan = json.loads(PLAN.read_text())
     day = date.fromisoformat(args.date)
-    entries = [v for v in plan["videos"] if v["date"] == args.date]
+    entries = sorted((v for v in plan["videos"] if v["date"] == args.date), key=lambda v: v["at"])
     if not entries:
         # Past the end of the plan: nothing to do, and not an error for the
         # nightly run. Extend the plan with cc_quiz_plan.py.
@@ -81,7 +82,7 @@ def main():
 
     built = []
     for spec in entries:
-        name = f"slot {spec['slot']} {spec['format']} #{spec['episode']}"
+        name = f"slot {spec['slot']} {spec.get('series', '')} {spec['format']} #{spec['episode']}".replace("  ", " ")
         try:
             v = Q.build(spec, items, ctx)
         except Exception as e:  # noqa: BLE001 - one bad video must not sink the day

@@ -79,8 +79,16 @@ def _comp(content_end: float) -> Comp:
     return comp
 
 
-def _colors(item: dict) -> list:
+def _colors(item: dict, theme: dict = None) -> list:
+    """A round's background: the item's rarity colour, or a series' own palette."""
+    if theme:
+        return theme["bg"]
     return [RARITY.get(item["rarity"], "#3a3a44"), "#101014"]
+
+
+def _deco(theme: dict, t0: float) -> str:
+    """A series' decorations for a scene starting at t0 (nothing otherwise)."""
+    return theme["deco"](t0) if theme else ""
 
 
 def _question(text: str, t0: float) -> str:
@@ -153,14 +161,16 @@ def _pips(k: int, n: int, word: str) -> str:
 # ======================================================= single-picture rounds
 
 def _picture_round(comp: Comp, ctx: Ctx, t0: float, k: int, n: int, item: dict, question: str,
-                   opts: list, answer: int, *, mode: str = "plain", focus=None, show_name: bool = True):
+                   opts: list, answer: int, *, mode: str = "plain", focus=None, show_name: bool = True,
+                   theme: dict = None, reveal_fact: str = ""):
     """One round: the cosmetic, a question, four options and a ring.
 
     mode "plain" shows the cosmetic as is; "silhouette" blacks it out until the
     reveal; "zoom" starts in close on `focus` and pulls back as the ring
-    drains, then all the way out on the reveal."""
+    drains, then all the way out on the reveal. `reveal_fact` replaces the
+    line that lands with the answer."""
     reveal = t0 + T_REV
-    inner = tile_bg(_colors(item), item["rarity"], t0)
+    inner = tile_bg(_colors(item, theme), item["rarity"], t0) + _deco(theme, t0)
     art = ctx.art(item)
     if mode == "zoom":
         start, end = t0 + T_ART, reveal + .5
@@ -186,9 +196,12 @@ def _picture_round(comp: Comp, ctx: Ctx, t0: float, k: int, n: int, item: dict, 
     inner += _question(question, t0)
     inner += countdown(CD, RING_CX, RING_CY, RING, t0 + T_CD)
     if show_name:
-        inner += _fact(f"{item['name']} · {item['type']}".upper(), t0 + T_OPT, "#fff")
-    else:
-        inner += _fact(f"{item['name']} · {item['season_label']}".upper(), reveal + .15)
+        first = _fact(f"{item['name']} · {item['type']}".upper(), t0 + T_OPT, "#fff")
+        if reveal_fact:         # the answer's line takes its place
+            first = f'<div style="{style_anim(an("fadeout", reveal, .15))}">{first}</div>'
+        inner += first
+    if reveal_fact or not show_name:
+        inner += _fact(reveal_fact or f"{item['name']} · {item['season_label']}".upper(), reveal + .15)
     inner += _options(comp, opts, answer, t0, reveal)
     inner += burst(OPT_X + OPT_W / 2, OPT_Y + answer * OPT_STEP + OPT_H / 2, reveal, ctx.seed + k)
     inner += sticker("GOT IT?", 700, 860, 46, reveal + .45, bg="#ffffff", rot=6)
@@ -239,7 +252,7 @@ def guess_season(spec: dict, items: dict, ctx: Ctx):
                  hashtags=tags)
 
 
-def _name_quiz(spec: dict, items: dict, ctx: Ctx, fmt: str):
+def _name_quiz(spec: dict, items: dict, ctx: Ctx, fmt: str, theme: dict = None):
     rounds = _usable(ctx, spec["rounds"], ("item",), items, 6)
     if len(rounds) < 5:
         return None
@@ -249,17 +262,24 @@ def _name_quiz(spec: dict, items: dict, ctx: Ctx, fmt: str):
     comp = _comp(content_end)
     first = [items[rd["item"]] for rd in rounds[:2]]
     title = "ZOOMED IN" if zoom else "WHO'S THAT SKIN?"
-    _hook_scene(comp, ctx, title, "PAUSE AND GUESS" if zoom else "4 CHOICES EACH",
-                f"{n} ROUNDS", HOOK + .3, *first, kicker=f"FORTNITE QUIZ #{spec['episode']}", silhouette=True)
+    if theme:
+        _hook_scene(comp, ctx, title, theme["sub"], theme["stick"], HOOK + .3, *first, colors=theme["bg"],
+                    kicker=theme["kicker"], kicker_color=theme["color"], silhouette=True, extra=_deco(theme, 0))
+    else:
+        _hook_scene(comp, ctx, title, "PAUSE AND GUESS" if zoom else "4 CHOICES EACH",
+                    f"{n} ROUNDS", HOOK + .3, *first, kicker=f"FORTNITE QUIZ #{spec['episode']}", silhouette=True)
     comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
     for k, rd in enumerate(rounds, 1):
         it = items[rd["item"]]
         _picture_round(comp, ctx, HOOK + (k - 1) * R1, k, n, it, "WHO IS THIS?" if zoom else "WHO'S THAT SKIN?",
                        rd["options"], rd["answer"], mode="zoom" if zoom else "silhouette",
-                       focus=rd.get("focus"), show_name=False)
+                       focus=rd.get("focus"), show_name=False, theme=theme,
+                       reveal_fact=theme["fact"](it) if theme else "")
     _outro(comp, ctx, content_end, f"HOW MANY DID YOU GET OUT OF {n}?", [items[rd["item"]] for rd in rounds])
 
     ep = spec["episode"]
+    if theme:
+        return theme["video"](fmt, comp, n, [items[rd["item"]] for rd in rounds])
     if zoom:
         hook = (f"🔍 ZOOMED IN — Fortnite Quiz #{ep}\n"
                 f"We start up close. Name the skin before the camera pulls back 👇")
@@ -291,15 +311,20 @@ T2_CD = 2.6
 T2_REV = T2_CD + CD
 
 
-def which_first(spec: dict, items: dict, ctx: Ctx):
+def which_first(spec: dict, items: dict, ctx: Ctx, theme: dict = None):
     rounds = _usable(ctx, spec["rounds"], ("a", "b"), items, 5)
     if len(rounds) < 4:
         return None
     n = len(rounds)
     content_end = HOOK + n * R2
     comp = _comp(content_end)
-    _hook_scene(comp, ctx, "WHICH CAME FIRST?", "OLDER SKIN: A OR B?", f"{n} ROUNDS", HOOK + .3,
-                items[rounds[0]["a"]], items[rounds[0]["b"]], kicker=f"FORTNITE QUIZ #{spec['episode']}")
+    if theme:
+        _hook_scene(comp, ctx, "WHICH CAME FIRST?", theme["sub"], theme["stick"], HOOK + .3,
+                    items[rounds[0]["a"]], items[rounds[0]["b"]], colors=theme["bg"], kicker=theme["kicker"],
+                    kicker_color=theme["color"], extra=_deco(theme, 0))
+    else:
+        _hook_scene(comp, ctx, "WHICH CAME FIRST?", "OLDER SKIN: A OR B?", f"{n} ROUNDS", HOOK + .3,
+                    items[rounds[0]["a"]], items[rounds[0]["b"]], kicker=f"FORTNITE QUIZ #{spec['episode']}")
     comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
 
     for k, rd in enumerate(rounds, 1):
@@ -311,10 +336,13 @@ def which_first(spec: dict, items: dict, ctx: Ctx):
         comp.css(f"@keyframes {dim}{{to{{opacity:.35;filter:grayscale(.8)}}}}")
         side = lambda is_first, ox, oy: (f"transform-origin:{ox}px {oy}px;"
                                           + style_anim(an("pulse", reveal, .45) if is_first else an(dim, reveal, .4)))
+        bg_b = theme["bg2"] if theme else _colors(b)
         inner = (f'<div class="abs" style="left:0;top:0;width:{W / 2 + 60}px;height:{H}px;'
-                 f'clip-path:polygon(0 0,100% 0,calc(100% - 120px) 100%,0 100%)">{tile_bg(_colors(a), a["rarity"], t0)}</div>'
+                 f'clip-path:polygon(0 0,100% 0,calc(100% - 120px) 100%,0 100%)">'
+                 f'{tile_bg(_colors(a, theme), a["rarity"], t0)}</div>'
                  f'<div class="abs" style="right:0;top:0;width:{W / 2 + 60}px;height:{H}px;'
-                 f'clip-path:polygon(120px 0,100% 0,100% 100%,0 100%)">{tile_bg(_colors(b), b["rarity"], t0)}</div>')
+                 f'clip-path:polygon(120px 0,100% 0,100% 100%,0 100%)">{tile_bg(bg_b, b["rarity"], t0)}</div>')
+        inner += _deco(theme, t0)
         inner += _question("WHICH CAME FIRST?", t0)
         inner += (f'<div class="full" style="{side(first_is_a, 285, 860)}">'
                   + character(ctx.art(a), 285, 860, 620, t0 + .1, "fromL", .7, "float", a["rarity"], a["name"])
@@ -328,9 +356,10 @@ def which_first(spec: dict, items: dict, ctx: Ctx):
                   + "</div>")
         inner += sticker("A", 70, 420, 110, t0 + .5, rot=-8)
         inner += sticker("B", 880, 420, 110, t0 + .6, bg="#ffffff", rot=7)
-        # After the reveal: each one's season, the older in lime with FIRST!.
+        # After the reveal: when each came out, the older in lime with FIRST!.
         for it, is_first, x, align in ((a, first_is_a, 50, "left"), (b, not first_is_a, SAFE_RIGHT - 10, "right")):
-            inner += label(it["season_label"].upper(), x, 1370, 32, reveal + .1, ACCENT if is_first else "#fff",
+            when = theme["when"](it) if theme else it["season_label"].upper()
+            inner += label(when, x, 1370, 32, reveal + .1, ACCENT if is_first else "#fff",
                            800, align=align, bg="rgba(10,10,11,.82)", pad="8px 18px", width=0)
         fx = 150 if first_is_a else 640
         inner += sticker("FIRST!", fx, 560, 84, reveal + .05, rot=-6 if first_is_a else 6)
@@ -346,6 +375,9 @@ def which_first(spec: dict, items: dict, ctx: Ctx):
     answers = "".join("A" if rd["answer"] == "a" else "B" for rd in rounds)
     _outro(comp, ctx, content_end, f"COMMENT YOUR {n} ANSWERS", [items[rounds[0]["a"]], items[rounds[0]["b"]],
                                                                   items[rounds[1]["a"]]])
+    if theme:
+        return theme["video"]("which_first", comp, n, [items[rd[k]] for rd in rounds for k in ("a", "b")],
+                              answers=answers)
     ep = spec["episode"]
     body = "\n".join(f"{num(k)} {items[rd['a']]['name']} 🆚 {items[rd['b']]['name']}"
                      for k, rd in enumerate(rounds, 1))
@@ -441,34 +473,44 @@ def odd_one_out(spec: dict, items: dict, ctx: Ctx):
 R3 = 6.5
 
 
-def throwback(spec: dict, items: dict, ctx: Ctx):
+def throwback(spec: dict, items: dict, ctx: Ctx, theme: dict = None):
     group = [items[i] for i in spec["items"] if ctx.art(items[i])][:8]
     if len(group) < 6:
         return None
     n = len(group)
     gear = spec.get("edition") == "gear"
-    season = spec["season"]                      # "Chapter 1 · Season 5"
+    season = theme["title"] if theme else spec["season"]      # "Chapter 1 · Season 5"
     content_end = HOOK + n * R3
     comp = _comp(content_end)
     what = "GEAR" if gear else "SKINS"
-    _hook_scene(comp, ctx, season.upper().replace(" · ", " "), "HOW MANY DO YOU REMEMBER?",
-                f"{n} {what}", HOOK + .3, group[0], group[1], kicker="FORTNITE THROWBACK")
+    if theme:
+        _hook_scene(comp, ctx, season.upper(), theme["sub"], theme["stick"], HOOK + .3, group[0], group[1],
+                    colors=theme["bg"], kicker=theme["kicker"], kicker_color=theme["color"],
+                    extra=_deco(theme, 0))
+    else:
+        _hook_scene(comp, ctx, season.upper().replace(" · ", " "), "HOW MANY DO YOU REMEMBER?",
+                    f"{n} {what}", HOOK + .3, group[0], group[1], kicker="FORTNITE THROWBACK")
     comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
     for k, it in enumerate(group, 1):
         t0 = HOOK + (k - 1) * R3
-        inner = tile_bg(_colors(it), it["rarity"], t0)
-        inner += label(season.upper(), W / 2, 300, 34, t0, ACCENT, 800, anim="none", align="center",
-                       spacing=".14em")
+        inner = tile_bg(_colors(it, theme), it["rarity"], t0) + _deco(theme, t0)
+        top = theme["era"](it) if theme else season.upper()
+        inner += label(top, W / 2, 300, 34, t0, theme["color"] if theme else ACCENT, 800, anim="none",
+                       align="center", spacing=".14em")
         inner += character(ctx.art(it), 500, 740, 740, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
         size = min(96, 860 / max(anton_em(it["name"]), .1))
         inner += words(it["name"], 60, 1180, size, t0 + .45, "#fff", .06, "slam", "left", 880)
         kind = f"{it['rarity_label']} {it['type']}".strip() if it.get("rarity_label") else it["type"]
+        if theme:           # when it first came out, from its shop history
+            kind = f"{kind} · {theme['debut'](it)}"
         inner += label(kind.upper(), 64, 1190 + size + 18, 34, t0 + .7, ACCENT, 800)
         inner += _pips(k, n, "GEAR" if gear else "SKIN")
         comp.scene(t0, t0 + R3, inner, fade_in=.25, fade_out=.25)
         comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .45, "pop")
 
     _outro(comp, ctx, content_end, "WHICH ONE DID YOU OWN?", group)
+    if theme:
+        return theme["video"]("throwback", comp, n, group)
     body = "\n".join(f"{num(k)} {it['name']} · {it['type']}" for k, it in enumerate(group, 1))
     short = season.replace(" · ", " ")            # "Chapter 1 Season 5"
     tags = _tags("ogfortnite", short.replace(" ", ""), "fortnitethrowback")
@@ -487,5 +529,9 @@ BUILDERS = {"guess_season": guess_season, "whos_that": whos_that, "zoomed_in": z
 
 
 def build(spec: dict, items: dict, ctx: Ctx):
-    """The Video for one planned entry, or None if its artwork won't load."""
+    """The Video for one planned entry, or None if its artwork won't load.
+    On This Day, the seasonal series and Build Your Loadout live in cc_series."""
+    if spec.get("series") or spec["format"] not in BUILDERS:
+        import cc_series
+        return cc_series.build(spec, items, ctx)
     return BUILDERS[spec["format"]](spec, items, ctx)
