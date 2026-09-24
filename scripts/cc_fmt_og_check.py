@@ -111,8 +111,10 @@ def build(ctx: Ctx):
     comp.add(disclosure())
 
     oldest = picks[0]
-    body = "\n".join(f"{num(k)} {it['name']} · {it['type']} · {', '.join(s.title() for s in _season(it))} · "
-                     f"{int(it['price']):,} V-Bucks" for k, it in enumerate(picks, 1))
+    # Epic's own wording, as written: "Chapter 1, Season 3", "Chapter 4, Season OG".
+    said = lambda it: ((it.get("introduction") or {}).get("text") or "").replace("Introduced in ", "").rstrip(".")
+    body = "\n".join(f"{num(k)} {it['name']} · {it['type']} · {said(it)} · {int(it['price']):,} V-Bucks"
+                     for k, it in enumerate(picks, 1))
     tags = _hashtags("ogfortnite", "ogcheck", oldest["name"])
     return Video(
         FORMAT, comp,

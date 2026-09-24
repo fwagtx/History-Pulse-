@@ -68,6 +68,15 @@ def _debut(it: dict) -> str:
     return f"SHOP DEBUT {_when(it)}" if first >= FIRST_SURE else f"IN THE SHOP IN {_when(it)}"
 
 
+def _debut_words(it: dict) -> str:
+    """The same for a description: 'Shop debut Oct 26, 2018', 'In the shop in 2017'."""
+    first = it.get("first_shop") or ""
+    if first >= FIRST_SURE:
+        y, m, d = (int(x) for x in first.split("-"))
+        return f"Shop debut {MONTHS[m - 1].title()} {d}, {y}"
+    return f"In the shop in {first[:4]}"
+
+
 # ================================================================ On This Day
 
 R_OTD = 6.5
@@ -304,7 +313,7 @@ def _season_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
             yt = f"{span} Throwback{part}: Remember These? #shorts"
             hook = (f"{look['emoji']} {span.upper()} THROWBACK{part.upper()} — Day {day} of {of}\n"
                     f"{n} cosmetics {look['from'](span)}. How many do you remember? 👇")
-            body = "\n".join(f"{num(k)} {it['name']} · {it['type']} · {_debut(it).capitalize()}"
+            body = "\n".join(f"{num(k)} {it['name']} · {it['type']} · {_debut_words(it)}"
                              for k, it in enumerate(group, 1))
             ask = "Which one did you own? Tell us below"
             tags = _tags(tags_base, "ogfortnite", "fortnitethrowback")
