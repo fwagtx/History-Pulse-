@@ -180,7 +180,7 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list) -> tuple:
     if debut:
         html.append(f'<div class="abs" style="left:0;top:0;'
                     f'{_a("lkstamp", t0 + 1.9, .28, "cubic-bezier(.3,1.6,.5,1)", "--r:0deg;")}">'
-                    + _stamp("NEW THAT DAY", "", STICK_X + 150, STICK_Y + 40, 330, 96, -9, 44) + '</div>')
+                    + _stamp("NEW THAT DAY", "", STICK_X - 24, STICK_Y + STICK_H - 190, 330, 96, -9, 44) + '</div>')
         sounds.append((t0 + 1.9, "stamp"))
     html.append('</div>')
     html.append(_tag_on(years, idx, t0 + .2))
