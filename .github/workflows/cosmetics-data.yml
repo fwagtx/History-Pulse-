@@ -18,19 +18,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # responseFlags adds what the list leaves out by default:
+      # 2 = gameplay tags, 4 = shop history.
       - name: Download the full cosmetics list
         run: |
           set -e
           curl -fsSL --compressed --retry 4 --retry-delay 15 -H "Accept: application/json" \
-            "https://fortnite-api.com/v2/cosmetics/br" -o br-full.json
+            "https://fortnite-api.com/v2/cosmetics/br?responseFlags=6" -o br-full.json
           python3 - <<'EOF'
           import json
           items = json.load(open("br-full.json"))["data"]
           hist = [i for i in items if i.get("shopHistory")]
-          days = sorted({d[:10] for i in hist for d in i["shopHistory"]})
-          print(f"{len(items)} cosmetics, {len(hist)} with shop history")
-          print(f"shop days covered: {len(days)}, from {days[0]} to {days[-1]}")
+          tags = [i for i in items if i.get("gameplayTags")]
+          print(f"{len(items)} cosmetics, {len(hist)} with shop history, {len(tags)} with gameplay tags")
           assert len(items) > 10000, "too few cosmetics: the API answered something else"
+          assert hist, "no shop history in the answer"
+          days = sorted({d[:10] for i in hist for d in i["shopHistory"]})
+          print(f"shop days covered: {len(days)}, from {days[0]} to {days[-1]}")
           EOF
           gzip -9 -k br-full.json
           ls -la br-full.json*
