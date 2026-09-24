@@ -130,7 +130,14 @@ def _intro(item: dict) -> dict:
     intro = item.get("introduction") or {}
     return {"chapter": str(intro.get("chapter") or ""),
             "season": str(intro.get("season") or ""),
-            "text": intro.get("text") or ""}
+            "text": intro.get("text") or "",
+            # Seasons counted in release order (Chapter 2 Remix sits between 5 and 6).
+            "order": int(intro.get("backendValue") or 0)}
+
+
+def _banner(entry: dict) -> str:
+    """Epic's own tag on the offer's tile: "New", "AmountOff", ... ('' if none)."""
+    return ((entry.get("banner") or {}).get("backendValue") or "").strip()
 
 
 def _is_placeholder(name: str) -> bool:
@@ -163,6 +170,9 @@ def normalize(payload: dict) -> dict:
     """
     data = payload.get("data") or {}
     rows, seen = [], set()
+    # Every cosmetic's own price today, by item id, from every single-item offer
+    # (the rows below keep one offer per name; two items can share a name).
+    single_prices = {}
 
     for entry in _iter_raw_entries(data):
         price = entry.get("finalPrice") or entry.get("regularPrice") or 0
@@ -184,9 +194,14 @@ def normalize(payload: dict) -> dict:
             "offer_id": entry.get("offerId") or "",
             "section": ((entry.get("layout") or {}).get("name") or "").strip(),
             "tile_colors": _tile_colors(entry),
+            "banner": _banner(entry),
         }
 
         offer_key = entry.get("offerId") or ""
+
+        if len(raw_items) == 1 and raw_items[0].get("id"):
+            iid = raw_items[0]["id"]
+            single_prices[iid] = min(price, single_prices.get(iid, price))
 
         if len(raw_items) == 1:
             item = raw_items[0]
@@ -206,6 +221,7 @@ def normalize(payload: dict) -> dict:
                 "rarity_label": ((item.get("rarity") or {}).get("displayValue") or "Common"),
                 "is_bundle": False,
                 "bundle_size": 1,
+                "item_id": item.get("id") or "",
                 "image": _best_image(item),
                 "images": _item_images(item) + _entry_render_images(entry),
                 "introduction": _intro(item),
@@ -235,6 +251,9 @@ def normalize(payload: dict) -> dict:
                 "images": _entry_render_images(entry)
                           + [u for it in raw_items for u in _item_images(it)],
                 "member_names": [i["name"] for i in raw_items],
+                "member_ids": [i.get("id") or "" for i in raw_items],
+                "member_types": [((i.get("type") or {}).get("displayValue") or "") for i in raw_items],
+                "bundle_name": ((entry.get("bundle") or {}).get("name") or "").strip(),
                 "introduction": _intro(raw_items[0]),
                 **common,
             })
@@ -258,6 +277,7 @@ def normalize(payload: dict) -> dict:
         "item_count": len(rows),
         "bundle_count": sum(1 for r in rows if r["is_bundle"]),
         "items": rows,
+        "single_prices": single_prices,
     }
 
 
