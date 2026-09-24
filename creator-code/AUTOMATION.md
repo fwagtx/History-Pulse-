@@ -1,4 +1,4 @@
-# How 3 videos a day get posted, automatically
+# How 7 videos a day get posted, automatically
 
 **Nothing to set up. It runs by itself every day, and posts by itself.**
 
@@ -11,21 +11,32 @@
 music and sound effects. It puts them online as a **release** (that gives each video a
 public link Metricool can pull from).
 
-**7:00 AM Central** — the daily Routine schedules all three in Metricool for brand
+**7:00 AM Central** — the daily Routine schedules them in Metricool for brand
 **7066444** (`usecodebad`), and they **post by themselves** to TikTok, YouTube Shorts,
 Facebook and Instagram:
 
 | Time (Central) | Video | What it is |
 |---|---|---|
-| 8:00 AM | **Quiz** | One of the six quiz types below |
+| 8:00 AM | **Quiz** | One of the quiz types below |
 | 10:00 AM | Shop Recap | Today's shop: the headline items and prices |
+| 12:00 PM | **On This Day** | The Item Shop on today's date, every year since 2018 (see below) |
 | 1:30 PM | A game | Rotates daily: This or That · Guess the Price · Which Costs More · Cop or Drop |
 | 3:30 PM | **Quiz** | |
-| 5:00 PM | Last chance | Last Chance (items leaving at the reset), or one of the games on days fewer than 4 items are leaving |
-| 8:00 PM | **Quiz** | |
+| 5:00 PM | Shop value | Rotates daily: Last Chance · Bundle Math · OG Check · New in the Shop |
+| 8:00 PM | **Quiz**, or the **season's series** | Fortnitemares every day in October, Winterfest every day in December |
 
 All three shop times are **before** the shop resets, so no shop video ever shows items that
-are gone. The quizzes aren't about the day's shop, so they can go out in the evening.
+are gone. The other videos aren't about the day's shop, so they can go out in the evening.
+
+The 5:00 PM shop videos:
+
+- **Last Chance** — items leaving at the next reset
+- **Bundle Math** — today's bundles against buying the same items one by one, on a
+  receipt. Only bundles whose every item is also sold on its own today, so the total is a
+  real sum of today's prices
+- **OG Check** — the oldest items in today's shop, counting down, by the season Epic says
+  each came out in
+- **New in the Shop** — everything carrying Epic's own "New" tag in the shop
 
 If a day's shop can't honestly support a format (say, only 2 items are leaving), that slot
 quietly switches to another format. Every word on screen comes from the real shop data.
@@ -35,10 +46,10 @@ delete or edit it in Metricool's planner before its time.
 
 ---
 
-## Quiz videos (three more a day)
+## Quiz videos
 
-Added 2026-09-23. **540 are planned, three a day through March 22, 2027**, in
-`creator-code/quiz/plan.json`:
+Added 2026-09-23. Planned three a day (two in October and December, when the season's
+series takes the 8 PM slot) through March 22, 2027, in `creator-code/quiz/plan.json`:
 
 - **Guess the Season** — six cosmetics; which season did each come out in?
 - **Who's That Skin?** — six silhouettes, four names each
@@ -46,6 +57,8 @@ Added 2026-09-23. **540 are planned, three a day through March 22, 2027**, in
 - **Zoomed In** — six extreme close-ups that pull back
 - **Odd One Out** — five rounds of four skins; three share a set
 - **Season Throwback** — eight skins from one season, starting at Chapter 1 Season 1
+- **Build Your Loadout** — pick one of three outfits, back blings, pickaxes, gliders and
+  emotes, then comment your combo (added 2026-09-24; no right answers)
 
 Every answer comes from Epic's own item data (the cosmetics mirror the shop uses), never
 from memory. The descriptions never give answers away.
@@ -56,11 +69,38 @@ ending, and `💚 Creator Code: BAD · #EpicPartner` in the description. The sou
 ding, clapping, air horn) are made from scratch: real emote audio would draw copyright
 strikes.
 
+## On This Day, Fortnitemares and Winterfest
+
+Added 2026-09-24, from the same plan and built the same way as the quizzes:
+
+- **On This Day** (every day, 12:00 PM) — for every year since 2018, one outfit that was
+  in the Item Shop on today's date, on a timeline. "First time in the Item Shop" appears
+  only when the shop history says that day was its first. **September 26** is a birthday
+  edition: Fortnite Battle Royale came out on September 26, 2017.
+- **Fortnitemares** (every day in October, 8:00 PM) — throwbacks to each year's
+  Fortnitemares cosmetics (2017–2025), and Fortnitemares editions of Who's That Skin?,
+  Zoomed In, Which Came First? and a new Which Fortnitemares? (guess the year). A cosmetic
+  is only used when the Fortnite Wiki lists it for that year's Fortnitemares **and** its
+  shop history shows it first in the shop that autumn. Purple, orange, with bats.
+- **Winterfest** (every day in December, 8:00 PM) — throwbacks to what first hit the Item
+  Shop during each year's winter event (14 Days of Fortnite 2018, Winterfest 2019,
+  Operation Snowdown 2020, Winterfest 2021–2025, dates from the Fortnite Wiki), and
+  Winterfest editions of the quizzes. Icy blue, with snow.
+
+Where the dates come from: the shop history (which days each cosmetic was in the Item
+Shop) is kept on the **[cosmetics-data release](https://github.com/fwagtx/History-Pulse-/releases/tag/cosmetics-data)**,
+refreshed every Monday by **[Actions → Cosmetics data](https://github.com/fwagtx/History-Pulse-/actions/workflows/cosmetics-data.yml)**
+from fortnite-api.com (free, no key). The shop records start on October 30, 2017, so
+anything first seen before 2018 gets a year, never a possibly wrong date. The wiki lists
+and event dates are saved in `creator-code/quiz/seasons.json` with their sources.
+
 **How they get out:** every night GitHub builds the day two weeks ahead
 (**[Actions → Quiz videos](https://github.com/fwagtx/History-Pulse-/actions/workflows/quiz-videos.yml)**,
-one release per day called `quiz-YYYY-MM-DD`), and the 7 AM Routine keeps the next two weeks
-scheduled in Metricool. Building only two weeks ahead means a design change still reaches the
-upcoming videos. To go past March 2027, ask Claude to extend the plan.
+one release per day called `quiz-YYYY-MM-DD`, holding that day's quizzes, On This Day and
+seasonal video), and the 7 AM Routine keeps the next two weeks scheduled in Metricool.
+Building only two weeks ahead means a design change still reaches the upcoming videos. To
+go past March 2027, or to add next year's Fortnitemares and Winterfest, ask Claude to
+extend the plan.
 
 ---
 
@@ -135,6 +175,7 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 
 | Symptom | What it means |
 |---|---|
+| The Cosmetics data run fails | Nothing stops: every video already planned still builds. Only extending the plan needs it; it retries next Monday |
 | Build step says "Shop source still shows …" | Neither shop source had the new day yet. Each run waits 50 min before giving up, on purpose, so it never posts yesterday's shop, and GitHub tries again four more times through the night (last try about 4 AM Central). Nothing to do unless every try fails. |
 | Fewer than 3 videos | Some formats couldn't be made honestly from that day's shop. Normal on thin days. |
 | No release appears | The build failed — open the run, read the red step, send it to me |
