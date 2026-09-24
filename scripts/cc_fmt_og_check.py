@@ -93,7 +93,9 @@ def build(ctx: Ctx):
                        "#fff", 800)
         inner += _from(t0 + .9, price_roll(int(it["price"]), 60, y + 50, 64, t0 + .9, .8))
         if last:
-            inner += sticker("THE OLDEST TODAY!", 480, 640, 58, t0 + 1.6, rot=-5)
+            # Several items can share the oldest season: then it's a tie, not "the" oldest.
+            tied = sum(1 for p in picks if _order(p) == _order(it)) > 1
+            inner += sticker("TIED FOR OLDEST!" if tied else "THE OLDEST TODAY!", 480, 640, 58, t0 + 1.6, rot=-5)
             inner += _from(t0 + 1.6, burst(560, 820, t0 + 1.6, ctx.seed + k))
         inner += progress(t0, t0 + R, k, n).replace(f"ROUND {k}/{n}", f"ITEM {k}/{n}")
         comp.scene(t0, t0 + R, inner, fade_in=.25, fade_out=.25)
