@@ -4548,7 +4548,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_ladyshinobi/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_ladyshinobi/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_ladyshinobi/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Backpack_TerraBulb": {
    "id": "Backpack_TerraBulb",
@@ -4568,7 +4569,8 @@
     "https://fortnite-api.com/images/cosmetics/br/backpack_terrabulb/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_terrabulb/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_terrabulb/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Pickaxe_MoralKore": {
    "id": "Pickaxe_MoralKore",
@@ -4588,7 +4590,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_moralkore/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_moralkore/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_moralkore/smallicon.png"
-   ]
+   ],
+   "first_shop": "2025-06-09"
   },
   "Backpack_MixedAlley": {
    "id": "Backpack_MixedAlley",
@@ -4608,7 +4611,8 @@
     "https://fortnite-api.com/images/cosmetics/br/backpack_mixedalley/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_mixedalley/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_mixedalley/smallicon.png"
-   ]
+   ],
+   "first_shop": "2026-08-21"
   },
   "Pickaxe_IntenseCello": {
    "id": "Pickaxe_IntenseCello",
@@ -4649,7 +4653,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_493_nauticalpajamasmale/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_493_nauticalpajamasmale/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_493_nauticalpajamasmale/smallicon.png"
-   ]
+   ],
+   "first_shop": "2020-12-01"
   },
   "Pickaxe_ID_438_AntiLlamaFemale": {
    "id": "Pickaxe_ID_438_AntiLlamaFemale",
@@ -4669,7 +4674,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_438_antillamafemale/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_438_antillamafemale/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_438_antillamafemale/smallicon.png"
-   ]
+   ],
+   "first_shop": "2020-08-16"
   },
   "Pickaxe_MasakoReign": {
    "id": "Pickaxe_MasakoReign",
@@ -8330,7 +8336,8 @@
     "https://fortnite-api.com/images/cosmetics/br/halloweenscythe/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/halloweenscythe/smallicon.png"
    ],
-   "first_shop": "2017-10-31"
+   "first_shop": "2017-10-31",
+   "fm_year": 2017
   },
   "CID_229_Athena_Commando_F_DarkBomber": {
    "id": "CID_229_Athena_Commando_F_DarkBomber",
@@ -8461,7 +8468,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_240_athena_commando_f_plague/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_240_athena_commando_f_plague/smallicon.png"
    ],
-   "first_shop": "2018-10-12"
+   "first_shop": "2018-10-12",
+   "fm_year": 2018
   },
   "CID_243_Athena_Commando_M_PumpkinSlice": {
    "id": "CID_243_Athena_Commando_M_PumpkinSlice",
@@ -8966,7 +8974,8 @@
     "https://fortnite-api.com/images/cosmetics/br/backpack_cornerweek/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_cornerweek/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_cornerweek/smallicon.png"
-   ]
+   ],
+   "first_shop": "2025-11-22"
   },
   "Pickaxe_ID_064_Gumshoe": {
    "id": "Pickaxe_ID_064_Gumshoe",
@@ -8986,7 +8995,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_064_gumshoe/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_064_gumshoe/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_id_064_gumshoe/smallicon.png"
-   ]
+   ],
+   "first_shop": "2018-07-02"
   },
   "Backpack_StrikinglyBright": {
    "id": "Backpack_StrikinglyBright",
@@ -9006,7 +9016,8 @@
     "https://fortnite-api.com/images/cosmetics/br/backpack_strikinglybright/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_strikinglybright/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_strikinglybright/smallicon.png"
-   ]
+   ],
+   "first_shop": "2025-07-21"
   },
   "Pickaxe_ID_532_WombatFemale_CWE2D": {
    "id": "Pickaxe_ID_532_WombatFemale_CWE2D",
@@ -9047,7 +9058,8 @@
     "https://fortnite-api.com/images/cosmetics/br/backpack_boredom/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_boredom/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_boredom/smallicon.png"
-   ]
+   ],
+   "first_shop": "2022-10-31"
   },
   "Pickaxe_ID_661_VividMale1H_ZN6Q0": {
    "id": "Pickaxe_ID_661_VividMale1H_ZN6Q0",
@@ -9109,7 +9121,8 @@
     "https://fortnite-api.com/images/cosmetics/br/bid_183_nutcrackerfemale/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/bid_183_nutcrackerfemale/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/bid_183_nutcrackerfemale/smallicon.png"
-   ]
+   ],
+   "first_shop": "2020-12-09"
   },
   "Character_AllKnowing": {
    "id": "Character_AllKnowing",
@@ -9218,7 +9231,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_a_249_athena_commando_f_zombieelastic/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_a_249_athena_commando_f_zombieelastic/smallicon.png"
    ],
-   "first_shop": "2021-10-27"
+   "first_shop": "2021-10-27",
+   "fm_year": 2021
   },
   "CID_A_252_Athena_Commando_F_ZombieElastic_D": {
    "id": "CID_A_252_Athena_Commando_F_ZombieElastic_D",
@@ -9239,7 +9253,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_a_252_athena_commando_f_zombieelastic_d/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_a_252_athena_commando_f_zombieelastic_d/smallicon.png"
    ],
-   "first_shop": "2021-10-27"
+   "first_shop": "2021-10-27",
+   "fm_year": 2021
   },
   "CID_194_Athena_Commando_F_RavenQuill": {
    "id": "CID_194_Athena_Commando_F_RavenQuill",
@@ -10230,7 +10245,8 @@
     "https://fortnite-api.com/images/cosmetics/br/character_darkvogue/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/character_darkvogue/smallicon.png"
    ],
-   "first_shop": "2024-11-03"
+   "first_shop": "2024-11-03",
+   "fm_year": 2024
   },
   "Character_ArcanaAgate": {
    "id": "Character_ArcanaAgate",
@@ -10617,7 +10633,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_602_athena_commando_m_nanasplit/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_602_athena_commando_m_nanasplit/smallicon.png"
    ],
-   "first_shop": "2019-11-01"
+   "first_shop": "2019-11-01",
+   "fm_year": 2019
   },
   "CID_803_Athena_Commando_F_SharkSuit": {
    "id": "CID_803_Athena_Commando_F_SharkSuit",
@@ -11066,7 +11083,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_228_athena_commando_m_vampire/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_228_athena_commando_m_vampire/smallicon.png"
    ],
-   "first_shop": "2018-10-19"
+   "first_shop": "2018-10-19",
+   "fm_year": 2018
   },
   "CID_249_Athena_Commando_F_BlackWidow": {
    "id": "CID_249_Athena_Commando_F_BlackWidow",
@@ -11259,7 +11277,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_583_athena_commando_f_noshhunter/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_583_athena_commando_f_noshhunter/smallicon.png"
    ],
-   "first_shop": "2019-10-24"
+   "first_shop": "2019-10-24",
+   "fm_year": 2019
   },
   "CID_494_Athena_Commando_M_MechPilotShark": {
    "id": "CID_494_Athena_Commando_M_MechPilotShark",
@@ -11620,7 +11639,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_163_athena_commando_f_viking/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_163_athena_commando_f_viking/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_163_athena_commando_f_viking/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Character_TimberStakeSoul_D": {
    "id": "Character_TimberStakeSoul_D",
@@ -11874,7 +11894,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_914_athena_commando_f_york_e/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_914_athena_commando_f_york_e/smallicon.png"
    ],
-   "first_shop": "2020-10-25"
+   "first_shop": "2020-10-25",
+   "fm_year": 2020
   },
   "CID_591_Athena_Commando_M_SoccerZombieC": {
    "id": "CID_591_Athena_Commando_M_SoccerZombieC",
@@ -11917,7 +11938,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_a_251_athena_commando_f_zombieelastic_c/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_a_251_athena_commando_f_zombieelastic_c/smallicon.png"
    ],
-   "first_shop": "2021-10-27"
+   "first_shop": "2021-10-27",
+   "fm_year": 2021
   },
   "Character_Ruins": {
    "id": "Character_Ruins",
@@ -12089,7 +12111,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_580_athena_commando_m_cuddleteamdark/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_580_athena_commando_m_cuddleteamdark/smallicon.png"
    ],
-   "first_shop": "2019-10-19"
+   "first_shop": "2019-10-19",
+   "fm_year": 2019
   },
   "CID_584_Athena_Commando_M_Nosh": {
    "id": "CID_584_Athena_Commando_M_Nosh",
@@ -13324,7 +13347,8 @@
     "https://fortnite-api.com/images/cosmetics/br/character_bananacake/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/character_bananacake/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/character_bananacake/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Character_EmeraldGlassPink": {
    "id": "Character_EmeraldGlassPink",
@@ -13940,7 +13964,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_598_athena_commando_m_mastermind/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_598_athena_commando_m_mastermind/smallicon.png"
    ],
-   "first_shop": "2019-10-25"
+   "first_shop": "2019-10-25",
+   "fm_year": 2019
   },
   "CID_593_Athena_Commando_F_SoccerZombieA": {
    "id": "CID_593_Athena_Commando_F_SoccerZombieA",
@@ -13961,7 +13986,8 @@
     "https://fortnite-api.com/images/cosmetics/br/cid_593_athena_commando_f_soccerzombiea/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/cid_593_athena_commando_f_soccerzombiea/smallicon.png"
    ],
-   "first_shop": "2019-10-27"
+   "first_shop": "2019-10-27",
+   "fm_year": 2019
   },
   "CID_595_Athena_Commando_F_SoccerZombieC": {
    "id": "CID_595_Athena_Commando_F_SoccerZombieC",
@@ -14575,7 +14601,8 @@
     "https://fortnite-api.com/images/cosmetics/br/character_coppertoll/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/character_coppertoll/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/character_coppertoll/smallicon.png"
-   ]
+   ],
+   "first_shop": "2024-04-06"
   },
   "Pickaxe_IvyStub": {
    "id": "Pickaxe_IvyStub",
@@ -14595,7 +14622,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_ivystub/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_ivystub/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_ivystub/smallicon.png"
-   ]
+   ],
+   "first_shop": "2025-08-28"
   },
   "Pickaxe_DoubleDutyStew": {
    "id": "Pickaxe_DoubleDutyStew",
@@ -14615,7 +14643,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_doubledutystew/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_doubledutystew/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_doubledutystew/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Backpack_WinkFin": {
    "id": "Backpack_WinkFin",
@@ -14635,7 +14664,8 @@
     "https://fortnite-api.com/images/cosmetics/br/backpack_winkfin/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_winkfin/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_winkfin/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Pickaxe_BriskReign": {
    "id": "Pickaxe_BriskReign",
@@ -14655,7 +14685,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_briskreign/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_briskreign/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_briskreign/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Glider_ID_374_RealmMale": {
    "id": "Glider_ID_374_RealmMale",
@@ -14696,7 +14727,8 @@
     "https://fortnite-api.com/images/cosmetics/br/backpack_rankedshade/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_rankedshade/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/backpack_rankedshade/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Backpack_BentBaton": {
    "id": "Backpack_BentBaton",
@@ -14737,7 +14769,8 @@
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_inferno/featured.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_inferno/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/pickaxe_inferno/smallicon.png"
-   ]
+   ],
+   "first_shop": ""
   },
   "Character_MeowKnaw": {
    "id": "Character_MeowKnaw",
@@ -14758,7 +14791,8 @@
     "https://fortnite-api.com/images/cosmetics/br/character_meowknaw/icon.png",
     "https://fortnite-api.com/images/cosmetics/br/character_meowknaw/smallicon.png"
    ],
-   "first_shop": "2025-10-30"
+   "first_shop": "2025-10-30",
+   "fm_year": 2025
   },
   "CID_A_216_Athena_Commando_M_SunrisePalace_BBQY0": {
    "id": "CID_A_216_Athena_Commando_M_SunrisePalace_BBQY0",

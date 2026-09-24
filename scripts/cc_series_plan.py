@@ -35,6 +35,15 @@ import random
 from datetime import date, timedelta
 
 FIRST_SURE = "2018-01-01"
+
+
+def entry_ids(v: dict) -> list:
+    """Every item id a planned video uses."""
+    ids = list(v.get("items", []))
+    for rd in v.get("rounds", []):
+        ids += [rd[k] for k in ("item", "a", "b") if k in rd] + list(rd.get("items", []))
+        ids += [p["item"] for p in rd.get("picks", [])]
+    return ids
 OTD_SLOT, OTD_AT = 4, "12:00"
 OTD_MIN_YEARS = 7            # fewer years than this and the day gets no video
 OTD_REUSE = 60               # days before an outfit can lead a year again
@@ -269,14 +278,17 @@ def plan_fortnitemares(pools, seasons: dict, year: int, start: date, end: date, 
     """One Fortnitemares video a day through October of `year`, within start..end."""
     by_year = fortnitemares_pool(pools, seasons)
     fm = Fortnitemares(by_year, seed)
+    pool = {it["id"]: it for y in by_year for it in by_year[y]}
     out, used_items = [], {}
     d = date(year, 10, 1)
     while d <= date(year, 10, 31):
         keep = fixed.get(d.isoformat())
         if keep and keep.get("series") == "fortnitemares":
-            # Replay it so the rotation and reuse state stay the same.
+            # Replay it so the rotation and reuse state stay the same, and hand
+            # back its items as the series knows them (with their year).
             fm.entry(d)
             out.append(keep)
+            used_items.update({i: pool[i] for i in entry_ids(keep) if i in pool})
         else:
             got = fm.entry(d)
             if got and start <= d <= end:
@@ -328,6 +340,7 @@ def plan_winterfest(pools, seasons: dict, year: int, start: date, end: date, see
     """One Winterfest video a day through December of `year`, within start..end."""
     by_year = winterfest_pool(pools, seasons)
     wf = Winterfest(by_year, seed)
+    pool = {it["id"]: it for y in by_year for it in by_year[y]}
     out, used_items = [], {}
     d = date(year, 12, 1)
     while d <= date(year, 12, 31):
@@ -335,6 +348,7 @@ def plan_winterfest(pools, seasons: dict, year: int, start: date, end: date, see
         if keep and keep.get("series") == "winterfest":
             wf.entry(d)
             out.append(keep)
+            used_items.update({i: pool[i] for i in entry_ids(keep) if i in pool})
         else:
             got = wf.entry(d)
             if got and start <= d <= end:

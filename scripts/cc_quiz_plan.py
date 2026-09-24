@@ -438,16 +438,24 @@ def main():
     quiz, quiz_items = planner.plan(start, first, last, reserved)
 
     videos = sorted(kept_quiz + quiz + series, key=lambda v: (v["date"], v["slot"]))
+    # One record per item, with every field any of its videos needs: the same
+    # item can be in a quiz, On This Day and a series, and only the series' copy
+    # carries its Fortnitemares or Winterfest year.
+    by_id = {x["id"]: x for x in pools.items}
+    old_items = (old or {}).get("items", {})
     items = {}
     for v in videos:
         for i in item_ids(v):
-            # A series' copy first: it carries the item's Fortnitemares or Winterfest year.
-            it = fm_items.get(i) or otd_items.get(i) or quiz_items.get(i) or (old or {}).get("items", {}).get(i)
-            if it is None:
-                it = next((x for x in pools.items if x["id"] == i), None)
-            if it is None:
+            if i in items:
+                continue
+            copies = [c for c in (by_id.get(i), old_items.get(i), quiz_items.get(i), otd_items.get(i),
+                                  fm_items.get(i)) if c]
+            if not copies:
                 raise SystemExit(f"item {i} is in the plan but not in the database")
-            items[i] = it
+            merged = {}
+            for c in copies:
+                merged.update(c)
+            items[i] = merged
     plan = {"start": start.isoformat(), "days": args.days, "timezone": "America/Chicago",
             "source": DB_URL, "items": items, "videos": videos}
     PLAN.parent.mkdir(parents=True, exist_ok=True)
