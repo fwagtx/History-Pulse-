@@ -135,7 +135,7 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 
 | Symptom | What it means |
 |---|---|
-| Build step says "Shop source still shows …" | The shop mirror hadn't updated yet. It waits 50 min before giving up, on purpose, so it never posts yesterday's shop. Re-run it. |
+| Build step says "Shop source still shows …" | Neither shop source had the new day yet. Each run waits 50 min before giving up, on purpose, so it never posts yesterday's shop, and GitHub tries again four more times through the night (last try about 4 AM Central). Nothing to do unless every try fails. |
 | Fewer than 3 videos | Some formats couldn't be made honestly from that day's shop. Normal on thin days. |
 | No release appears | The build failed — open the run, read the red step, send it to me |
 | Nothing scheduled in Metricool | The release didn't exist at 7 AM; the Routine skips rather than guessing |

@@ -21,7 +21,8 @@ from cc_common import (CC_DIR, OUT_DIR, log, load_config, http_get_json, write_j
 # removes the only manual credential step in the whole pipeline.
 MIRROR_URL = ("https://raw.githubusercontent.com/Fortnite-Datamining/"
               "Fortnite-Datamining/main/data/shop/current.json")
-# Official API, used only if an api key is configured. Same response shape.
+# Official API: same response shape. Tried with a key if one is configured,
+# and without one otherwise.
 OFFICIAL_URL = "https://fortnite-api.com/v2/shop"
 FIXTURE = CC_DIR / "fixtures" / "shop_sample.json"
 
@@ -29,33 +30,45 @@ FIXTURE = CC_DIR / "fixtures" / "shop_sample.json"
 HEADLINE_RARITIES = {"legendary", "epic", "marvel", "dc", "icon", "gaminglegends", "starwars"}
 
 
-def fetch_shop(cfg: dict) -> dict:
-    """Fetch the raw shop payload.
+def fetch_shop(cfg: dict, want_day: str | None = None) -> dict:
+    """Fetch the raw shop payload (want_day: the UTC day wanted, YYYY-MM-DD).
 
-    Tries the keyless GitHub mirror first, since it needs no credentials at all.
-    Falls back to the official API if a key is configured, and vice versa, so a
-    single source going down does not stop the day's video.
+    Tries the keyless GitHub mirror first, since it needs no credentials at all,
+    then the official API (with the key if one is configured), so a single
+    source going down or lagging does not stop the day's video.
     """
     key = cfg.get("fortnite_api_key", "")
     have_key = bool(key) and not key.startswith("PASTE_")
 
-    sources = [("mirror", MIRROR_URL, {"Accept": "application/json"})]
+    # The official API is tried even without a key: if it answers, it is the
+    # freshest source, and if it wants a key it just fails and is skipped.
+    official = {"Accept": "application/json"}
     if have_key:
-        sources.append(("official", OFFICIAL_URL,
-                        {"Accept": "application/json",
-                         "Authorization": key, "x-api-key": key}))
+        official.update({"Authorization": key, "x-api-key": key})
+    sources = [("mirror", MIRROR_URL, {"Accept": "application/json"}),
+               ("official", OFFICIAL_URL, official)]
 
-    last = None
+    # The mirror can lag the 00:00 UTC rotation by hours. With want_day, the
+    # first source already showing that day wins; if none does, the first one
+    # that answered is returned and the caller decides to wait.
+    last, fallback = None, None
     for name, url, headers in sources:
         try:
             log(f"Fetching shop from {name}: {url[:70]}...")
             payload = http_get_json(url, headers=headers, timeout=30)
-            if (payload.get("data") or {}).get("entries"):
+            data = payload.get("data") or {}
+            if not data.get("entries"):
+                log(f"  {name} returned no entries, trying next")
+                continue
+            if want_day is None or _day(data.get("date", "")) == want_day:
                 return payload
-            log(f"  {name} returned no entries, trying next")
+            log(f"  {name} still shows {_day(data.get('date', ''))}, trying next")
+            fallback = fallback or payload
         except Exception as e:  # noqa: BLE001
             log(f"  {name} failed: {e}")
             last = e
+    if fallback:
+        return fallback
     raise RuntimeError(f"all shop sources failed (last: {last})")
 
 

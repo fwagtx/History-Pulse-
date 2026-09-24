@@ -86,7 +86,7 @@ def fetch_today(expect: date, wait_min: float) -> dict:
     cfg = load_config()
     deadline = time.time() + wait_min * 60
     while True:
-        shop = normalize(fetch_shop(cfg))
+        shop = normalize(fetch_shop(cfg, expect.isoformat()))
         got = shop.get("shop_day")
         if got == expect.isoformat():
             return shop
