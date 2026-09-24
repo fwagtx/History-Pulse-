@@ -1,0 +1,52 @@
+name: Cosmetics data
+
+# Keeps a snapshot of every Fortnite cosmetic, with its shop history (the days
+# it was in the Item Shop), on the release "cosmetics-data". The On This Day and
+# seasonal videos are planned from it. Only fortnite-api.com carries shop
+# history (the keyless mirror the other videos use strips it), and it answers
+# GitHub's machines without a key, so GitHub fetches it once a week.
+on:
+  schedule:
+    - cron: "10 3 * * 1"      # Mondays 03:10 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write           # needed to publish the release that holds the snapshot
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download the full cosmetics list
+        run: |
+          set -e
+          curl -fsSL --compressed --retry 4 --retry-delay 15 -H "Accept: application/json" \
+            "https://fortnite-api.com/v2/cosmetics/br" -o br-full.json
+          python3 - <<'EOF'
+          import json
+          items = json.load(open("br-full.json"))["data"]
+          hist = [i for i in items if i.get("shopHistory")]
+          days = sorted({d[:10] for i in hist for d in i["shopHistory"]})
+          print(f"{len(items)} cosmetics, {len(hist)} with shop history")
+          print(f"shop days covered: {len(days)}, from {days[0]} to {days[-1]}")
+          assert len(items) > 10000, "too few cosmetics: the API answered something else"
+          EOF
+          gzip -9 -k br-full.json
+          ls -la br-full.json*
+
+      - name: Publish to the release "cosmetics-data"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -e
+          TAG=cosmetics-data
+          NOTES="Every Fortnite cosmetic with its shop history, from fortnite-api.com. Refreshed weekly; used to plan the On This Day and seasonal videos."
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" br-full.json.gz --clobber --repo "$REPO"
+          else
+            gh release create "$TAG" br-full.json.gz --repo "$REPO" --title "Cosmetics data" --notes "$NOTES"
+          fi
+          curl -fsSL -r 0-1023 -o /dev/null "https://github.com/$REPO/releases/download/$TAG/br-full.json.gz"
+          echo "Public: https://github.com/$REPO/releases/tag/$TAG"
