@@ -419,10 +419,11 @@ def main():
                                 {v["date"]: v for v in kept if v["format"] == "on_this_day"})
     fm, fm_items = [], {}
     for year in range(start.year, last.year + 1):
-        got = S.plan_fortnitemares(pools, seasons, year, start, last, args.seed,
-                                   {v["date"]: v for v in kept if v.get("series") == "fortnitemares"})
-        fm += got[0]
-        fm_items.update(got[1])
+        for plan_season, name in ((S.plan_fortnitemares, "fortnitemares"), (S.plan_winterfest, "winterfest")):
+            got = plan_season(pools, seasons, year, start, last, args.seed,
+                              {v["date"]: v for v in kept if v.get("series") == name})
+            fm += got[0]
+            fm_items.update(got[1])
     series = otd + fm
     reserved = {(v["date"], v["slot"]) for v in series}
 
@@ -440,7 +441,7 @@ def main():
     items = {}
     for v in videos:
         for i in item_ids(v):
-            # The Fortnitemares copy first: it carries the item's Fortnitemares year.
+            # A series' copy first: it carries the item's Fortnitemares or Winterfest year.
             it = fm_items.get(i) or otd_items.get(i) or quiz_items.get(i) or (old or {}).get("items", {}).get(i)
             if it is None:
                 it = next((x for x in pools.items if x["id"] == i), None)

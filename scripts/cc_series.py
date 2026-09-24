@@ -7,6 +7,8 @@ by cc_series_plan.py and cc_quiz_plan.py):
     Fortnitemares       every day in October: throwbacks to each year's
                         Fortnitemares, and Fortnitemares editions of Who's That
                         Skin?, Zoomed In, Which Came First? and Which Fortnitemares?
+    Winterfest          every day in December: throwbacks to what came out during
+                        each year's winter event, and Winterfest editions of the quizzes
     Build Your Loadout  in the quiz rotation: outfit, back bling, pickaxe, glider,
                         emote, three choices each, and people comment their combo
 
@@ -221,21 +223,70 @@ def _spooky(t0: float) -> str:
     return glow + "".join(bats)
 
 
-def _fm_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
+# ================================================================ Winterfest
+
+WF_ICE = "#8BE3FF"
+WF_BG = ["#0f3f75", "#040a16"]
+WF_BG2 = ["#136f86", "#040a16"]
+WF_TAGS = ["fortnite", "fortnitewinterfest", "winterfest", "fortnitechristmas"]
+
+
+def _snow(t0: float) -> str:
+    """Soft snow falling through the frame, and a cold glow low down: behind everything."""
+    flakes = []
+    for i in range(16):
+        x = (i * 67 + 23) % 1040 + 20
+        size = 6 + (i * 5) % 12
+        dur = 6.0 + (i * 7) % 5
+        delay = (i * .37) % dur
+        name = f"snow{int(t0 * 100)}_{i}"
+        flakes.append(f'<style>@keyframes {name}{{from{{transform:translate(0,-60px)}}'
+                      f'to{{transform:translate({(-1) ** i * 60}px,1980px)}}}}</style>'
+                      f'<div class="abs" style="left:{x}px;top:0;width:{size}px;height:{size}px;border-radius:50%;'
+                      f'background:rgba(255,255,255,.85);filter:blur({size / 8:.1f}px);'
+                      f'{style_anim(an(name, t0 - delay, dur, "linear", "infinite"))}"></div>')
+    glow = ('<div class="abs" style="left:0;right:0;bottom:0;height:760px;background:linear-gradient(to top,'
+            'rgba(139,227,255,.26),rgba(139,227,255,0))"></div>')
+    return glow + "".join(flakes)
+
+
+# How each seasonal series looks and talks. `era` labels an item with the event
+# it comes from; `span` names a throwback's years.
+SEASON_LOOKS = {
+    "fortnitemares": {
+        "name": "Fortnitemares", "bg": FM_BG, "bg2": FM_BG2, "color": FM_ORANGE, "deco": _spooky,
+        "tags": FM_TAGS, "emoji": "🎃",
+        "era": lambda it: f"FORTNITEMARES {it['fm_year']}",
+        "span": lambda spec, group: f"Fortnitemares {spec['fm_span']}",
+        "from": lambda span: f"from {span}, and when each first hit the Item Shop",
+        "past": "every skin from a past Fortnitemares",
+    },
+    "winterfest": {
+        "name": "Winterfest", "bg": WF_BG, "bg2": WF_BG2, "color": WF_ICE, "deco": _snow,
+        "tags": WF_TAGS, "emoji": "❄️",
+        "era": lambda it: f"{it['wf_event']} {it['wf_year']}".upper(),
+        "span": lambda spec, group: f"{group[0]['wf_event']} {spec['fm_span']}",
+        "from": lambda span: f"that first hit the Item Shop during {span}",
+        "past": "every skin first sold during a past Fortnite winter event",
+    },
+}
+
+
+def _season_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
+    look = SEASON_LOOKS[spec["series"]]
+    series = look["name"]
     day = spec["episode"]
     of = spec.get("of", 31)
     fmt = spec["format"]
-    kicker = f"FORTNITEMARES · DAY {day} OF {of}"
+    kicker = f"{series.upper()} · DAY {day} OF {of}"
+    era = look["era"]
 
-    def era(it):
-        return f"FORTNITEMARES {it['fm_year']}"
-
-    theme = {"bg": FM_BG, "bg2": FM_BG2, "color": FM_ORANGE, "kicker": kicker, "deco": _spooky,
+    theme = {"bg": look["bg"], "bg2": look["bg2"], "color": look["color"], "kicker": kicker, "deco": look["deco"],
              "era": era, "when": _when, "debut": _debut, "fact": lambda it: f"{it['name']} · {era(it)}".upper(),
-             "sub": "PAUSE AND GUESS", "stick": "FORTNITEMARES EDITION"}
+             "sub": "PAUSE AND GUESS", "stick": f"{series.upper()} EDITION"}
     if fmt == "throwback":
-        span = spec["fm_span"]
-        theme["title"] = f"FORTNITEMARES {span}"
+        group = [items[i] for i in spec["items"]]
+        theme["title"] = look["span"](spec, group).upper()
         theme["sub"] = "HOW MANY DO YOU REMEMBER?"
         theme["stick"] = f"PART {spec['part']}" if spec.get("part") else "THROWBACK"
     elif fmt == "which_first":
@@ -243,44 +294,44 @@ def _fm_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
 
     def video(kind: str, comp, n: int, group: list, answers: str = ""):
         tail = f"Day {day} of {of}"
+        tags_base = look["tags"]
         if kind == "throwback":
-            span = spec["fm_span"]
+            span = look["span"](spec, group)
             part = f", Part {spec['part']}" if spec.get("part") else ""
-            title = f"Fortnitemares {span} Throwback{part} — {tail}"
-            yt = f"Fortnitemares {span} Throwback{part}: Remember These? #shorts"
-            hook = (f"🎃 FORTNITEMARES {span} THROWBACK{part.upper()} — Day {day} of {of}\n"
-                    f"{n} cosmetics from Fortnitemares {span}, and when each first hit the Item Shop. "
-                    f"How many do you remember? 👇")
+            title = f"{span} Throwback{part} — {tail}"
+            yt = f"{span} Throwback{part}: Remember These? #shorts"
+            hook = (f"{look['emoji']} {span.upper()} THROWBACK{part.upper()} — Day {day} of {of}\n"
+                    f"{n} cosmetics {look['from'](span)}. How many do you remember? 👇")
             body = "\n".join(f"{num(k)} {it['name']} · {it['type']} · {_debut(it).capitalize()}"
                              for k, it in enumerate(group, 1))
             ask = "Which one did you own? Tell us below"
-            tags = _tags(FM_TAGS, "ogfortnite", "fortnitethrowback")
+            tags = _tags(tags_base, "ogfortnite", "fortnitethrowback")
         elif kind == "which_first":
-            title = f"Which Came First? Fortnitemares Edition — {tail}"
-            yt = f"Which Fortnitemares Skin Came First? Day {day} #shorts"
-            hook = (f"⏳ WHICH CAME FIRST? Fortnitemares Edition — Day {day} of {of}\n"
-                    f"{n} rounds, every skin from a past Fortnitemares. Which one hit the shop first, A or B? 👇")
+            title = f"Which Came First? {series} Edition — {tail}"
+            yt = f"Which {series} Skin Came First? Day {day} #shorts"
+            hook = (f"⏳ WHICH CAME FIRST? {series} Edition — Day {day} of {of}\n"
+                    f"{n} rounds, {look['past']}. Which one hit the shop first, A or B? 👇")
             body = "\n".join(f"{num(k)} {group[2 * k - 2]['name']} 🆚 {group[2 * k - 1]['name']}"
                              for k in range(1, n + 1))
             example = next(e[:n] for e in ("ABBAB", "BABBA", "AABAB") if e[:n] != answers)
             ask = f"Comment your answers in order, like {example}"
-            tags = _tags(FM_TAGS, "whichcamefirst", "fortnitequiz")
+            tags = _tags(tags_base, "whichcamefirst", "fortnitequiz")
         else:
             name = {"whos_that": "Who's That Skin?", "zoomed_in": "Zoomed In",
-                    "which_year": "Which Fortnitemares?"}[kind]
-            emoji = {"whos_that": "👤", "zoomed_in": "🔍", "which_year": "🎃"}[kind]
-            ed = " Halloween Quiz" if kind == "which_year" else " Fortnitemares Edition"
+                    "which_year": f"Which {series}?"}[kind]
+            emoji = {"whos_that": "👤", "zoomed_in": "🔍", "which_year": look["emoji"]}[kind]
+            ed = " Halloween Quiz" if kind == "which_year" else f" {series} Edition"
             title = f"{name}{ed} — {tail}"
-            yt = {"whos_that": f"Who's That Fortnitemares Skin? Day {day} #shorts",
-                  "zoomed_in": f"Zoomed In: Guess the Fortnitemares Skin, Day {day} #shorts",
-                  "which_year": f"Which Fortnitemares Was It From? Day {day} #shorts"}[kind]
+            yt = {"whos_that": f"Who's That {series} Skin? Day {day} #shorts",
+                  "zoomed_in": f"Zoomed In: Guess the {series} Skin, Day {day} #shorts",
+                  "which_year": f"Which {series} Was It From? Day {day} #shorts"}[kind]
             what = {"whos_that": f"{n} silhouettes, 4 names each. Pause and guess 👇",
                     "zoomed_in": "We start up close. Name the skin before the camera pulls back 👇",
-                    "which_year": f"{n} skins from past Fortnitemares. Which year's is each one from? 👇"}[kind]
+                    "which_year": f"{n} skins from past {series}. Which year's is each one from? 👇"}[kind]
             hook = f"{emoji} {name.upper()}{ed} — Day {day} of {of}\n{what}"
             body = f"{n} rounds · 4 choices each · no spoilers here, answers are in the video 🎥"
             ask = f"How many did you get out of {n}? Comment your score"
-            tags = _tags(FM_TAGS, "fortnitequiz", "guesstheskin")
+            tags = _tags(tags_base, "fortnitequiz", "guesstheskin")
         return Video(kind, comp, title=title, yt_title=yt, caption=_caption(hook, body, ask, tags),
                      hashtags=tags)
 
@@ -310,8 +361,9 @@ def which_year(spec: dict, items: dict, ctx: Ctx, theme: dict):
     return theme["video"]("which_year", comp, n, [items[rd["item"]] for rd in rounds])
 
 
-def fortnitemares(spec: dict, items: dict, ctx: Ctx):
-    theme = _fm_theme(spec, items, ctx)
+def seasonal(spec: dict, items: dict, ctx: Ctx):
+    """A Fortnitemares or Winterfest video: a throwback or a series edition of a quiz."""
+    theme = _season_theme(spec, items, ctx)
     fmt = spec["format"]
     if fmt == "which_year":
         return which_year(spec, items, ctx, theme)
@@ -321,7 +373,7 @@ def fortnitemares(spec: dict, items: dict, ctx: Ctx):
         return Q.which_first(spec, items, ctx, theme)
     if fmt == "throwback":
         return Q.throwback(spec, items, ctx, theme)
-    raise ValueError(f"no Fortnitemares {fmt}")
+    raise ValueError(f"no {spec['series']} {fmt}")
 
 
 # ========================================================= Build Your Loadout
@@ -421,6 +473,6 @@ BUILDERS = {"on_this_day": on_this_day, "loadout": loadout}
 
 
 def build(spec: dict, items: dict, ctx: Ctx):
-    if spec.get("series") == "fortnitemares":
-        return fortnitemares(spec, items, ctx)
+    if spec.get("series") in SEASON_LOOKS:
+        return seasonal(spec, items, ctx)
     return BUILDERS[spec["format"]](spec, items, ctx)

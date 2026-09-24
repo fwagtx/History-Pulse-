@@ -7,6 +7,8 @@ creator-code/quiz/plan.json, and cc_quiz_build.py renders them with the quizzes.
     Fortnitemares   every day in October at 20:00, in place of that slot's quiz:
                     Halloween throwbacks, one Fortnitemares at a time, and
                     Halloween editions of the quizzes
+    Winterfest      the same every day in December: what came out during each
+                    year's winter event, and Winterfest editions of the quizzes
 
 Every claim comes from data, never memory:
   - "In the Item Shop on September 25, 2019"  <- the item's shop history has that day
@@ -20,6 +22,10 @@ Every claim comes from data, never memory:
                                                   (creator-code/quiz/seasons.json) AND its
                                                   first shop day is inside that year's
                                                   window. Both, or it isn't used.
+  - "First hit the Item Shop during
+     Winterfest 2021"                         <- its first shop day falls inside the
+                                                  event's dates as the Fortnite Wiki
+                                                  gives them (seasons.json)
   - "Fortnite Battle Royale came out on
      September 26, 2017"                      <- Epic's launch date (PlayStation Blog,
                                                   2017-09-12; Wikipedia)
@@ -107,6 +113,7 @@ def plan_otd(pools, start: date, end: date, seed: int, fixed: dict) -> tuple:
         episode += 1
         keep = fixed.get(d.isoformat())
         if keep:
+            otd.entry(d, episode)           # the same random draws as when it was planned
             otd.take(keep, d)
             out.append(keep)
         else:
@@ -147,6 +154,8 @@ def fortnitemares_pool(pools, seasons: dict) -> dict:
 class Fortnitemares:
     """31 days in October. Throwbacks every third day, oldest Fortnitemares
     first; the Halloween quizzes in between."""
+    SERIES, MONTH, YEAR = "fortnitemares", 10, "fm_year"
+    QUIZZES = FM_QUIZZES
     # (years it covers, part number or 0). 2017 had only three Item Shop
     # cosmetics, so it opens the series together with 2018.
     THROWBACKS = [((2017, 2018), 0), ((2018,), 0), ((2019,), 0), ((2020,), 0), ((2021,), 1),
@@ -174,7 +183,7 @@ class Fortnitemares:
         self.tb_n += 1
         # Oldest year first; within a year, outfits first, in the order they came out.
         pool = [it for y in years for it in self.by_year.get(y, []) if it["id"] not in self.shown]
-        pool.sort(key=lambda x: (x["fm_year"], x["kind"] != "outfit", x["first_shop"]))
+        pool.sort(key=lambda x: (x[self.YEAR], x["kind"] != "outfit", x["first_shop"]))
         items = pool[:8 + SPARES]
         if len(items) < 6:
             return None
@@ -227,7 +236,7 @@ class Fortnitemares:
             while pool and len(rounds) < 5 + SPARES:
                 a = pool.pop()
                 # A clear answer: different Fortnitemares years.
-                b = next((x for x in pool if x["fm_year"] != a["fm_year"]), None)
+                b = next((x for x in pool if x[self.YEAR] != a[self.YEAR]), None)
                 if b is None:
                     continue
                 pool.remove(b)
@@ -244,7 +253,7 @@ class Fortnitemares:
         if day % 3 == 1 and self.tb_n < len(self.THROWBACKS):
             got = self.throwback(day)
         else:
-            fmt = FM_QUIZZES[self.quiz_n % len(FM_QUIZZES)]
+            fmt = self.QUIZZES[self.quiz_n % len(self.QUIZZES)]
             self.quiz_n += 1
             got = self.quiz(fmt, day)
         if not got:
@@ -252,7 +261,7 @@ class Fortnitemares:
         spec, items = got
         self.take(items, day)
         return dict({"date": d.isoformat(), "slot": SEASON_SLOT, "at": SEASON_AT,
-                     "series": "fortnitemares", "episode": day, "of": 31}, **spec), items
+                     "series": self.SERIES, "episode": day, "of": 31}, **spec), items
 
 
 def plan_fortnitemares(pools, seasons: dict, year: int, start: date, end: date, seed: int,
@@ -270,6 +279,64 @@ def plan_fortnitemares(pools, seasons: dict, year: int, start: date, end: date, 
             out.append(keep)
         else:
             got = fm.entry(d)
+            if got and start <= d <= end:
+                spec, items = got
+                out.append(spec)
+                for it in items:
+                    used_items[it["id"]] = it
+        d += timedelta(days=1)
+    return out, used_items, by_year
+
+
+# ================================================================ Winterfest
+
+def winterfest_pool(pools, seasons: dict) -> dict:
+    """Cosmetics by the year of the winter event their first shop day falls in."""
+    events = seasons["winterfest"]["events"]
+    out = {}
+    for it in pools.items:
+        first = it["first_shop"]
+        for year, ev in events.items():
+            if first and ev["start"] <= first <= ev["end"]:
+                out.setdefault(int(year), []).append(dict(it, wf_year=int(year), wf_event=ev["name"]))
+                break
+    for y in out:
+        out[y].sort(key=lambda x: (x["first_shop"], x["name"]))
+    return out
+
+
+class Winterfest(Fortnitemares):
+    """31 days in December, the same shape as Fortnitemares: a throwback to one
+    year's winter event every third day, the Winterfest quizzes in between."""
+    SERIES, MONTH, YEAR = "winterfest", 12, "wf_year"
+    QUIZZES = ["whos_that", "zoomed_in", "which_first"]
+    THROWBACK_DAYS = 11                     # days 1, 4, ..., 31
+
+    def __init__(self, by_year: dict, seed: int):
+        super().__init__(by_year, seed)
+        self.r = __import__("random").Random(seed * 13 + 5)
+        # One throwback per year, and a second part for the biggest years
+        # until the throwback days are filled.
+        years = sorted(by_year)
+        size = {y: len([i for i in by_year[y] if i["kind"] == "outfit"]) for y in years}
+        two = set(sorted(years, key=lambda y: -size[y])[:max(0, self.THROWBACK_DAYS - len(years))])
+        self.THROWBACKS = [((y,), p) for y in years for p in ((1, 2) if y in two and size[y] >= 12 else (0,))]
+
+
+def plan_winterfest(pools, seasons: dict, year: int, start: date, end: date, seed: int,
+                    fixed: dict) -> tuple:
+    """One Winterfest video a day through December of `year`, within start..end."""
+    by_year = winterfest_pool(pools, seasons)
+    wf = Winterfest(by_year, seed)
+    out, used_items = [], {}
+    d = date(year, 12, 1)
+    while d <= date(year, 12, 31):
+        keep = fixed.get(d.isoformat())
+        if keep and keep.get("series") == "winterfest":
+            wf.entry(d)
+            out.append(keep)
+        else:
+            got = wf.entry(d)
             if got and start <= d <= end:
                 spec, items = got
                 out.append(spec)
