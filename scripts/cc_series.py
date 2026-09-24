@@ -323,6 +323,8 @@ def _season_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
                     "which_year": f"Which {series}?"}[kind]
             emoji = {"whos_that": "👤", "zoomed_in": "🔍", "which_year": look["emoji"]}[kind]
             ed = " Halloween Quiz" if kind == "which_year" else f" {series} Edition"
+            if not name.endswith("?"):
+                name += ":"                 # "Zoomed In: Fortnitemares Edition"
             title = f"{name}{ed} — {tail}"
             yt = {"whos_that": f"Who's That {series} Skin? Day {day} #shorts",
                   "zoomed_in": f"Zoomed In: Guess the {series} Skin, Day {day} #shorts",
