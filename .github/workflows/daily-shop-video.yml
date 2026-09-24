@@ -2,9 +2,16 @@ name: Daily shop video
 
 # The Fortnite shop rotates at 00:00 UTC. Build just after, so the day's three
 # videos are ready long before the first post slot (10:00 America/Chicago).
+# The shop source can lag the rotation by hours, so later runs try again; each
+# one stops straight away once the day's videos are out, and the last try is
+# still hours before the 7 AM Central Routine schedules them.
 on:
   schedule:
     - cron: "20 0 * * *"
+    - cron: "20 2 * * *"
+    - cron: "20 4 * * *"
+    - cron: "20 6 * * *"
+    - cron: "20 9 * * *"
   workflow_dispatch:        # lets you run it by hand from the Actions tab
     inputs:
       formats:
@@ -18,22 +25,44 @@ on:
 permissions:
   contents: write           # needed to publish the release that hosts the videos
 
+# One build at a time: a retry never races a build that is still waiting.
+concurrency:
+  group: daily-shop-video
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
+      # A scheduled retry has nothing to do once today's videos are published.
+      # (Runs started by hand always build.)
+      - name: Skip if today's videos are already out
+        id: skip
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="shop-$(date -u +%F)"
+          if [ "$(gh release view "$TAG" --repo "${{ github.repository }}" --json isDraft -q .isDraft 2>/dev/null)" = "false" ]; then
+            echo "done=true" >> "$GITHUB_OUTPUT"
+            echo "$TAG is already published; nothing to do."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.skip.outputs.done != 'true'
         with:
           ref: claude/creator-code-bad-automation-0jjc1k
 
       - uses: actions/setup-python@v5
+        if: steps.skip.outputs.done != 'true'
         with:
           python-version: "3.11"
 
       # Playwright drives Chromium frame by frame; numpy synthesizes the
       # soundtrack. Both are free and open source.
       - name: Install ffmpeg, Chromium, Python deps
+        if: steps.skip.outputs.done != 'true'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
@@ -42,8 +71,9 @@ jobs:
           ffmpeg -version | head -1
 
       # The shop comes from a keyless GitHub mirror, so no secret is required.
-      # If FORTNITE_API_KEY is set it is used as a fallback source; if not, fine.
+      # The official API is the fallback, with FORTNITE_API_KEY if that is set.
       - name: Write config
+        if: steps.skip.outputs.done != 'true'
         env:
           FORTNITE_API_KEY: ${{ secrets.FORTNITE_API_KEY }}
         run: |
@@ -60,6 +90,7 @@ jobs:
 
       - name: Build today's videos
         id: build
+        if: steps.skip.outputs.done != 'true'
         env:
           FORMATS: ${{ inputs.formats }}
         run: |
@@ -81,6 +112,7 @@ jobs:
           cat "creator-code/out/$STAMP/manifest.json"
 
       - name: Publish to a release (this is what gives each video a public URL)
+        if: steps.skip.outputs.done != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.build.outputs.tag }}
