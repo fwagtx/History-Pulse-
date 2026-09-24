@@ -23,6 +23,7 @@ Every round ends on the same beat: the ring drains, a drumroll builds, then the
 answer lands with a ding and a clap -- all synthesized in cc_audio.
 """
 
+import cc_looks as LK
 from cc_formats import (BRAND_TAGS, SILHOUETTE, Ctx, Video, num, _caption, _hook_scene, _outro_scene,
                         _pad, _tag)
 from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_RIGHT, Comp, an, anton_em, burst,
@@ -228,16 +229,20 @@ def guess_season(spec: dict, items: dict, ctx: Ctx):
         return None
     n = len(rounds)
     gear = spec.get("edition") == "gear"
-    content_end = HOOK + n * R1
-    comp = _comp(content_end)
-    first = [items[rd["item"]] for rd in rounds[:2]]
-    _hook_scene(comp, ctx, "GUESS THE SEASON", "WHEN DID EACH ONE COME OUT?", f"{n} ROUNDS", HOOK + .3,
-                *first, kicker=f"FORTNITE QUIZ #{spec['episode']}")
-    comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
-    for k, rd in enumerate(rounds, 1):
-        it = items[rd["item"]]
-        _picture_round(comp, ctx, HOOK + (k - 1) * R1, k, n, it, "WHAT SEASON?", rd["options"], rd["answer"])
-    _outro(comp, ctx, content_end, f"HOW MANY DID YOU GET OUT OF {n}?", [items[rd["item"]] for rd in rounds])
+    look = LK.get("guess_season")
+    if look:
+        comp = look.guess_season(ctx, spec, [(items[rd["item"]], rd["options"], rd["answer"]) for rd in rounds])
+    else:
+        content_end = HOOK + n * R1
+        comp = _comp(content_end)
+        first = [items[rd["item"]] for rd in rounds[:2]]
+        _hook_scene(comp, ctx, "GUESS THE SEASON", "WHEN DID EACH ONE COME OUT?", f"{n} ROUNDS", HOOK + .3,
+                    *first, kicker=f"FORTNITE QUIZ #{spec['episode']}")
+        comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
+        for k, rd in enumerate(rounds, 1):
+            it = items[rd["item"]]
+            _picture_round(comp, ctx, HOOK + (k - 1) * R1, k, n, it, "WHAT SEASON?", rd["options"], rd["answer"])
+        _outro(comp, ctx, content_end, f"HOW MANY DID YOU GET OUT OF {n}?", [items[rd["item"]] for rd in rounds])
 
     what = "pickaxes, gliders and back blings" if gear else "skins"
     body = "\n".join(f"{num(k)} {items[rd['item']]['name']} · {items[rd['item']]['type']}"
@@ -258,24 +263,28 @@ def _name_quiz(spec: dict, items: dict, ctx: Ctx, fmt: str, theme: dict = None):
         return None
     n = len(rounds)
     zoom = fmt == "zoomed_in"
-    content_end = HOOK + n * R1
-    comp = _comp(content_end)
-    first = [items[rd["item"]] for rd in rounds[:2]]
-    title = "ZOOMED IN" if zoom else "WHO'S THAT SKIN?"
-    if theme:
-        _hook_scene(comp, ctx, title, theme["sub"], theme["stick"], HOOK + .3, *first, colors=theme["bg"],
-                    kicker=theme["kicker"], kicker_color=theme["color"], silhouette=True, extra=_deco(theme, 0))
+    look = LK.get(fmt) if not theme else None
+    if look:
+        comp = look.whos_that(ctx, spec, [(items[rd["item"]], rd["options"], rd["answer"]) for rd in rounds])
     else:
-        _hook_scene(comp, ctx, title, "PAUSE AND GUESS" if zoom else "4 CHOICES EACH",
-                    f"{n} ROUNDS", HOOK + .3, *first, kicker=f"FORTNITE QUIZ #{spec['episode']}", silhouette=True)
-    comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
-    for k, rd in enumerate(rounds, 1):
-        it = items[rd["item"]]
-        _picture_round(comp, ctx, HOOK + (k - 1) * R1, k, n, it, "WHO IS THIS?" if zoom else "WHO'S THAT SKIN?",
-                       rd["options"], rd["answer"], mode="zoom" if zoom else "silhouette",
-                       focus=rd.get("focus"), show_name=False, theme=theme,
-                       reveal_fact=theme["fact"](it) if theme else "")
-    _outro(comp, ctx, content_end, f"HOW MANY DID YOU GET OUT OF {n}?", [items[rd["item"]] for rd in rounds])
+        content_end = HOOK + n * R1
+        comp = _comp(content_end)
+        first = [items[rd["item"]] for rd in rounds[:2]]
+        title = "ZOOMED IN" if zoom else "WHO'S THAT SKIN?"
+        if theme:
+            _hook_scene(comp, ctx, title, theme["sub"], theme["stick"], HOOK + .3, *first, colors=theme["bg"],
+                        kicker=theme["kicker"], kicker_color=theme["color"], silhouette=True, extra=_deco(theme, 0))
+        else:
+            _hook_scene(comp, ctx, title, "PAUSE AND GUESS" if zoom else "4 CHOICES EACH",
+                        f"{n} ROUNDS", HOOK + .3, *first, kicker=f"FORTNITE QUIZ #{spec['episode']}", silhouette=True)
+        comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
+        for k, rd in enumerate(rounds, 1):
+            it = items[rd["item"]]
+            _picture_round(comp, ctx, HOOK + (k - 1) * R1, k, n, it, "WHO IS THIS?" if zoom else "WHO'S THAT SKIN?",
+                           rd["options"], rd["answer"], mode="zoom" if zoom else "silhouette",
+                           focus=rd.get("focus"), show_name=False, theme=theme,
+                           reveal_fact=theme["fact"](it) if theme else "")
+        _outro(comp, ctx, content_end, f"HOW MANY DID YOU GET OUT OF {n}?", [items[rd["item"]] for rd in rounds])
 
     ep = spec["episode"]
     if theme:
@@ -402,58 +411,63 @@ def odd_one_out(spec: dict, items: dict, ctx: Ctx):
     if len(rounds) < 4:
         return None
     n = len(rounds)
-    content_end = HOOK + n * R2
-    comp = _comp(content_end)
-    r0 = [items[i] for i in rounds[0]["items"]]
-    _hook_scene(comp, ctx, "ODD ONE OUT", "3 SHARE A SET. 1 DOESN'T", f"{n} ROUNDS", HOOK + .3, r0[0], r0[1],
-                kicker=f"FORTNITE QUIZ #{spec['episode']}")
-    comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
+    look = LK.get("odd_one_out")
+    if look:
+        comp = look.odd_one_out(ctx, spec, [([items[i] for i in rd["items"]], rd["answer"], rd["set"])
+                                           for rd in rounds])
+    else:
+        content_end = HOOK + n * R2
+        comp = _comp(content_end)
+        r0 = [items[i] for i in rounds[0]["items"]]
+        _hook_scene(comp, ctx, "ODD ONE OUT", "3 SHARE A SET. 1 DOESN'T", f"{n} ROUNDS", HOOK + .3, r0[0], r0[1],
+                    kicker=f"FORTNITE QUIZ #{spec['episode']}")
+        comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
 
-    for k, rd in enumerate(rounds, 1):
-        t0 = HOOK + (k - 1) * R2
-        reveal = t0 + T2_REV
-        four = [items[i] for i in rd["items"]]
-        dim = comp.uid("qdim")
-        comp.css(f"@keyframes {dim}{{to{{opacity:.45}}}}")
-        inner = tile_bg(["#2a2d36", "#0c0d10"], "", t0)
-        inner += _question("ODD ONE OUT?", t0)
-        for j, (it, (x, y)) in enumerate(zip(four, GRID)):
-            odd = j == rd["answer"]
-            enter = style_anim(an("pop", t0 + .1 + j * .12, .5))
-            after = style_anim(an("pulse", reveal, .45) if odd else an(dim, reveal + 1.2, .5))
-            ring = (f'<div class="abs" style="inset:-8px;border-radius:30px;border:8px solid {ACCENT};'
-                    f'box-shadow:0 0 50px rgba(232,255,58,.6);{style_anim(an("fadein", reveal, .15))}"></div>'
-                    if odd else "")
-            name_fs = min(28, 360 / max(len(it["name"]) * .55, 1))
-            inner += (f'<div class="abs" style="left:{x}px;top:{y}px;width:{CARD}px;height:{CARD}px;{enter}">'
-                      f'<div class="full" style="{after}">'
-                      f'<div class="abs" style="inset:0;border-radius:24px;overflow:hidden;'
-                      f'background:radial-gradient(circle at 50% 38%,{RARITY.get(it["rarity"], "#3a3a44")},'
-                      f'#101014 85%);border:3px solid rgba(255,255,255,.2)">'
-                      f'<img src="{ctx.art(it)}" style="position:absolute;left:10%;top:4%;width:80%;height:78%;'
-                      f'object-fit:contain;filter:drop-shadow(0 16px 20px rgba(0,0,0,.5))">'
-                      f'<div class="abs" style="left:0;right:0;bottom:0;padding:10px 12px;background:rgba(10,10,11,.8);'
-                      f'text-align:center;font-size:{name_fs:.0f}px;font-weight:800;color:#fff;white-space:nowrap;'
-                      f'overflow:hidden;text-overflow:ellipsis">{esc(it["name"])}</div></div>'
-                      f'<div class="abs d" style="{"left" if j % 2 == 0 else "right"}:14px;top:14px;width:62px;'
-                      f'height:62px;border-radius:14px;background:{INK};border:3px solid {ACCENT};color:{ACCENT};'
-                      f'font-size:42px;display:flex;align-items:center;justify-content:center">{LETTERS[j]}</div>'
-                      f'{ring}</div></div>')
-        ox, oy = GRID[rd["answer"]]
-        inner += sticker("ODD ONE OUT", ox + 30, oy + CARD - 150, 44, reveal + .1, rot=-5)
-        inner += burst(ox + CARD / 2, oy + CARD / 2, reveal, ctx.seed + k)
-        other = f"THE OTHER 3: {rd['set'].upper()} SET"
-        inner += label(other, 500, 1300, min(38, 800 / (len(other) * .62)), reveal + .3, ACCENT, 800,
-                       align="center", bg="rgba(10,10,11,.85)", pad="12px 26px")
-        inner += countdown(CD, 500, 830, 150, t0 + T2_CD)
-        inner += progress(t0, t0 + R2, k, n)
-        comp.scene(t0, t0 + R2, inner, fade_in=.25, fade_out=.25)
-        comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .5, "pop")
-        for s in range(3):
-            comp.cue(t0 + T2_CD + s, "tick")
-        comp.cue(reveal - 1.6, "drumroll"); comp.cue(reveal, "ding"); comp.cue(reveal + .12, "clap")
+        for k, rd in enumerate(rounds, 1):
+            t0 = HOOK + (k - 1) * R2
+            reveal = t0 + T2_REV
+            four = [items[i] for i in rd["items"]]
+            dim = comp.uid("qdim")
+            comp.css(f"@keyframes {dim}{{to{{opacity:.45}}}}")
+            inner = tile_bg(["#2a2d36", "#0c0d10"], "", t0)
+            inner += _question("ODD ONE OUT?", t0)
+            for j, (it, (x, y)) in enumerate(zip(four, GRID)):
+                odd = j == rd["answer"]
+                enter = style_anim(an("pop", t0 + .1 + j * .12, .5))
+                after = style_anim(an("pulse", reveal, .45) if odd else an(dim, reveal + 1.2, .5))
+                ring = (f'<div class="abs" style="inset:-8px;border-radius:30px;border:8px solid {ACCENT};'
+                        f'box-shadow:0 0 50px rgba(232,255,58,.6);{style_anim(an("fadein", reveal, .15))}"></div>'
+                        if odd else "")
+                name_fs = min(28, 360 / max(len(it["name"]) * .55, 1))
+                inner += (f'<div class="abs" style="left:{x}px;top:{y}px;width:{CARD}px;height:{CARD}px;{enter}">'
+                          f'<div class="full" style="{after}">'
+                          f'<div class="abs" style="inset:0;border-radius:24px;overflow:hidden;'
+                          f'background:radial-gradient(circle at 50% 38%,{RARITY.get(it["rarity"], "#3a3a44")},'
+                          f'#101014 85%);border:3px solid rgba(255,255,255,.2)">'
+                          f'<img src="{ctx.art(it)}" style="position:absolute;left:10%;top:4%;width:80%;height:78%;'
+                          f'object-fit:contain;filter:drop-shadow(0 16px 20px rgba(0,0,0,.5))">'
+                          f'<div class="abs" style="left:0;right:0;bottom:0;padding:10px 12px;background:rgba(10,10,11,.8);'
+                          f'text-align:center;font-size:{name_fs:.0f}px;font-weight:800;color:#fff;white-space:nowrap;'
+                          f'overflow:hidden;text-overflow:ellipsis">{esc(it["name"])}</div></div>'
+                          f'<div class="abs d" style="{"left" if j % 2 == 0 else "right"}:14px;top:14px;width:62px;'
+                          f'height:62px;border-radius:14px;background:{INK};border:3px solid {ACCENT};color:{ACCENT};'
+                          f'font-size:42px;display:flex;align-items:center;justify-content:center">{LETTERS[j]}</div>'
+                          f'{ring}</div></div>')
+            ox, oy = GRID[rd["answer"]]
+            inner += sticker("ODD ONE OUT", ox + 30, oy + CARD - 150, 44, reveal + .1, rot=-5)
+            inner += burst(ox + CARD / 2, oy + CARD / 2, reveal, ctx.seed + k)
+            other = f"THE OTHER 3: {rd['set'].upper()} SET"
+            inner += label(other, 500, 1300, min(38, 800 / (len(other) * .62)), reveal + .3, ACCENT, 800,
+                           align="center", bg="rgba(10,10,11,.85)", pad="12px 26px")
+            inner += countdown(CD, 500, 830, 150, t0 + T2_CD)
+            inner += progress(t0, t0 + R2, k, n)
+            comp.scene(t0, t0 + R2, inner, fade_in=.25, fade_out=.25)
+            comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .5, "pop")
+            for s in range(3):
+                comp.cue(t0 + T2_CD + s, "tick")
+            comp.cue(reveal - 1.6, "drumroll"); comp.cue(reveal, "ding"); comp.cue(reveal + .12, "clap")
 
-    _outro(comp, ctx, content_end, f"COMMENT YOUR {n} ANSWERS", [items[i] for i in rounds[0]["items"]])
+        _outro(comp, ctx, content_end, f"COMMENT YOUR {n} ANSWERS", [items[i] for i in rounds[0]["items"]])
     ep = spec["episode"]
     answers = "".join(LETTERS[rd["answer"]] for rd in rounds)
     example = next(e[:n] for e in ("BDACB", "CADBD", "DBCAA") if e[:n] != answers)
@@ -480,35 +494,39 @@ def throwback(spec: dict, items: dict, ctx: Ctx, theme: dict = None):
     n = len(group)
     gear = spec.get("edition") == "gear"
     season = theme["title"] if theme else spec["season"]      # "Chapter 1 · Season 5"
-    content_end = HOOK + n * R3
-    comp = _comp(content_end)
-    what = "GEAR" if gear else "SKINS"
-    if theme:
-        _hook_scene(comp, ctx, season.upper(), theme["sub"], theme["stick"], HOOK + .3, group[0], group[1],
-                    colors=theme["bg"], kicker=theme["kicker"], kicker_color=theme["color"],
-                    extra=_deco(theme, 0))
+    look = LK.get("throwback", spec.get("series", ""))
+    if look:
+        comp = look.throwback(ctx, spec, group, theme)
     else:
-        _hook_scene(comp, ctx, season.upper().replace(" · ", " "), "HOW MANY DO YOU REMEMBER?",
-                    f"{n} {what}", HOOK + .3, group[0], group[1], kicker="FORTNITE THROWBACK")
-    comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
-    for k, it in enumerate(group, 1):
-        t0 = HOOK + (k - 1) * R3
-        inner = tile_bg(_colors(it, theme), it["rarity"], t0) + _deco(theme, t0)
-        top = theme["era"](it) if theme else season.upper()
-        inner += label(top, W / 2, 300, 34, t0, theme["color"] if theme else ACCENT, 800, anim="none",
-                       align="center", spacing=".14em")
-        inner += character(ctx.art(it), 500, 740, 740, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
-        size = min(96, 860 / max(anton_em(it["name"]), .1))
-        inner += words(it["name"], 60, 1180, size, t0 + .45, "#fff", .06, "slam", "left", 880)
-        kind = f"{it['rarity_label']} {it['type']}".strip() if it.get("rarity_label") else it["type"]
-        if theme:           # when it first came out, from its shop history
-            kind = f"{kind} · {theme['debut'](it)}"
-        inner += label(kind.upper(), 64, 1190 + size + 18, 34, t0 + .7, ACCENT, 800)
-        inner += _pips(k, n, "GEAR" if gear else "SKIN")
-        comp.scene(t0, t0 + R3, inner, fade_in=.25, fade_out=.25)
-        comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .45, "pop")
+        content_end = HOOK + n * R3
+        comp = _comp(content_end)
+        what = "GEAR" if gear else "SKINS"
+        if theme:
+            _hook_scene(comp, ctx, season.upper(), theme["sub"], theme["stick"], HOOK + .3, group[0], group[1],
+                        colors=theme["bg"], kicker=theme["kicker"], kicker_color=theme["color"],
+                        extra=_deco(theme, 0))
+        else:
+            _hook_scene(comp, ctx, season.upper().replace(" · ", " "), "HOW MANY DO YOU REMEMBER?",
+                        f"{n} {what}", HOOK + .3, group[0], group[1], kicker="FORTNITE THROWBACK")
+        comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
+        for k, it in enumerate(group, 1):
+            t0 = HOOK + (k - 1) * R3
+            inner = tile_bg(_colors(it, theme), it["rarity"], t0) + _deco(theme, t0)
+            top = theme["era"](it) if theme else season.upper()
+            inner += label(top, W / 2, 300, 34, t0, theme["color"] if theme else ACCENT, 800, anim="none",
+                           align="center", spacing=".14em")
+            inner += character(ctx.art(it), 500, 740, 740, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
+            size = min(96, 860 / max(anton_em(it["name"]), .1))
+            inner += words(it["name"], 60, 1180, size, t0 + .45, "#fff", .06, "slam", "left", 880)
+            kind = f"{it['rarity_label']} {it['type']}".strip() if it.get("rarity_label") else it["type"]
+            if theme:           # when it first came out, from its shop history
+                kind = f"{kind} · {theme['debut'](it)}"
+            inner += label(kind.upper(), 64, 1190 + size + 18, 34, t0 + .7, ACCENT, 800)
+            inner += _pips(k, n, "GEAR" if gear else "SKIN")
+            comp.scene(t0, t0 + R3, inner, fade_in=.25, fade_out=.25)
+            comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .45, "pop")
 
-    _outro(comp, ctx, content_end, "WHICH ONE DID YOU OWN?", group)
+        _outro(comp, ctx, content_end, "WHICH ONE DID YOU OWN?", group)
     if theme:
         return theme["video"]("throwback", comp, n, group)
     body = "\n".join(f"{num(k)} {it['name']} · {it['type']}" for k, it in enumerate(group, 1))

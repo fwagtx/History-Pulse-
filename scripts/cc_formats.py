@@ -26,7 +26,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, Comp, an, burst,
+from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, BADGE_W, Comp, an, burst,
                        anton_em, character, code_badge, countdown, disclosure, esc, label, price_roll,
                        progress, sticker, style_anim, tile_bg, words, EASE_BACK)
 
@@ -200,9 +200,10 @@ HOOK_WHOOSH_A, HOOK_SLAM, HOOK_WHOOSH_B, HOOK_POP, HOOK_SUB = .15, .2, .3, .9, 1
 
 
 # The CREATOR CODE stamp. Measured in the render browser with the embedded
-# fonts: the stamp is 408x123 px, the corner badge (code_badge) 181x60.
+# fonts: the stamp is 408x123 px; the corner badge it docks into is
+# cc_motion.BADGE_W x BADGE_H.
 STAMP_X, STAMP_Y, STAMP_ROT = 60, 590, 3
-STAMP_TO_BADGE = 181 / 408
+STAMP_TO_BADGE = BADGE_W / 408
 
 
 def _code_stamp(comp: Comp, end: float) -> str:

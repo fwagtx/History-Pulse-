@@ -23,6 +23,7 @@ that history (see cc_series_plan). Nothing else is claimed.
 
 import random
 
+import cc_looks as LK
 import cc_quiz as Q
 from cc_series_plan import FAMOUS_SERIES, FIRST_SURE
 from cc_formats import BRAND_TAGS, Ctx, Video, num, _caption, _hook_scene, _tag
@@ -121,64 +122,67 @@ def on_this_day(spec: dict, items: dict, ctx: Ctx):
     when = day.strftime("%B %-d")                               # "September 25"
     years = ([bday["year"]] if bday else []) + [rd["year"] for rd, _, _ in rounds]
     n = len(years)
-    content_end = Q.HOOK + n * R_OTD
-    comp = Q._comp(content_end)
-
     # The thumbnail: the two strongest picks, first times in the shop first.
     lead = sorted(rounds, key=lambda r: (not r[2], r[1]["rarity"] != "legendary"
                                          and r[1]["series"] not in FAMOUS_SERIES, -r[0]["year"]))[:2]
     span = f"{years[0]}–{years[-1]}"
-    if bday:
-        _hook_scene(comp, ctx, f"FORTNITE TURNS {bday['age']}", "BATTLE ROYALE CAME OUT ON THIS DAY IN 2017",
-                    span, Q.HOOK + .3, lead[0][1], lead[1][1], kicker=f"ON THIS DAY · {when.upper()}")
-    else:
-        _hook_scene(comp, ctx, "ON THIS DAY", "THE ITEM SHOP ON THIS DATE, EVERY YEAR", span, Q.HOOK + .3,
-                    lead[0][1], lead[1][1], kicker=f"FORTNITE ITEM SHOP · {when.upper()}")
-    comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
-
-    k = 0
-    if bday:
-        t0 = Q.HOOK
-        inner = tile_bg(["#2b3200", "#0b0c05"], "", t0)
-        inner += _big_year(bday["year"], t0)
-        inner += label(f"{when.upper()}, {bday['year']}", W / 2, 300, 34, t0, ACCENT, 800, anim="none",
-                       align="center", spacing=".14em")
-        inner += words(_years_ago(bday["age"]), W / 2, 360, 96, t0 + .15, "#fff", .06, "slam", "center", 1000)
-        for i, line in enumerate(("FORTNITE", "BATTLE ROYALE", "COMES OUT")):
-            inner += words(line, W / 2, 640 + i * 128, 120, t0 + .5 + i * .15, "#fff", .06, "slam", "center")
-        inner += label("PC · PLAYSTATION 4 · XBOX ONE", W / 2, 1190, 36, t0 + 1.2, ACCENT, 800, align="center",
-                       bg="rgba(10,10,11,.8)", pad="12px 26px")
-        inner += sticker("HAPPY BIRTHDAY!", 330, 1260, 60, t0 + 1.6, rot=-4)
-        inner += burst(W / 2, 900, t0 + .6, ctx.seed)
-        inner += _timeline(years, 0, t0)
-        comp.scene(t0, t0 + R_OTD, inner, fade_in=.25, fade_out=.25)
-        comp.cue(t0 + .15, "slam"); comp.cue(t0 + .6, "reveal"); comp.cue(t0 + 1.6, "clap")
-        k = 1
-
-    for j, (rd, it, debut) in enumerate(rounds):
-        t0 = Q.HOOK + (k + j) * R_OTD
-        y = rd["year"]
-        inner = tile_bg(Q._colors(it), it["rarity"], t0)
-        inner += _big_year(y, t0)
-        inner += label(f"{when.upper()}, {y}", W / 2, 300, 34, t0, ACCENT, 800, anim="none", align="center",
-                       spacing=".14em")
-        inner += words(_years_ago(day.year - y), W / 2, 360, 96, t0 + .15, "#fff", .06, "slam", "center", 1000)
-        inner += character(ctx.art(it), 500, 830, 620, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
-        size = min(96, 860 / max(anton_em(it["name"]), .1))
-        inner += words(it["name"], 60, 1180, size, t0 + .45, "#fff", .06, "slam", "left", 880)
-        line = "FIRST TIME IN THE ITEM SHOP" if debut else "IN THE ITEM SHOP THAT DAY"
-        inner += label(line, 64, 1180 + size + 16, 34, t0 + .7, ACCENT if debut else "#fff", 800)
-        if debut:
-            inner += sticker("NEW THAT DAY!", 590, 560, 54, t0 + .9, rot=6)
-        inner += _timeline(years, k + j, t0)
-        comp.scene(t0, t0 + R_OTD, inner, fade_in=.25, fade_out=.25)
-        comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .15, "slam"); comp.cue(t0 + .45, "pop")
-        if debut:
-            comp.cue(t0 + .9, "ding")
-
     # The two thumbnail picks, and the newest one that isn't already among them.
     third = next((r[1] for r in reversed(rounds) if all(r[1] is not x[1] for x in lead)), None)
-    Q._outro(comp, ctx, content_end, "WHICH YEAR HAD THE BEST SHOP?", [r[1] for r in lead] + ([third] if third else []))
+    look = LK.get("on_this_day")
+    if look:
+        comp = look.on_this_day(ctx, rounds, bday, lead, third)
+    else:
+        content_end = Q.HOOK + n * R_OTD
+        comp = Q._comp(content_end)
+        if bday:
+            _hook_scene(comp, ctx, f"FORTNITE TURNS {bday['age']}", "BATTLE ROYALE CAME OUT ON THIS DAY IN 2017",
+                        span, Q.HOOK + .3, lead[0][1], lead[1][1], kicker=f"ON THIS DAY · {when.upper()}")
+        else:
+            _hook_scene(comp, ctx, "ON THIS DAY", "THE ITEM SHOP ON THIS DATE, EVERY YEAR", span, Q.HOOK + .3,
+                        lead[0][1], lead[1][1], kicker=f"FORTNITE ITEM SHOP · {when.upper()}")
+        comp.cue(.2, "airhorn"); comp.cue(.9, "pop")
+
+        k = 0
+        if bday:
+            t0 = Q.HOOK
+            inner = tile_bg(["#2b3200", "#0b0c05"], "", t0)
+            inner += _big_year(bday["year"], t0)
+            inner += label(f"{when.upper()}, {bday['year']}", W / 2, 300, 34, t0, ACCENT, 800, anim="none",
+                           align="center", spacing=".14em")
+            inner += words(_years_ago(bday["age"]), W / 2, 360, 96, t0 + .15, "#fff", .06, "slam", "center", 1000)
+            for i, line in enumerate(("FORTNITE", "BATTLE ROYALE", "COMES OUT")):
+                inner += words(line, W / 2, 640 + i * 128, 120, t0 + .5 + i * .15, "#fff", .06, "slam", "center")
+            inner += label("PC · PLAYSTATION 4 · XBOX ONE", W / 2, 1190, 36, t0 + 1.2, ACCENT, 800, align="center",
+                           bg="rgba(10,10,11,.8)", pad="12px 26px")
+            inner += sticker("HAPPY BIRTHDAY!", 330, 1260, 60, t0 + 1.6, rot=-4)
+            inner += burst(W / 2, 900, t0 + .6, ctx.seed)
+            inner += _timeline(years, 0, t0)
+            comp.scene(t0, t0 + R_OTD, inner, fade_in=.25, fade_out=.25)
+            comp.cue(t0 + .15, "slam"); comp.cue(t0 + .6, "reveal"); comp.cue(t0 + 1.6, "clap")
+            k = 1
+
+        for j, (rd, it, debut) in enumerate(rounds):
+            t0 = Q.HOOK + (k + j) * R_OTD
+            y = rd["year"]
+            inner = tile_bg(Q._colors(it), it["rarity"], t0)
+            inner += _big_year(y, t0)
+            inner += label(f"{when.upper()}, {y}", W / 2, 300, 34, t0, ACCENT, 800, anim="none", align="center",
+                           spacing=".14em")
+            inner += words(_years_ago(day.year - y), W / 2, 360, 96, t0 + .15, "#fff", .06, "slam", "center", 1000)
+            inner += character(ctx.art(it), 500, 830, 620, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
+            size = min(96, 860 / max(anton_em(it["name"]), .1))
+            inner += words(it["name"], 60, 1180, size, t0 + .45, "#fff", .06, "slam", "left", 880)
+            line = "FIRST TIME IN THE ITEM SHOP" if debut else "IN THE ITEM SHOP THAT DAY"
+            inner += label(line, 64, 1180 + size + 16, 34, t0 + .7, ACCENT if debut else "#fff", 800)
+            if debut:
+                inner += sticker("NEW THAT DAY!", 590, 560, 54, t0 + .9, rot=6)
+            inner += _timeline(years, k + j, t0)
+            comp.scene(t0, t0 + R_OTD, inner, fade_in=.25, fade_out=.25)
+            comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .15, "slam"); comp.cue(t0 + .45, "pop")
+            if debut:
+                comp.cue(t0 + .9, "ding")
+
+        Q._outro(comp, ctx, content_end, "WHICH YEAR HAD THE BEST SHOP?", [r[1] for r in lead] + ([third] if third else []))
 
     body = "\n".join(f"{rd['year']} · {it['name']}" + (" 🆕" if debut else "") for rd, it, debut in rounds)
     if any(d for _, _, d in rounds):

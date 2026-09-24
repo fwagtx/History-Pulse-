@@ -1,0 +1,20 @@
+Fonts in this folder
+
+Anton, Inter and every .woff2 file here come from Google Fonts
+(https://fonts.google.com). Each is licensed under the SIL Open Font License,
+Version 1.1, which allows free use, embedding and redistribution:
+https://openfontlicense.org/open-font-license-official-text/
+
+woff2 files (latin subset), listed in fonts.json:
+  - Archivo Black
+  - Barlow Condensed
+  - Caveat
+  - Cormorant Garamond
+  - IBM Plex Mono
+  - Kalam
+  - Old Standard TT
+  - Oswald
+  - Permanent Marker
+  - Playfair Display
+  - Special Elite
+  - VT323

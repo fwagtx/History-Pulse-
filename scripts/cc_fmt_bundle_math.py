@@ -18,6 +18,7 @@ Truth rules this format keeps:
 It never uses Epic's "regular price", never says "discount", never rates a bundle.
 """
 
+import cc_looks as LK
 from cc_fmt_last_chance import _em, _fit, _from
 from cc_formats import Ctx, Video, _pad, _hook_scene, _outro_scene, _hashtags, _caption, num
 from cc_motion import (ACCENT, INK, RARITY, Comp, an, burst, character, code_badge, disclosure, esc,
@@ -114,44 +115,48 @@ def build(ctx: Ctx):
     picks = _eligible(ctx)
     if not picks:
         return None
-    n = len(picks)
-    R = max(10.4, min(17.0, CONTENT / n))
-    beat = R / 13.0                          # the beats stretch with the scene
-    content_end = HOOK + n * R
-    comp = Comp(content_end + _pad(content_end))
-    _hook_scene(comp, ctx, "BUNDLE MATH", "IS THE BUNDLE WORTH IT?", f"{n} BUNDLES", HOOK + .3,
-                picks[0][0], picks[1][0])
-    comp.cue(.15, "whoosh"); comp.cue(.2, "slam"); comp.cue(.9, "pop")
+    look = LK.get(FORMAT)
+    if look:
+        comp = look.bundle_math(ctx, picks)
+    else:
+        n = len(picks)
+        R = max(10.4, min(17.0, CONTENT / n))
+        beat = R / 13.0                          # the beats stretch with the scene
+        content_end = HOOK + n * R
+        comp = Comp(content_end + _pad(content_end))
+        _hook_scene(comp, ctx, "BUNDLE MATH", "IS THE BUNDLE WORTH IT?", f"{n} BUNDLES", HOOK + .3,
+                    picks[0][0], picks[1][0])
+        comp.cue(.15, "whoosh"); comp.cue(.2, "slam"); comp.cue(.9, "pop")
 
-    for k, (b, parts, total) in enumerate(picks, 1):
-        t0 = HOOK + (k - 1) * R
-        price = int(b["price"])
-        cols = b.get("tile_colors") or [RARITY.get(b["rarity"], "#3a3a44")]
-        inner = tile_bg(cols, b["rarity"], t0)
-        title = _title(b)
-        size, lines = _fit(title, 940, big=92, one_min=66, two_max=72, small=52)
-        inner += words(title, 60, 300, size, t0 + .2, "#fff", .06, "slam", "left", 940)
-        top = 300 + size * .92 * lines + 10
-        inner += label(f"{len(parts)} ITEMS · EVERY ONE ALSO SOLD ON ITS OWN TODAY", 64, top, 28, t0 + .45,
-                       ACCENT, 800)
-        inner += character(ctx.art(b), 540, 660, 380, t0 + .1, "pop", .6, "float", b["rarity"], title)
-        receipt, t_total, t_bundle = _receipt(parts, total, price, t0, beat)
-        inner += receipt
-        t_save = t_bundle + 1.1 * beat
-        inner += sticker(f"SAVES {total - price:,} V-BUCKS", 250, 760, 64, t_save, rot=-6)
-        inner += _from(t_save, burst(560, 800, t_save, ctx.seed + k))
-        inner += progress(t0, t0 + R, k, n).replace(f"ROUND {k}/{n}", f"BUNDLE {k}/{n}")
-        comp.scene(t0, t0 + R, inner, fade_in=.25, fade_out=.25)
-        comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .2, "slam")
-        for j in range(min(len(parts), 7)):
-            comp.cue(t0 + 1.4 * beat + j * min(.55, 2.6 * beat / max(min(len(parts), 7), 1)), "tick")
-        comp.cue(t_total + .8, "cash"); comp.cue(t_bundle, "slam"); comp.cue(t_save, "reveal")
+        for k, (b, parts, total) in enumerate(picks, 1):
+            t0 = HOOK + (k - 1) * R
+            price = int(b["price"])
+            cols = b.get("tile_colors") or [RARITY.get(b["rarity"], "#3a3a44")]
+            inner = tile_bg(cols, b["rarity"], t0)
+            title = _title(b)
+            size, lines = _fit(title, 940, big=92, one_min=66, two_max=72, small=52)
+            inner += words(title, 60, 300, size, t0 + .2, "#fff", .06, "slam", "left", 940)
+            top = 300 + size * .92 * lines + 10
+            inner += label(f"{len(parts)} ITEMS · EVERY ONE ALSO SOLD ON ITS OWN TODAY", 64, top, 28, t0 + .45,
+                           ACCENT, 800)
+            inner += character(ctx.art(b), 540, 660, 380, t0 + .1, "pop", .6, "float", b["rarity"], title)
+            receipt, t_total, t_bundle = _receipt(parts, total, price, t0, beat)
+            inner += receipt
+            t_save = t_bundle + 1.1 * beat
+            inner += sticker(f"SAVES {total - price:,} V-BUCKS", 250, 760, 64, t_save, rot=-6)
+            inner += _from(t_save, burst(560, 800, t_save, ctx.seed + k))
+            inner += progress(t0, t0 + R, k, n).replace(f"ROUND {k}/{n}", f"BUNDLE {k}/{n}")
+            comp.scene(t0, t0 + R, inner, fade_in=.25, fade_out=.25)
+            comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .2, "slam")
+            for j in range(min(len(parts), 7)):
+                comp.cue(t0 + 1.4 * beat + j * min(.55, 2.6 * beat / max(min(len(parts), 7), 1)), "tick")
+            comp.cue(t_total + .8, "cash"); comp.cue(t_bundle, "slam"); comp.cue(t_save, "reveal")
 
-    comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
-    _outro_scene(comp, ctx, content_end, comp.duration, "WHICH BUNDLE WOULD YOU GET?", [b for b, _, _ in picks][:3])
-    comp.add(code_badge(.4))
-    comp.add(disclosure())
-    comp.cues.sort()
+        comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
+        _outro_scene(comp, ctx, content_end, comp.duration, "WHICH BUNDLE WOULD YOU GET?", [b for b, _, _ in picks][:3])
+        comp.add(code_badge(.4))
+        comp.add(disclosure())
+        comp.cues.sort()
 
     body = "\n".join(f"{num(k)} {_title(b)}: {int(b['price']):,} V-Bucks · one by one {total:,} · "
                      f"saves {total - int(b['price']):,}" for k, (b, _, total) in enumerate(picks, 1))

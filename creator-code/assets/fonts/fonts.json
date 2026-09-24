@@ -1,0 +1,152 @@
+[
+ {
+  "family": "Permanent Marker",
+  "style": "normal",
+  "weight": "400",
+  "file": "PermanentMarker-normal-400.woff2"
+ },
+ {
+  "family": "Caveat",
+  "style": "normal",
+  "weight": "400",
+  "file": "Caveat-normal-400.woff2"
+ },
+ {
+  "family": "Caveat",
+  "style": "normal",
+  "weight": "600",
+  "file": "Caveat-normal-600.woff2"
+ },
+ {
+  "family": "Caveat",
+  "style": "normal",
+  "weight": "700",
+  "file": "Caveat-normal-700.woff2"
+ },
+ {
+  "family": "Special Elite",
+  "style": "normal",
+  "weight": "400",
+  "file": "SpecialElite-normal-400.woff2"
+ },
+ {
+  "family": "Playfair Display",
+  "style": "italic",
+  "weight": "700",
+  "file": "PlayfairDisplay-italic-700.woff2"
+ },
+ {
+  "family": "Playfair Display",
+  "style": "normal",
+  "weight": "700",
+  "file": "PlayfairDisplay-normal-700.woff2"
+ },
+ {
+  "family": "Playfair Display",
+  "style": "normal",
+  "weight": "900",
+  "file": "PlayfairDisplay-normal-900.woff2"
+ },
+ {
+  "family": "Old Standard TT",
+  "style": "italic",
+  "weight": "400",
+  "file": "OldStandardTT-italic-400.woff2"
+ },
+ {
+  "family": "Old Standard TT",
+  "style": "normal",
+  "weight": "400",
+  "file": "OldStandardTT-normal-400.woff2"
+ },
+ {
+  "family": "Old Standard TT",
+  "style": "normal",
+  "weight": "700",
+  "file": "OldStandardTT-normal-700.woff2"
+ },
+ {
+  "family": "IBM Plex Mono",
+  "style": "normal",
+  "weight": "400",
+  "file": "IBMPlexMono-normal-400.woff2"
+ },
+ {
+  "family": "IBM Plex Mono",
+  "style": "normal",
+  "weight": "500",
+  "file": "IBMPlexMono-normal-500.woff2"
+ },
+ {
+  "family": "IBM Plex Mono",
+  "style": "normal",
+  "weight": "700",
+  "file": "IBMPlexMono-normal-700.woff2"
+ },
+ {
+  "family": "VT323",
+  "style": "normal",
+  "weight": "400",
+  "file": "VT323-normal-400.woff2"
+ },
+ {
+  "family": "Oswald",
+  "style": "normal",
+  "weight": "500",
+  "file": "Oswald-normal-500.woff2"
+ },
+ {
+  "family": "Oswald",
+  "style": "normal",
+  "weight": "700",
+  "file": "Oswald-normal-700.woff2"
+ },
+ {
+  "family": "Cormorant Garamond",
+  "style": "italic",
+  "weight": "500",
+  "file": "CormorantGaramond-italic-500.woff2"
+ },
+ {
+  "family": "Cormorant Garamond",
+  "style": "normal",
+  "weight": "500",
+  "file": "CormorantGaramond-normal-500.woff2"
+ },
+ {
+  "family": "Cormorant Garamond",
+  "style": "normal",
+  "weight": "700",
+  "file": "CormorantGaramond-normal-700.woff2"
+ },
+ {
+  "family": "Archivo Black",
+  "style": "normal",
+  "weight": "400",
+  "file": "ArchivoBlack-normal-400.woff2"
+ },
+ {
+  "family": "Barlow Condensed",
+  "style": "normal",
+  "weight": "600",
+  "file": "BarlowCondensed-normal-600.woff2"
+ },
+ {
+  "family": "Barlow Condensed",
+  "style": "normal",
+  "weight": "800",
+  "file": "BarlowCondensed-normal-800.woff2"
+ },
+ {
+  "family": "Kalam",
+  "style": "normal",
+  "weight": "400",
+  "file": "Kalam-normal-400.woff2"
+ },
+ {
+  "family": "Kalam",
+  "style": "normal",
+  "weight": "700",
+  "file": "Kalam-normal-700.woff2"
+ }
+]

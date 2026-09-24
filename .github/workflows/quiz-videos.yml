@@ -17,6 +17,12 @@ on:
         description: How many days to build from there (1-31).
         required: false
         default: "1"
+      looks:
+        description: >-
+          Optional: preview new looks (creator-code/LOOKS.md), e.g. "all". The
+          videos go to preview-quiz-DATE releases that nothing schedules.
+        required: false
+        default: ""
 
 permissions:
   contents: write           # needed to publish the releases that host the videos
@@ -71,9 +77,15 @@ jobs:
       - name: Build the day's quiz videos
         env:
           DAY: ${{ matrix.day }}
+          LOOKS: ${{ inputs.looks }}
         run: |
           set -e
-          python3 scripts/cc_quiz_build.py --date "$DAY"
+          if [ -n "$LOOKS" ]; then
+            [[ "$LOOKS" =~ ^[a-z_@,]+$ ]] || { echo "::error::looks must look like all or on_this_day"; exit 1; }
+            CC_LOOKS="$LOOKS" python3 scripts/cc_quiz_build.py --date "$DAY" --release "preview-quiz-$DAY"
+          else
+            python3 scripts/cc_quiz_build.py --date "$DAY"
+          fi
           if [ -f "creator-code/out/quiz-$DAY/manifest.json" ]; then
             ls -la "creator-code/out/quiz-$DAY/"
             cat "creator-code/out/quiz-$DAY/manifest.json"
@@ -83,10 +95,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           DAY: ${{ matrix.day }}
+          LOOKS: ${{ inputs.looks }}
         run: |
           set -e
           DIR="creator-code/out/quiz-$DAY"
           TAG="quiz-$DAY"
+          [ -n "$LOOKS" ] && TAG="preview-quiz-$DAY"
           [ -f "$DIR/manifest.json" ] || { echo "Nothing planned for $DAY."; exit 0; }
           TITLE="Quiz videos $DAY"
           NOTES="Auto-generated quiz videos for $DAY. manifest.json lists post times, titles and captions."

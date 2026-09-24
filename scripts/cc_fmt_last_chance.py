@@ -30,6 +30,7 @@ Nothing about popularity, ratings, rarity-as-scarcity, "back" or "first time".
 
 from datetime import date
 
+import cc_looks as LK
 from cc_formats import (Ctx, Video, BRAND_TAGS, rng, _pad, _hook_scene, _outro_scene,
                         _hashtags, _caption)
 from cc_motion import (ACCENT, INK, RARITY, W, SAFE_RIGHT, RAIL_TOP, Comp, an, burst,
@@ -541,32 +542,36 @@ def build(ctx: Ctx):
     if len(picked) < MIN_OFFERS:
         return None
     n = len(picked)
-    content_end = HOOK + n * R
-    comp = Comp(content_end + _pad(content_end))
-    for rule in _css():
-        comp.css(rule)
-
     show = _showcase(picked)
-    a_item = show[0]
-    b_item = show[1] if len(show) > 1 else None
-    _hook_scene(comp, ctx, "LAST CHANCE", "LEAVING THE SHOP AT THE NEXT RESET",
-                f"GONE AT {ctx.reset_et}", HOOK + .3, a_item, b_item,
-                colors=["#6a1010", "#140405"])
-    comp.cue(.15, "whoosh"); comp.cue(.2, "slam"); comp.cue(.3, "whoosh"); comp.cue(.9, "pop")
+    look = LK.get(FORMAT)
+    if look:
+        comp = look.last_chance(ctx, picked)
+    else:
+        content_end = HOOK + n * R
+        comp = Comp(content_end + _pad(content_end))
+        for rule in _css():
+            comp.css(rule)
 
-    off = rng(ctx, 42).randrange(len(ENTRIES))
-    for k, it in enumerate(picked, 1):
-        t0 = HOOK + (k - 1) * R
-        _wipe(comp, t0)
-        _offer(comp, ctx, it, k, n, t0, t0 + R, ENTRIES[(k + off) % len(ENTRIES)])
+        a_item = show[0]
+        b_item = show[1] if len(show) > 1 else None
+        _hook_scene(comp, ctx, "LAST CHANCE", "LEAVING THE SHOP AT THE NEXT RESET",
+                    f"GONE AT {ctx.reset_et}", HOOK + .3, a_item, b_item,
+                    colors=["#6a1010", "#140405"])
+        comp.cue(.15, "whoosh"); comp.cue(.2, "slam"); comp.cue(.3, "whoosh"); comp.cue(.9, "pop")
 
-    _wipe(comp, content_end)
-    comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
-    comp.cue(content_end + 1.1, "pop")
-    _outro_scene(comp, ctx, content_end, comp.duration, "WHICH ONE ARE YOU GRABBING?", show[:3])
-    comp.add(code_badge(.4))
-    comp.add(disclosure())
-    comp.cues.sort()
+        off = rng(ctx, 42).randrange(len(ENTRIES))
+        for k, it in enumerate(picked, 1):
+            t0 = HOOK + (k - 1) * R
+            _wipe(comp, t0)
+            _offer(comp, ctx, it, k, n, t0, t0 + R, ENTRIES[(k + off) % len(ENTRIES)])
+
+        _wipe(comp, content_end)
+        comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
+        comp.cue(content_end + 1.1, "pop")
+        _outro_scene(comp, ctx, content_end, comp.duration, "WHICH ONE ARE YOU GRABBING?", show[:3])
+        comp.add(code_badge(.4))
+        comp.add(disclosure())
+        comp.cues.sort()
 
     # ---- words for the post
     def line(it):

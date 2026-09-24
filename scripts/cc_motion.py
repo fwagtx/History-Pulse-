@@ -47,13 +47,25 @@ SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP = 190, 1480, 960, 880
 esc = _html.escape
 
 
-def _font_face(family: str, file: str, weight: str) -> str:
+def _font_face(family: str, file: str, weight: str, style: str = "normal") -> str:
     path = FONTS / file
     if not path.exists():
         return ""
     b64 = base64.b64encode(path.read_bytes()).decode("ascii")
-    return (f"@font-face{{font-family:'{family}';src:url(data:font/ttf;base64,{b64}) "
-            f"format('truetype');font-weight:{weight};font-display:block}}")
+    kind = ("woff2", "font/woff2") if file.endswith(".woff2") else ("truetype", "font/ttf")
+    return (f"@font-face{{font-family:'{family}';src:url(data:{kind[1]};base64,{b64}) "
+            f"format('{kind[0]}');font-weight:{weight};font-style:{style};font-display:block}}")
+
+
+def extra_fonts(families) -> str:
+    """@font-face rules for the extra (Google, OFL) fonts the new looks use,
+    listed in assets/fonts/fonts.json. Only the families asked for are embedded."""
+    reg = FONTS / "fonts.json"
+    if not families or not reg.exists():
+        return ""
+    import json as _json
+    return "".join(_font_face(f["family"], f["file"], f["weight"], f["style"])
+                   for f in _json.loads(reg.read_text()) if f["family"] in families)
 
 
 # Film grain kills the flat, too-clean look that reads as auto-generated.
@@ -166,6 +178,7 @@ class Comp:
         self._layers = []
         self._n = 0
         self.cues = []      # [(seconds, kind)] for sound design: whoosh/slam/tick/pop/reveal/cash
+        self.fonts = set()  # extra font families to embed (see extra_fonts)
 
     def uid(self, prefix: str = "k") -> str:
         self._n += 1
@@ -177,6 +190,10 @@ class Comp:
 
     def css(self, rule: str):
         self._css.append(rule)
+
+    def use_fonts(self, *families: str):
+        """Embed these extra font families (assets/fonts/fonts.json) in the page."""
+        self.fonts.update(families)
 
     def add(self, html: str):
         """A persistent layer, visible for the whole video."""
@@ -209,7 +226,7 @@ class Comp:
 
     def document(self) -> str:
         fonts = (_font_face("Anton", "Anton-Regular.ttf", "400")
-                 + _font_face("Inter", "Inter-Variable.ttf", "100 900"))
+                 + _font_face("Inter", "Inter-Variable.ttf", "100 900") + extra_fonts(self.fonts))
         return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
                 + fonts + BASE_CSS + "\n".join(self._css)
                 + "</style></head><body>" + "".join(self._layers) + "</body></html>")
@@ -370,16 +387,24 @@ def code_badge(start: float = 0) -> str:
     # whole point. The hook scene (cc_formats._hook_scene) overrides this through
     # the .codebadge class: while its big CREATOR CODE stamp is on screen, this
     # corner badge waits, then appears as the stamp shrinks into its spot.
+    # USE CODE: BAD on the channel's lime, big enough to read at a glance (the
+    # owner asked for the code to be noticeable in every video), and kept in the
+    # band above the scenes' kicker lines (y 190-280).
     a = style_anim(an("thump", .2, .4))
-    return (f'<div class="abs codebadge" style="left:48px;top:{SAFE_TOP}px;z-index:50;{a}"><div class="pill">'
-            f'<span style="font-size:18px;font-weight:800;letter-spacing:.2em;color:#9AA0A6">CODE</span>'
-            f'<span class="d" style="font-size:40px;color:{ACCENT}">BAD</span></div></div>')
+    return (f'<div class="abs codebadge" style="left:48px;top:{SAFE_TOP}px;z-index:50;{a}">'
+            f'<div style="display:flex;align-items:center;gap:12px;background:{ACCENT};color:{INK};'
+            f'border-radius:16px;padding:8px 20px 6px 18px;box-shadow:0 8px 0 rgba(0,0,0,.38)">'
+            f'<div style="font-size:23px;font-weight:900;line-height:1.02;letter-spacing:.12em">USE<br>CODE:</div>'
+            f'<div class="d" style="font-size:80px;line-height:.9;letter-spacing:.02em">BAD</div></div></div>')
+
+
+BADGE_W, BADGE_H = 258, 86          # code_badge's size, measured in the render browser
 
 
 def disclosure() -> str:
     """Under the code badge: always on screen, never under TikTok's caption."""
-    return (f'<div class="abs" style="left:50px;top:{SAFE_TOP + 76}px;width:600px;z-index:50;'
-            f'font-size:23px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.88);'
+    return (f'<div class="abs" style="left:52px;top:{SAFE_TOP + BADGE_H + 4}px;z-index:50;'
+            f'font-size:23px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.9);'
             f'text-shadow:0 2px 6px rgba(0,0,0,.9)">#EpicPartner</div>')
 
 
@@ -418,6 +443,7 @@ CHROME_ARGS = ["--no-sandbox", "--font-render-hinting=none", "--force-color-prof
 READY_JS = """async () => {
   await document.fonts.ready;
   await Promise.all([...document.images].map(i => i.decode ? i.decode().catch(() => {}) : null));
+  if (window.__ready) { await window.__ready; }
 }"""
 
 

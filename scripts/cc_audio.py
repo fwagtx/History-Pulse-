@@ -179,6 +179,82 @@ def sfx(kind: str, rs: np.random.RandomState) -> np.ndarray:
             s = int(start * SR)
             out[s:s + len(tt)] += np.tanh(2.2 * tone / 6) * env
         return _norm(out) * .75
+    # Object sounds for the new looks: each look's motion lands on a sound that
+    # matches the thing on screen (paper, stamps, pens, flaps, printers, tape).
+    if kind == "paper":
+        # A sheet or sticker slid and pressed down: a soft swish, then a light tap.
+        n = int(.32 * SR)
+        t = np.arange(n) / SR
+        swish = _band(_noise(n, rs), 700, 5200) * np.sin(np.pi * np.clip(t / .22, 0, 1)) ** 2
+        tap = _band(_noise(n, rs), 200, 1800) * np.exp(-np.maximum(t - .2, 0) / .015) * (t > .2)
+        return _norm(.8 * swish + tap) * .55
+    if kind == "stamp":
+        # A rubber stamp: a dull thud with a papery slap on top.
+        n = int(.35 * SR)
+        t = np.arange(n) / SR
+        thud = np.sin(2 * np.pi * np.cumsum(55 + 70 * np.exp(-t / .03)) / SR) * np.exp(-t / .08)
+        slap = _band(_noise(n, rs), 500, 3500) * np.exp(-t / .02)
+        return _norm(np.tanh(1.8 * (thud + .7 * slap))) * .8
+    if kind == "pen":
+        # A marker or ballpoint scribbling for about half a second.
+        n = int(.5 * SR)
+        t = np.arange(n) / SR
+        am = .55 + .45 * np.sin(2 * np.pi * (11 + 6 * rs.rand()) * t + rs.rand() * 6) ** 2
+        body = _band(_noise(n, rs), 1800, 7500) * am
+        return _norm(body * np.minimum(1, t / .03) * np.minimum(1, (t[-1] - t) / .06)) * .35
+    if kind == "flap":
+        # A split-flap cell settling: a quick run of plastic clicks.
+        n = int(.5 * SR)
+        out = np.zeros(n)
+        ct = _t(.012)
+        k, at = 0, 0.0
+        while at < .42:
+            click = _band(_noise(len(ct), rs), 1800, 6500) * np.exp(-ct / .0025)
+            s = int(at * SR)
+            out[s:s + len(ct)] += click * rs.uniform(.5, 1)
+            at += .028 + .012 * k / 14
+            k += 1
+        return _norm(out) * .5
+    if kind == "printer":
+        # A thermal printer feeding a few lines: a stepping buzz.
+        n = int(.6 * SR)
+        t = np.arange(n) / SR
+        buzz = np.sign(np.sin(2 * np.pi * 430 * t)) * .5 + _band(_noise(n, rs), 900, 4000) * .5
+        steps = (np.sin(2 * np.pi * 14 * t) > -.2).astype(float)
+        return _norm(buzz * steps * np.minimum(1, t / .02) * np.minimum(1, (t[-1] - t) / .04)) * .3
+    if kind == "tape":
+        # A VCR taking a tape: a mechanical clunk, then the motor spinning up.
+        n = int(.7 * SR)
+        t = np.arange(n) / SR
+        clunk = (_band(_noise(n, rs), 300, 2500) * np.exp(-t / .02)
+                 + np.sin(2 * np.pi * 90 * t) * np.exp(-t / .06))
+        motor = np.sin(2 * np.pi * np.cumsum(60 + 90 * np.clip((t - .15) / .4, 0, 1)) / SR) * (t > .15) * .25
+        return _norm(clunk + motor * np.minimum(1, (t[-1] - t) / .1)) * .7
+    if kind == "static":
+        # TV static between tape cuts.
+        n = int(.45 * SR)
+        t = np.arange(n) / SR
+        hiss = _band(_noise(n, rs), 900, 9000)
+        return _norm(hiss * np.minimum(1, t / .01) * np.minimum(1, (t[-1] - t) / .08)) * .35
+    if kind == "pin":
+        # A push pin going into cork.
+        n = int(.12 * SR)
+        t = np.arange(n) / SR
+        return _norm(_band(_noise(n, rs), 1500, 6000) * np.exp(-t / .008)
+                     + .5 * np.sin(2 * np.pi * 180 * t) * np.exp(-t / .03)) * .55
+    if kind == "flip":
+        # A card flipped over: a short air swish and a tap as it lands.
+        n = int(.3 * SR)
+        t = np.arange(n) / SR
+        swish = _band(_noise(n, rs), 1500, 7000) * np.sin(np.pi * np.clip(t / .18, 0, 1)) ** 2
+        tap = _band(_noise(n, rs), 400, 3000) * np.exp(-np.maximum(t - .2, 0) / .01) * (t > .2)
+        return _norm(.7 * swish + tap) * .55
+    if kind == "click":
+        # A mouse click or a light switch.
+        n = int(.06 * SR)
+        t = np.arange(n) / SR
+        return _norm(np.sin(2 * np.pi * 2600 * t) * np.exp(-t / .004)
+                     + _band(_noise(n, rs), 2000, 8000) * np.exp(-t / .003)) * .45
     return np.zeros(1)
 
 

@@ -16,6 +16,7 @@ Truth rules this format keeps:
 It never says how many years old anything is, how rare it is, or that it's "back".
 """
 
+import cc_looks as LK
 from cc_fmt_last_chance import _fit, _from
 from cc_formats import Ctx, Video, singles, _pad, _hook_scene, _outro_scene, _hashtags, _caption, num
 from cc_motion import (ACCENT, RARITY, W, Comp, an, burst, character, code_badge, disclosure, label,
@@ -65,50 +66,54 @@ def build(ctx: Ctx):
     picks = _pick(ctx)
     if not picks:
         return None
-    n = len(picks)
-    show = list(reversed(picks))            # count down: the oldest comes last
-    content_end = HOOK + n * R
-    comp = Comp(content_end + _pad(content_end))
     outfits = [i for i in picks if i["type"] == "Outfit"] or picks
-    _hook_scene(comp, ctx, "OG CHECK", "THE OLDEST ITEMS IN TODAY'S SHOP", "HOW OLD?", HOOK + .3,
-                outfits[0], outfits[1] if len(outfits) > 1 else picks[1])
-    comp.cue(.15, "whoosh"); comp.cue(.2, "slam"); comp.cue(.9, "pop")
+    look = LK.get(FORMAT)
+    if look:
+        comp = look.og_check(ctx, picks)
+    else:
+        n = len(picks)
+        show = list(reversed(picks))            # count down: the oldest comes last
+        content_end = HOOK + n * R
+        comp = Comp(content_end + _pad(content_end))
+        _hook_scene(comp, ctx, "OG CHECK", "THE OLDEST ITEMS IN TODAY'S SHOP", "HOW OLD?", HOOK + .3,
+                    outfits[0], outfits[1] if len(outfits) > 1 else picks[1])
+        comp.cue(.15, "whoosh"); comp.cue(.2, "slam"); comp.cue(.9, "pop")
 
-    for k, it in enumerate(show, 1):
-        t0 = HOOK + (k - 1) * R
-        rank = n - k + 1
-        last = rank == 1
-        ch, se = _season(it)
-        cols = it.get("tile_colors") or [RARITY.get(it["rarity"], "#3a3a44")]
-        inner = tile_bg(cols, it["rarity"], t0)
-        inner += label("INTRODUCED IN", 60, 300, 30, t0, ACCENT, 800, anim="none", spacing=".18em")
-        inner += words(ch, 60, 346, 104, t0 + .15, "#fff", .06, "slam", "left", 700)
-        inner += words(se, 60, 450, 104, t0 + .3, ACCENT, .06, "slam", "left", 700)
-        inner += sticker(f"#{rank}", 790, 330, 110, t0 + .35, rot=7)
-        inner += character(ctx.art(it), 560, 860, 560, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
-        size, lines = _fit(it["name"], 900, big=96, one_min=70, two_max=76, small=56)
-        inner += words(it["name"], 60, 1180, size, t0 + .5, "#fff", .06, "slam", "left", 900)
-        y = 1180 + size * .92 * lines + 18
-        inner += label(f"{it.get('rarity_label') or it['rarity']} {it['type']}".upper(), 64, y, 32, t0 + .7,
-                       "#fff", 800)
-        inner += _from(t0 + .9, price_roll(int(it["price"]), 60, y + 50, 64, t0 + .9, .8))
-        if last:
-            # Several items can share the oldest season: then it's a tie, not "the" oldest.
-            tied = sum(1 for p in picks if _order(p) == _order(it)) > 1
-            inner += sticker("TIED FOR OLDEST!" if tied else "THE OLDEST TODAY!", 480, 640, 58, t0 + 1.6, rot=-5)
-            inner += _from(t0 + 1.6, burst(560, 820, t0 + 1.6, ctx.seed + k))
-        inner += progress(t0, t0 + R, k, n).replace(f"ROUND {k}/{n}", f"ITEM {k}/{n}")
-        comp.scene(t0, t0 + R, inner, fade_in=.25, fade_out=.25)
-        comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .15, "slam"); comp.cue(t0 + .5, "pop")
-        comp.cue(t0 + 1.7, "cash")
-        if last:
-            comp.cue(t0 + 1.6, "reveal")
+        for k, it in enumerate(show, 1):
+            t0 = HOOK + (k - 1) * R
+            rank = n - k + 1
+            last = rank == 1
+            ch, se = _season(it)
+            cols = it.get("tile_colors") or [RARITY.get(it["rarity"], "#3a3a44")]
+            inner = tile_bg(cols, it["rarity"], t0)
+            inner += label("INTRODUCED IN", 60, 300, 30, t0, ACCENT, 800, anim="none", spacing=".18em")
+            inner += words(ch, 60, 346, 104, t0 + .15, "#fff", .06, "slam", "left", 700)
+            inner += words(se, 60, 450, 104, t0 + .3, ACCENT, .06, "slam", "left", 700)
+            inner += sticker(f"#{rank}", 790, 330, 110, t0 + .35, rot=7)
+            inner += character(ctx.art(it), 560, 860, 560, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
+            size, lines = _fit(it["name"], 900, big=96, one_min=70, two_max=76, small=56)
+            inner += words(it["name"], 60, 1180, size, t0 + .5, "#fff", .06, "slam", "left", 900)
+            y = 1180 + size * .92 * lines + 18
+            inner += label(f"{it.get('rarity_label') or it['rarity']} {it['type']}".upper(), 64, y, 32, t0 + .7,
+                           "#fff", 800)
+            inner += _from(t0 + .9, price_roll(int(it["price"]), 60, y + 50, 64, t0 + .9, .8))
+            if last:
+                # Several items can share the oldest season: then it's a tie, not "the" oldest.
+                tied = sum(1 for p in picks if _order(p) == _order(it)) > 1
+                inner += sticker("TIED FOR OLDEST!" if tied else "THE OLDEST TODAY!", 480, 640, 58, t0 + 1.6, rot=-5)
+                inner += _from(t0 + 1.6, burst(560, 820, t0 + 1.6, ctx.seed + k))
+            inner += progress(t0, t0 + R, k, n).replace(f"ROUND {k}/{n}", f"ITEM {k}/{n}")
+            comp.scene(t0, t0 + R, inner, fade_in=.25, fade_out=.25)
+            comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .15, "slam"); comp.cue(t0 + .5, "pop")
+            comp.cue(t0 + 1.7, "cash")
+            if last:
+                comp.cue(t0 + 1.6, "reveal")
 
-    comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
-    _outro_scene(comp, ctx, content_end, comp.duration, "HOW OG IS YOUR LOCKER?",
-                 (outfits + [o for o in picks if o not in outfits])[:3])
-    comp.add(code_badge(.4))
-    comp.add(disclosure())
+        comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
+        _outro_scene(comp, ctx, content_end, comp.duration, "HOW OG IS YOUR LOCKER?",
+                     (outfits + [o for o in picks if o not in outfits])[:3])
+        comp.add(code_badge(.4))
+        comp.add(disclosure())
 
     oldest = picks[0]
     # Epic's own wording, as written: "Chapter 1, Season 3", "Chapter 4, Season OG".
