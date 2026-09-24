@@ -167,7 +167,9 @@ def on_this_day(spec: dict, items: dict, ctx: Ctx):
         if debut:
             comp.cue(t0 + .9, "ding")
 
-    Q._outro(comp, ctx, content_end, "WHICH YEAR HAD THE BEST SHOP?", [r[1] for r in lead] + [rounds[-1][1]])
+    # The two thumbnail picks, and the newest one that isn't already among them.
+    third = next((r[1] for r in reversed(rounds) if all(r[1] is not x[1] for x in lead)), None)
+    Q._outro(comp, ctx, content_end, "WHICH YEAR HAD THE BEST SHOP?", [r[1] for r in lead] + ([third] if third else []))
 
     body = "\n".join(f"{rd['year']} · {it['name']}" + (" 🆕" if debut else "") for rd, it, debut in rounds)
     if any(d for _, _, d in rounds):
