@@ -27,8 +27,8 @@ import cc_looks as LK
 import cc_quiz as Q
 from cc_series_plan import FAMOUS_SERIES, FIRST_SURE
 from cc_formats import BRAND_TAGS, Ctx, Video, num, _caption, _hook_scene, _tag
-from cc_motion import (ACCENT, INK, RARITY, W, SAFE_TOP, SAFE_RIGHT, an, anton_em, burst, character,
-                       countdown, esc, label, progress, sticker, style_anim, tile_bg, words)
+from cc_motion import (ACCENT, INK, RARITY, W, SAFE_LEFT, SAFE_RIGHT_TOP, SAFE_RIGHT, an, anton_em,
+                       burst, character, countdown, esc, label, progress, sticker, style_anim, tile_bg, words)
 
 MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
 
@@ -83,30 +83,67 @@ def _debut_words(it: dict) -> str:
 R_OTD = 6.5
 OTD_TAGS = ["fortnite", "fortniteitemshop", "fortniteskins", "onthisday"]
 
+# The classic scenes, composed for the apps' safe box (cc_safe): the date and
+# "N YEARS AGO TODAY" in the wide band under the code badge, the cosmetic, its
+# name and the timeline of years in the column beside the button rail (x 60-900,
+# centred on MID), the timeline's pills ending above the caption zone at y 1420.
+MID = (SAFE_LEFT + SAFE_RIGHT) / 2                      # 480
+COL_W = SAFE_RIGHT - SAFE_LEFT                          # 840
+OTD_DATE_Y, OTD_HEAD_Y = 366, 420                       # under #EpicPartner (y 320-350)
+OTD_ART_CY, OTD_ART_H = 826, 580                        # the cosmetic: y 536-1116
+OTD_NAME_Y = 1146
+OTD_TL_Y, OTD_TL_H = 1330, 60                           # the timeline: y 1330-1390
+
 
 def _timeline(years: list, k: int, t0: float) -> str:
     """The years along the bottom, this one lit, the ones before it ticked off."""
-    step = 840 / len(years)
+    step = (COL_W + 10) / len(years)
+    size = min(32, (step - 22) / (anton_em("2020") - .18))
     pills = []
     for j, y in enumerate(years):
         cur, past = j == k, j < k
-        bg = ACCENT if cur else ("rgba(255,255,255,.9)" if past else "rgba(10,10,11,.7)")
-        fg = INK if cur or past else "rgba(255,255,255,.55)"
+        bg = ACCENT if cur else ("rgba(255,255,255,.9)" if past else "rgba(10,10,11,.72)")
+        fg = INK if cur or past else "rgba(255,255,255,.6)"
         pop = style_anim(an("pop", t0 + .2, .45)) if cur else ""
-        pills.append(f'<div class="abs d" style="left:{60 + j * step:.0f}px;top:0;width:{step - 10:.0f}px;'
-                     f'height:58px;border-radius:12px;background:{bg};color:{fg};font-size:31px;display:flex;'
-                     f'align-items:center;justify-content:center;{pop}">{y}</div>')
-    return f'<div class="abs" style="left:0;top:1400px;width:{W}px;height:60px">{"".join(pills)}</div>'
+        edge = "box-shadow:0 6px 0 rgba(0,0,0,.35);" if cur else "border:2px solid rgba(255,255,255,.14);"
+        pills.append(f'<div class="abs d" style="left:{j * step:.0f}px;top:0;width:{step - 10:.0f}px;'
+                     f'height:{OTD_TL_H}px;border-radius:12px;background:{bg};color:{fg};font-size:{size:.0f}px;'
+                     f'display:flex;align-items:center;justify-content:center;{edge}{pop}">{y}</div>')
+    return (f'<div class="abs" style="left:{SAFE_LEFT}px;top:{OTD_TL_Y}px;width:{COL_W}px;height:{OTD_TL_H}px">'
+            f'{"".join(pills)}</div>')
+
+
+def _comp(content_end: float):
+    """cc_quiz's Comp, with cc_looks.PREP_JS in the page: it crops every
+    img[data-trim] to the cosmetic before the first frame. Fortnite's art is a
+    square with wide transparent margins; cropped, a size means the cosmetic."""
+    comp = Q._comp(content_end)
+    if LK.PREP_JS not in comp._layers:
+        comp.add(LK.PREP_JS)
+    return comp
+
+
+def _trim(html: str) -> str:
+    """character()'s art, marked to be cropped to the cosmetic (see _comp)."""
+    return html.replace('<img class="art" ', '<img class="art" data-trim ', 1)
 
 
 def _years_ago(n: int) -> str:
     return "1 YEAR AGO TODAY" if n == 1 else f"{n} YEARS AGO TODAY"
 
 
+def _otd_top(date: str, ago: str, t0: float) -> str:
+    """The date, then N YEARS AGO TODAY, centred on the column."""
+    size = min(96, (COL_W - 20) / anton_em(ago))
+    return (label(date, MID, OTD_DATE_Y, 34, t0, ACCENT, 800, anim="none", align="center", spacing=".14em")
+            + words(ago, MID, OTD_HEAD_Y + (96 - size) * .5, size, t0 + .15, "#fff", .06, "slam", "center"))
+
+
 def _big_year(year, t0: float) -> str:
-    """The year, huge and faint, behind the cosmetic."""
-    return (f'<div class="abs d" style="left:0;right:0;top:470px;text-align:center;font-size:380px;'
-            f'color:rgba(255,255,255,.1);letter-spacing:.02em;{style_anim(an("punch", t0, .6))}">{year}</div>')
+    """The year, huge and faint, behind the cosmetic (inside the column too)."""
+    return (f'<div class="abs d" style="left:{MID - W:.0f}px;width:{2 * W}px;top:590px;text-align:center;'
+            f'font-size:380px;color:rgba(255,255,255,.1);letter-spacing:.02em;{style_anim(an("punch", t0, .6))}">'
+            f'{year}</div>')
 
 
 def on_this_day(spec: dict, items: dict, ctx: Ctx):
@@ -132,7 +169,7 @@ def on_this_day(spec: dict, items: dict, ctx: Ctx):
     comp = LK.draw(look, "on_this_day", ctx, rounds, bday, lead, third)
     if comp is None:
         content_end = Q.HOOK + n * R_OTD
-        comp = Q._comp(content_end)
+        comp = _comp(content_end)
         if bday:
             _hook_scene(comp, ctx, f"FORTNITE TURNS {bday['age']}", "BATTLE ROYALE CAME OUT ON THIS DAY IN 2017",
                         span, Q.HOOK + .3, lead[0][1], lead[1][1], kicker=f"ON THIS DAY · {when.upper()}")
@@ -146,15 +183,14 @@ def on_this_day(spec: dict, items: dict, ctx: Ctx):
             t0 = Q.HOOK
             inner = tile_bg(["#2b3200", "#0b0c05"], "", t0)
             inner += _big_year(bday["year"], t0)
-            inner += label(f"{when.upper()}, {bday['year']}", W / 2, 300, 34, t0, ACCENT, 800, anim="none",
-                           align="center", spacing=".14em")
-            inner += words(_years_ago(bday["age"]), W / 2, 360, 96, t0 + .15, "#fff", .06, "slam", "center", 1000)
+            inner += _otd_top(f"{when.upper()}, {bday['year']}", _years_ago(bday["age"]), t0)
             for i, line in enumerate(("FORTNITE", "BATTLE ROYALE", "COMES OUT")):
-                inner += words(line, W / 2, 640 + i * 128, 120, t0 + .5 + i * .15, "#fff", .06, "slam", "center")
-            inner += label("PC · PLAYSTATION 4 · XBOX ONE", W / 2, 1190, 36, t0 + 1.2, ACCENT, 800, align="center",
-                           bg="rgba(10,10,11,.8)", pad="12px 26px")
-            inner += sticker("HAPPY BIRTHDAY!", 330, 1260, 60, t0 + 1.6, rot=-4)
-            inner += burst(W / 2, 900, t0 + .6, ctx.seed)
+                inner += words(line, MID, 574 + i * 122, 120, t0 + .5 + i * .15, "#fff", .06, "slam", "center")
+            inner += label("PC · PLAYSTATION 4 · XBOX ONE", MID, 978, 36, t0 + 1.2, ACCENT, 800, align="center",
+                           bg="rgba(10,10,11,.8)", pad="12px 26px", spacing=".04em")
+            cake = "HAPPY BIRTHDAY!"
+            inner += sticker(cake, MID - (anton_em(cake) + .84) * 72 / 2, 1134, 72, t0 + 1.6, rot=-4)
+            inner += burst(MID, 780, t0 + .6, ctx.seed)
             inner += _timeline(years, 0, t0)
             comp.scene(t0, t0 + R_OTD, inner, fade_in=.25, fade_out=.25)
             comp.cue(t0 + .15, "slam"); comp.cue(t0 + .6, "reveal"); comp.cue(t0 + 1.6, "clap")
@@ -165,16 +201,21 @@ def on_this_day(spec: dict, items: dict, ctx: Ctx):
             y = rd["year"]
             inner = tile_bg(Q._colors(it), it["rarity"], t0)
             inner += _big_year(y, t0)
-            inner += label(f"{when.upper()}, {y}", W / 2, 300, 34, t0, ACCENT, 800, anim="none", align="center",
-                           spacing=".14em")
-            inner += words(_years_ago(day.year - y), W / 2, 360, 96, t0 + .15, "#fff", .06, "slam", "center", 1000)
-            inner += character(ctx.art(it), 500, 830, 620, t0 + .1, "pop", .6, "float", it["rarity"], it["name"])
-            size = min(96, 860 / max(anton_em(it["name"]), .1))
-            inner += words(it["name"], 60, 1180, size, t0 + .45, "#fff", .06, "slam", "left", 880)
+            inner += _otd_top(f"{when.upper()}, {y}", _years_ago(day.year - y), t0)
+            inner += _trim(character(ctx.art(it), MID, OTD_ART_CY, OTD_ART_H, t0 + .1, "pop", .6, "float",
+                                     it["rarity"], it["name"], maxw=COL_W - 40))
+            # The name on one line, as big as fits the column (a 30-letter name
+            # comes down to about 55 px), and what that day was under it.
+            size = min(92, (COL_W - 20) / max(anton_em(it["name"]), .1))
+            inner += words(it["name"], MID, OTD_NAME_Y + (92 - size) * .5, size, t0 + .45, "#fff", .06, "slam",
+                           "center")
             line = "FIRST TIME IN THE ITEM SHOP" if debut else "IN THE ITEM SHOP THAT DAY"
-            inner += label(line, 64, 1180 + size + 16, 34, t0 + .7, ACCENT if debut else "#fff", 800)
+            inner += label(line, MID, OTD_NAME_Y + 110, 36, t0 + .7, ACCENT if debut else "#fff", 800,
+                           align="center", spacing=".05em")
             if debut:
-                inner += sticker("NEW THAT DAY!", 590, 560, 54, t0 + .9, rot=6)
+                # Up in the wide band, right of where a cosmetic's head is.
+                new = "NEW THAT DAY!"
+                inner += sticker(new, SAFE_RIGHT_TOP - 26 - (anton_em(new) + .84) * 50, 566, 50, t0 + .9, rot=6)
             inner += _timeline(years, k + j, t0)
             comp.scene(t0, t0 + R_OTD, inner, fade_in=.25, fade_out=.25)
             comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .15, "slam"); comp.cue(t0 + .45, "pop")
@@ -218,10 +259,17 @@ BAT = ('<svg viewBox="0 0 40 20" width="{w}" height="{h}"><path d="M20 6 C18 2 1
 
 
 def _spooky(t0: float) -> str:
-    """Bats drifting across the top, and a low orange glow: behind everything."""
+    """Bats flitting across the frame, rim-lit orange so they read on the dark
+    purple, and a low orange glow. Every scene draws it straight over its
+    background (cc_formats._hook_scene's `extra`, cc_quiz._deco), so it stays
+    behind the words and the cosmetics; it carries no text or image for the
+    safe-box check to hold. At a scene's first frame (the thumbnail too) two
+    bats are just coming in at the frame's edges, clear of the words; the third
+    follows."""
     bats = []
-    for i, (y, w, dur, delay, flip) in enumerate([(560, 120, 9.0, 0, 1), (640, 80, 11.0, 2.5, -1),
-                                                  (500, 64, 13.0, 5.0, 1)]):
+    # (y, width, seconds to cross, share of the crossing done at t0, direction)
+    for i, (y, w, dur, ahead, flip) in enumerate([(560, 120, 9.0, .1, 1), (610, 80, 11.0, .08, -1),
+                                                  (500, 64, 13.0, 0, 1)]):
         start = -200 if flip > 0 else W + 60
         end = W + 60 if flip > 0 else -200
         name = f"bat{int(t0 * 100)}_{i}"
@@ -229,8 +277,9 @@ def _spooky(t0: float) -> str:
                     f'50%{{transform:translate({(start + end) / 2:.0f}px,-40px) scaleX({flip})}}'
                     f'to{{transform:translate({end}px,0) scaleX({flip})}}}}</style>'
                     f'<div class="abs" style="left:0;top:{y}px;'
-                    f'{style_anim(an(name, t0 + delay * .2, dur, "linear", "infinite"))}">'
-                    f'<div style="{style_anim(an("wobble", t0, .35, "ease-in-out", "infinite", "alternate"))}">'
+                    f'{style_anim(an(name, t0 - ahead * dur, dur, "linear", "infinite"))}">'
+                    f'<div style="filter:drop-shadow(0 0 7px rgba(255,138,30,.55));'
+                    f'{style_anim(an("wobble", t0, .35, "ease-in-out", "infinite", "alternate"))}">'
                     f'{BAT.format(w=w, h=w // 2)}</div></div>')
     glow = ('<div class="abs" style="left:0;right:0;bottom:0;height:760px;background:linear-gradient(to top,'
             'rgba(255,138,30,.28),rgba(255,138,30,0))"></div>')
@@ -245,23 +294,56 @@ WF_BG2 = ["#136f86", "#040a16"]
 WF_TAGS = ["fortnite", "fortnitewinterfest", "winterfest", "fortnitechristmas"]
 
 
+# Snow in three depths: (flakes, smallest and biggest px, opacity, blur px,
+# seconds to fall 2000 px, sideways drift px). Far flakes are small, dim and
+# slow; near ones big, soft and quick, so it reads as falling snow, not specks.
+SNOW = [(14, 4, 6, .5, 0, 13.0, 20), (10, 8, 11, .75, .8, 9.0, 35), (5, 14, 18, .85, 2.4, 6.5, 55)]
+# It falls through the top of the frame and melts away by SNOW_FADE[1]: lower
+# down sit the answers and the names, which fade out on a reveal, and snow
+# behind a faded answer would show through it as if it sat on the words.
+SNOW_FADE = (560, 800)
+
+
 def _snow(t0: float) -> str:
-    """Soft snow falling through the frame, and a cold glow low down: behind everything."""
-    flakes = []
-    for i in range(16):
-        x = (i * 67 + 23) % 1040 + 20
-        size = 6 + (i * 5) % 12
-        dur = 6.0 + (i * 7) % 5
-        delay = (i * .37) % dur
-        name = f"snow{int(t0 * 100)}_{i}"
-        flakes.append(f'<style>@keyframes {name}{{from{{transform:translate(0,-60px)}}'
-                      f'to{{transform:translate({(-1) ** i * 60}px,1980px)}}}}</style>'
-                      f'<div class="abs" style="left:{x}px;top:0;width:{size}px;height:{size}px;border-radius:50%;'
-                      f'background:rgba(255,255,255,.85);filter:blur({size / 8:.1f}px);'
-                      f'{style_anim(an(name, t0 - delay, dur, "linear", "infinite"))}"></div>')
+    """Snow falling through the top of the frame, and a cold glow low down.
+    Like the bats, every scene draws it straight over its background, so it
+    stays behind the words and the cosmetics, and it carries nothing for the
+    safe-box check to hold. Deterministic: the same flakes in every render."""
+    flakes, i = [], 0
+    drop = SNOW_FADE[1] + 60                              # from y -60 to where it has melted away
+    for count, small, big, alpha, blur, fall, drift in SNOW:
+        for j in range(count):
+            x = (i * 157 + 41) % 1060 + 10
+            size = small + (j * 3) % (big - small + 1)
+            dur = fall * (1 + (j * 5) % 7 / 20) * drop / 2000
+            ahead = (i * .618) % 1 * dur                  # already falling at the first frame
+            side = drift if i % 2 else -drift
+            name = f"snow{int(t0 * 100)}_{i}"
+            flakes.append(f'<style>@keyframes {name}{{from{{transform:translate(0,-60px)}}'
+                          f'to{{transform:translate({side}px,{SNOW_FADE[1]}px)}}}}</style>'
+                          f'<div class="abs" style="left:{x}px;top:0;width:{size}px;height:{size}px;'
+                          f'border-radius:50%;background:rgba(255,255,255,{alpha});'
+                          f'{f"filter:blur({blur}px);" if blur else ""}'
+                          f'{style_anim(an(name, t0 - ahead, dur, "linear", "infinite"))}"></div>')
+            i += 1
+    fade = f"linear-gradient(#000 {SNOW_FADE[0]}px,transparent {SNOW_FADE[1]}px)"
     glow = ('<div class="abs" style="left:0;right:0;bottom:0;height:760px;background:linear-gradient(to top,'
             'rgba(139,227,255,.26),rgba(139,227,255,0))"></div>')
-    return glow + "".join(flakes)
+    return (glow + f'<div class="full" style="-webkit-mask-image:{fade};mask-image:{fade}">'
+            + "".join(flakes) + "</div>")
+
+
+FACT_MIN = 34            # px: an answer line smaller than this drops the name (see _fact_line)
+
+
+def _fact_line(it: dict, tail: str) -> str:
+    """The line that lands with an answer, "NAME · TAIL" (TAIL: the event it is
+    from, or its shop debut). cc_quiz._fact shrinks the line to fit the band
+    beside the apps' button rail, so for a name so long that the line would go
+    under FACT_MIN px, TAIL goes alone: the name is on screen anyway, in the lit
+    answer or on the line before the reveal."""
+    full = f"{it['name']} · {tail}".upper()
+    return full if anton_em(full) + .9 <= (COL_W - 40) / FACT_MIN else tail.upper()
 
 
 # How each seasonal series looks and talks. `era` labels an item with the event
@@ -296,7 +378,7 @@ def _season_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
     era = look["era"]
 
     theme = {"bg": look["bg"], "bg2": look["bg2"], "color": look["color"], "kicker": kicker, "deco": look["deco"],
-             "era": era, "when": _when, "debut": _debut, "fact": lambda it: f"{it['name']} · {era(it)}".upper(),
+             "era": era, "when": _when, "debut": _debut, "fact": lambda it: _fact_line(it, era(it)),
              "sub": "PAUSE AND GUESS", "stick": f"{series.upper()} EDITION"}
     if fmt == "throwback":
         group = [items[i] for i in spec["items"]]
@@ -362,7 +444,7 @@ def which_year(spec: dict, items: dict, ctx: Ctx, theme: dict):
         return None
     n = len(rounds)
     content_end = Q.HOOK + n * Q.R1
-    comp = Q._comp(content_end)
+    comp = _comp(content_end)
     first = [items[rd["item"]] for rd in rounds[:2]]
     _hook_scene(comp, ctx, "WHICH FORTNITEMARES?", "GUESS THE YEAR", f"{n} ROUNDS", Q.HOOK + .3, *first,
                 colors=theme["bg"], kicker=theme["kicker"], kicker_color=theme["color"],
@@ -371,8 +453,7 @@ def which_year(spec: dict, items: dict, ctx: Ctx, theme: dict):
     for k, rd in enumerate(rounds, 1):
         it = items[rd["item"]]
         Q._picture_round(comp, ctx, Q.HOOK + (k - 1) * Q.R1, k, n, it, "WHICH FORTNITEMARES?", rd["options"],
-                         rd["answer"], theme=theme,
-                         reveal_fact=f"{it['name']} · {_debut(it)}".upper())
+                         rd["answer"], theme=theme, reveal_fact=_fact_line(it, _debut(it)))
     Q._outro(comp, ctx, content_end, f"HOW MANY DID YOU GET OUT OF {n}?", [items[rd["item"]] for rd in rounds])
     return theme["video"]("which_year", comp, n, [items[rd["item"]] for rd in rounds])
 
@@ -400,38 +481,90 @@ LO_KINDS = {"outfit": ("OUTFIT", "PICK YOUR OUTFIT"), "backpack": ("BACK BLING",
             "pickaxe": ("PICKAXE", "PICK YOUR PICKAXE"), "glider": ("GLIDER", "PICK YOUR GLIDER"),
             "emote": ("EMOTE", "PICK YOUR EMOTE")}
 LO_TAGS = ["fortnite", "fortniteskins", "fortniteloadout", "fortnitecombos"]
-CARD_X, CARD_Y, CARD_W, CARD_H = (50, 385, 720), 420, 310, 450
+
+# A round, in the apps' safe box (cc_safe): the question in the wide band under
+# the code badge, then everything in the column beside the button rail (x 60-900,
+# centred on MID): the three cards side by side, the ring, and the five locker
+# slots ending above the caption zone at y 1420.
+LO_Q_Y = 368
+CARD_W, CARD_GAP = 266, 21
+CARD_X = tuple(SAFE_LEFT + j * (CARD_W + CARD_GAP) for j in range(3))     # 60, 347, 634: right edge 900
+CARD_Y, CARD_H = 470, 560                                                   # y 470-1030
+LO_RING_Y, LO_RING = 1138, 150                                              # ring y 1063-1213, caption to ~1271
+LOCKER_Y, LOCKER_H, LOCKER_GAP = 1318, 76, 10                               # y 1318-1394
+NAME_BIG, NAME_PAD = 50, 14
+NAME_W = CARD_W - 8 - 2 * NAME_PAD                  # inside the card's border and the plate's padding
 
 
-def _card(it: dict, art: str, x: float, j: int, t0: float) -> str:
+def _cuts(ws: list, n: int):
+    """Every way to break the words `ws` into n lines."""
+    if n == 1:
+        yield [" ".join(ws)]
+        return
+    for i in range(1, len(ws) - n + 2):
+        for rest in _cuts(ws[i:], n - 1):
+            yield [" ".join(ws[:i])] + rest
+
+
+def _fit_name(name: str, width: float = NAME_W) -> tuple:
+    """(font size, lines) for a card's name in Anton caps: one, two or three
+    evenly broken lines, whichever sets it biggest (up to NAME_BIG), taking
+    fewer lines when that costs less than 15% of the size. "BLACK ADAM" stays
+    on one line at 46 px, "DOPAMINE BLADES" takes two at 50, a 37-letter name
+    three at about 34."""
+    ws = name.upper().split() or [""]
+    fits = []
+    for n in range(1, min(3, len(ws)) + 1):
+        lines = min(_cuts(ws, n), key=lambda ls: max(anton_em(s) for s in ls))
+        fits.append((min(NAME_BIG, width / max(max(anton_em(s) for s in lines), .1)), lines))
+    best = max(s for s, _ in fits)
+    size, lines = next(f for f in fits if f[0] >= best * .85)
+    return int(size), lines
+
+
+def _card(it: dict, art: str, x: float, j: int, t0: float, fit: tuple, plate: int) -> str:
+    """A choice: the cosmetic on its rarity colour, its letter, and its name
+    (`fit` from _fit_name) on a plate `plate` px tall across the bottom."""
     col = RARITY.get(it["rarity"], "#3a3a44")
-    fs = min(30, 280 / max(len(it["name"]) * .56, 1))
+    fs, lines = fit
+    name = "<br>".join(esc(s) for s in lines)
+    pic = (f'<img data-trim src="{art}" data-name="{esc(it["name"])}" style="position:absolute;left:5%;top:18px;'
+           f'width:90%;height:{CARD_H - plate - 30}px;object-fit:contain;'
+           f'filter:drop-shadow(0 16px 20px rgba(0,0,0,.5))">' if art else "")
     return (f'<div class="abs" style="left:{x}px;top:{CARD_Y}px;width:{CARD_W}px;height:{CARD_H}px;'
             f'{style_anim(an("pop", t0 + .15 + j * .12, .5))}">'
             f'<div class="abs" style="inset:0;border-radius:24px;overflow:hidden;background:radial-gradient('
-            f'circle at 50% 36%,{col},#101014 88%);border:4px solid rgba(255,255,255,.22)">'
-            f'<img src="{art}" style="position:absolute;left:6%;top:5%;width:88%;height:72%;object-fit:contain;'
-            f'filter:drop-shadow(0 16px 20px rgba(0,0,0,.5))">'
-            f'<div class="abs" style="left:0;right:0;bottom:0;height:92px;padding:0 12px;background:rgba(10,10,11,.84);'
-            f'display:flex;align-items:center;justify-content:center;text-align:center;font-size:{fs:.0f}px;'
-            f'font-weight:800;line-height:1.1;color:#fff">{esc(it["name"])}</div></div>'
+            f'circle at 50% 38%,{col},#101014 88%);border:4px solid rgba(255,255,255,.22)">{pic}'
+            f'<div class="abs d" style="left:0;right:0;bottom:0;height:{plate}px;padding:0 {NAME_PAD}px;'
+            f'background:rgba(10,10,11,.86);display:flex;align-items:center;justify-content:center;'
+            f'text-align:center;font-size:{fs}px;line-height:.98;white-space:nowrap;color:#fff">{name}</div></div>'
             f'<div class="abs d" style="left:12px;top:12px;width:66px;height:66px;border-radius:14px;'
             f'background:{INK};border:3px solid {ACCENT};color:{ACCENT};font-size:44px;display:flex;'
             f'align-items:center;justify-content:center">{"ABC"[j]}</div></div>')
 
 
-def _locker(k: int, t0: float) -> str:
-    """The five locker slots, this round's lit."""
-    out = []
-    for j, kind in enumerate(LO_KINDS):
+def _locker(kinds: list, k: int, t0: float) -> str:
+    """The video's locker slots (outfit to emote), this round's lit, the ones
+    before it filled: tabs across the column, each as wide as its word plus an
+    equal share of the rest."""
+    names = [LO_KINDS[kind][0] for kind in kinds]
+    size = 32
+    text = [anton_em(s) * size for s in names]
+    extra = (COL_W - (len(names) - 1) * LOCKER_GAP - sum(text)) / len(names)
+    out, x = [], 0.0
+    for j, word in enumerate(names):
         cur, done = j == k, j < k
+        w = text[j] + extra
         bg = ACCENT if cur else ("rgba(255,255,255,.88)" if done else "rgba(10,10,11,.72)")
-        fg = INK if cur or done else "rgba(255,255,255,.55)"
-        out.append(f'<div class="abs" style="left:{60 + j * 170}px;top:0;width:158px;height:74px;border-radius:14px;'
-                   f'background:{bg};color:{fg};font-size:20px;font-weight:900;letter-spacing:.08em;display:flex;'
-                   f'align-items:center;justify-content:center;text-align:center;line-height:1.05">'
-                   f'{LO_KINDS[kind][0]}</div>')
-    return f'<div class="abs" style="left:0;top:1360px;width:{W}px">{"".join(out)}</div>'
+        fg = INK if cur or done else "rgba(255,255,255,.6)"
+        pop = style_anim(an("pop", t0 + .25, .45)) if cur else ""
+        edge = "box-shadow:0 6px 0 rgba(0,0,0,.35);" if cur else "border:2px solid rgba(255,255,255,.14);"
+        out.append(f'<div class="abs d" style="left:{x:.1f}px;top:0;width:{w:.1f}px;height:{LOCKER_H}px;'
+                   f'border-radius:14px;background:{bg};color:{fg};font-size:{size}px;display:flex;'
+                   f'align-items:center;justify-content:center;{edge}{pop}">{word}</div>')
+        x += w + LOCKER_GAP
+    return (f'<div class="abs" style="left:{SAFE_LEFT}px;top:{LOCKER_Y}px;width:{COL_W}px;height:{LOCKER_H}px">'
+            f'{"".join(out)}</div>')
 
 
 def loadout(spec: dict, items: dict, ctx: Ctx):
@@ -443,7 +576,7 @@ def loadout(spec: dict, items: dict, ctx: Ctx):
         rounds.append((rd["kind"], got))
     n = len(rounds)
     content_end = Q.HOOK + n * R_LO
-    comp = Q._comp(content_end)
+    comp = _comp(content_end)
     ep = spec["episode"]
     outfits = rounds[0][1]
     _hook_scene(comp, ctx, "BUILD YOUR LOADOUT", "PICK 1 OF 3 IN EVERY ROUND", f"{n} ROUNDS", Q.HOOK + .3,
@@ -453,12 +586,19 @@ def loadout(spec: dict, items: dict, ctx: Ctx):
         t0 = Q.HOOK + k * R_LO
         inner = tile_bg(["#1f2533", "#08090c"], "", t0)
         q = LO_KINDS[kind][1]
-        inner += words(q, W / 2, 290, min(88, 900 / anton_em(q)), t0 + .1, "#fff", .06, "slam", "center", 1000)
-        for j, (it, x) in enumerate(zip(three, CARD_X)):
-            inner += _card(it, ctx.art(it), x, j, t0)
-        inner += countdown(5, W / 2, 1080, 200, t0 + T_LO_CD, "PICK A, B OR C")
-        inner += sticker("LOCK IT IN!", 560, 1268, 54, t0 + T_LO_CD + 5.1, rot=-4)
-        inner += _locker(k, t0)
+        size = min(84, (COL_W - 20) / anton_em(q))
+        inner += words(q, MID, LO_Q_Y + (84 - size) * .5, size, t0 + .1, "#fff", .06, "slam", "center")
+        # One plate height for the round's three cards, so the art and names line up.
+        fits = [_fit_name(it["name"]) for it in three]
+        plate = max(96, max(round(len(ls) * fs * .98 + 30) for fs, ls in fits))
+        for j, (it, x, fit) in enumerate(zip(three, CARD_X, fits)):
+            inner += _card(it, ctx.art(it), x, j, t0, fit, plate)
+        inner += countdown(5, MID, LO_RING_Y, LO_RING, t0 + T_LO_CD, "PICK A, B OR C")
+        # When the ring runs out: beside it, clear of the cards and the caption.
+        lock = "LOCK IT IN!"
+        inner += sticker(lock, SAFE_RIGHT - 30 - (anton_em(lock) + .84) * 50, LO_RING_Y - 40, 50,
+                         t0 + T_LO_CD + 5.1, rot=-4)
+        inner += _locker([kd for kd, _ in rounds], k, t0)
         inner += progress(t0, t0 + R_LO, k + 1, n)
         comp.scene(t0, t0 + R_LO, inner, fade_in=.25, fade_out=.25)
         comp.cue(t0 + .1, "whoosh")
