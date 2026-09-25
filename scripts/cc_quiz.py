@@ -23,6 +23,8 @@ Every round ends on the same beat: the ring drains, a drumroll builds, then the
 answer lands with a ding and a clap -- all synthesized in cc_audio.
 """
 
+import re
+
 import cc_looks as LK
 from cc_formats import (BRAND_TAGS, SILHOUETTE, Ctx, Video, num, _caption, _hook_scene, _outro_scene,
                         _pad, _tag)
@@ -544,9 +546,46 @@ BUILDERS = {"guess_season": guess_season, "whos_that": whos_that, "zoomed_in": z
             "which_first": which_first, "odd_one_out": odd_one_out, "throwback": throwback}
 
 
+# A few cosmetics in Epic's feed carry an internal code as their name
+# ("Set_01_TA_SG"). One must never reach the screen, as an answer or a choice.
+CODE_NAME = re.compile(r"[A-Za-z]+(?:_[A-Za-z0-9]+)+")
+
+
+def code_name(name) -> bool:
+    return isinstance(name, str) and bool(CODE_NAME.fullmatch(name.strip()))
+
+
+def _clean(spec: dict, items: dict) -> dict:
+    """The plan entry without the rounds, picks and items that would show a code
+    name. Rounds with an answer are dropped whole (the plan carries spares);
+    a pick list or a choice list just loses the bad entry."""
+    def bad(i):
+        return isinstance(i, str) and i in items and code_name(items[i]["name"])
+
+    out = dict(spec)
+    if isinstance(spec.get("rounds"), list):
+        rounds = []
+        for rd in spec["rounds"]:
+            if "picks" in rd:                                   # On This Day
+                picks = [p for p in rd["picks"] if not bad(p.get("item"))]
+                if picks:
+                    rounds.append(dict(rd, picks=picks))
+            elif "answer" not in rd and isinstance(rd.get("items"), list):   # loadout slot
+                rounds.append(dict(rd, items=[i for i in rd["items"] if not bad(i)]))
+            elif not (any(bad(rd.get(k)) for k in ("item", "a", "b"))
+                      or any(bad(i) for i in rd.get("items") or [])
+                      or any(code_name(o) for o in rd.get("options") or [])):
+                rounds.append(rd)
+        out["rounds"] = rounds
+    if isinstance(spec.get("items"), list):                   # throwbacks
+        out["items"] = [i for i in spec["items"] if not bad(i)]
+    return out
+
+
 def build(spec: dict, items: dict, ctx: Ctx):
     """The Video for one planned entry, or None if its artwork won't load.
     On This Day, the seasonal series and Build Your Loadout live in cc_series."""
+    spec = _clean(spec, items)
     if spec.get("series") or spec["format"] not in BUILDERS:
         import cc_series
         return cc_series.build(spec, items, ctx)

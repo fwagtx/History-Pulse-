@@ -34,6 +34,7 @@ import argparse
 import gzip
 import json
 import random
+import re
 import sys
 import urllib.request
 from datetime import date, timedelta
@@ -58,6 +59,7 @@ SPARES = 2          # extra rounds per video, used if an item's artwork won't do
 FAMOUS_SERIES = {"Icon Series", "MARVEL SERIES", "DC SERIES", "Star Wars Series",
                  "Gaming Legends Series"}
 BAD_NAMES = {"tbd", "null", "npc", ""}
+CODE_NAME = re.compile(r"[A-Za-z]+(?:_[A-Za-z0-9]+)+")   # an internal code, e.g. "Set_01_TA_SG"
 # Build Your Loadout: one round per slot of the locker, three choices each.
 LOADOUT = ["outfit", "backpack", "pickaxe", "glider", "emote"]
 NICE = {"legendary", "epic", "marvel", "dc", "icon", "starwars", "gaminglegends"}
@@ -75,7 +77,7 @@ def normalize(raw: dict) -> dict | None:
     images = raw.get("images") or {}
     urls = [images[k] for k in ("featured", "icon", "smallIcon") if images.get(k)]
     name = (raw.get("name") or "").strip()
-    if not intro.get("backendValue") or not urls or name.lower() in BAD_NAMES:
+    if not intro.get("backendValue") or not urls or name.lower() in BAD_NAMES or CODE_NAME.fullmatch(name):
         return None
     return {
         "id": raw["id"],
