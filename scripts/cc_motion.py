@@ -231,9 +231,14 @@ class Comp:
     def document(self) -> str:
         fonts = (_font_face("Anton", "Anton-Regular.ttf", "400")
                  + _font_face("Inter", "Inter-Variable.ttf", "100 900") + extra_fonts(self.fonts))
+        body = "".join(self._layers)
+        if " data-trim" in body and "window.__ready" not in body:
+            # Art marked data-trim needs the crop script that runs before frame 0.
+            from cc_looks import PREP_JS
+            body = PREP_JS + body
         return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
                 + fonts + BASE_CSS + "\n".join(self._css)
-                + "</style></head><body>" + "".join(self._layers) + "</body></html>")
+                + "</style></head><body>" + body + "</body></html>")
 
 
 # ---------------------------------------------------------------- components
@@ -261,16 +266,18 @@ IN_PLACE = {"hop", "thump", "punch", "none"}      # entrances that start already
 
 def character(uri: str, cx: float, cy: float, h: float, start: float,
               enter: str = "pop", enter_dur: float = .8, idle: str = "float",
-              rarity: str = "rare", label: str = "", maxw: float = 0) -> str:
+              rarity: str = "rare", label: str = "", maxw: float = 0, trim: bool = False) -> str:
     """A cosmetic render that ENTERS (pop/drop/fromL/fromR) and then idles
     (float or sway) with a breathing floor shadow, so it reads as alive rather
     than pasted in. Three nested wrappers keep the transforms independent.
 
     `maxw` caps the width, so a wide item (a glider, a bundle's group shot)
-    gets shorter instead of spreading into the apps' button rail."""
+    gets shorter instead of spreading into the apps' button rail. `trim` crops
+    Fortnite's art (a square with wide transparent margins) to the cosmetic
+    itself before frame 0, so `h` is the cosmetic's height, not the square's."""
     if uri:
         mw = maxw or W * .86
-        art = (f'<img class="art" data-name="{esc(label)}" src="{uri}" '
+        art = (f'<img class="art"{" data-trim" if trim else ""} data-name="{esc(label)}" src="{uri}" '
                f'style="height:{h:.0f}px;max-width:{mw:.0f}px">')
     else:
         col = RARITY.get(rarity, "#777")

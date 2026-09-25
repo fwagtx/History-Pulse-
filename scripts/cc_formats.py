@@ -285,10 +285,10 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     chars = ""
     if a_item:
         chars += character(ctx.art(a_item), HOOK_AX, HOOK_CY, HOOK_H, HOOK_WHOOSH_A, "hop", .45, "float",
-                           a_item["rarity"], a_item["name"], maxw=HOOK_MAXW)
+                           a_item["rarity"], a_item["name"], maxw=HOOK_MAXW, trim=True)
     if b_item:
         chars += character(ctx.art(b_item), HOOK_BX, HOOK_CY, HOOK_H, HOOK_WHOOSH_B, "hop", .45, "sway",
-                           b_item["rarity"], b_item["name"], maxw=HOOK_MAXW)
+                           b_item["rarity"], b_item["name"], maxw=HOOK_MAXW, trim=True)
     inner += f'<div class="full" style="filter:{SILHOUETTE}">{chars}</div>' if silhouette else chars
     inner += _code_stamp(comp, end)
     # The kicker (the date line) is for the thumbnail; it steps aside as the stamp
@@ -325,7 +325,7 @@ def _outro_scene(comp: Comp, ctx: Ctx, start: float, end: float, ask: str, items
     xs = [(mid - 265, 1010, 470, "float"), (mid + 265, 1010, 470, "sway"), (mid, 1040, 560, "float")]
     for (x, y, h, idle), it in zip(xs, items[:3]):
         inner += character(ctx.art(it), x, y, h, start + .2, "drop", .8, idle, it["rarity"], it["name"],
-                           maxw=300)
+                           maxw=300, trim=True)
     inner += label("USE CREATOR CODE", W / 2, 372, 44, start + .1, "#fff", 800, align="center",
                    spacing=".26em")
     inner += (f'<div class="abs d" style="left:0;right:0;top:428px;text-align:center;font-size:290px;'
