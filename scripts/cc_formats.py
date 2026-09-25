@@ -26,7 +26,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, BADGE_W, Comp, an, burst,
+from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, BADGE_H, Comp, an, burst,
                        anton_em, character, code_badge, countdown, disclosure, esc, label, price_roll,
                        progress, sticker, style_anim, tile_bg, words, EASE_BACK)
 
@@ -199,15 +199,15 @@ def _pad(content_end: float) -> float:
 HOOK_WHOOSH_A, HOOK_SLAM, HOOK_WHOOSH_B, HOOK_POP, HOOK_SUB = .15, .2, .3, .9, 1.1
 
 
-# The CREATOR CODE stamp. Measured in the render browser with the embedded
-# fonts: the stamp is 408x123 px; the corner badge it docks into is
-# cc_motion.BADGE_W x BADGE_H.
+# The USE CODE: BAD stamp: the corner badge (cc_motion.code_badge) at 1.4x, so it
+# shrinks into the badge exactly. Measured in the render browser with the
+# embedded fonts: the stamp is 358x120 px, the badge 257x86.
 STAMP_X, STAMP_Y, STAMP_ROT = 60, 590, 3
-STAMP_TO_BADGE = BADGE_W / 408
+STAMP_TO_BADGE = BADGE_H / 120
 
 
 def _code_stamp(comp: Comp, end: float) -> str:
-    """CREATOR CODE BAD, big, in the gap between the title and the cosmetics.
+    """USE CODE: BAD, big, in the gap between the title and the cosmetics.
 
     It's the thing the whole account exists to sell, so on the thumbnail it
     gets real size: BAD at 112px on a lime block. Near the end of the hook it
@@ -232,11 +232,11 @@ def _code_stamp(comp: Comp, end: float) -> str:
     return (f'<div class="abs" style="left:{STAMP_X}px;top:{STAMP_Y}px;transform-origin:0 0;z-index:5;'
             f'{style_anim(an(dock, dock_start, dock_end - dock_start, "cubic-bezier(.6,0,.4,1)"))}">'
             f'<div style="{beats}">'
-            f'<div class="stamp" style="display:flex;align-items:center;gap:16px;background:{ACCENT};'
-            f'color:{INK};border-radius:18px;padding:12px 26px 10px 24px;'
-            f'box-shadow:0 12px 0 rgba(0,0,0,.38),0 0 60px rgba(232,255,58,.25)">'
-            f'<div style="font-size:30px;font-weight:900;line-height:1.02;letter-spacing:.14em">'
-            f'CREATOR<br>CODE</div>'
+            f'<div class="stamp" style="display:flex;align-items:center;gap:17px;background:{ACCENT};'
+            f'color:{INK};border-radius:22px;padding:11px 28px 8px 25px;'
+            f'box-shadow:0 11px 0 rgba(0,0,0,.38),0 0 60px rgba(232,255,58,.25)">'
+            f'<div style="font-size:32px;font-weight:900;line-height:1.02;letter-spacing:.12em">'
+            f'USE<br>CODE:</div>'
             f'<div class="d" style="font-size:112px;line-height:.9;letter-spacing:.02em">BAD</div>'
             f'</div></div></div>')
 
@@ -282,7 +282,7 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
               + words(title, W / 2, 400 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center", 1000)
               + "</div>")
     # Long stickers ("GONE AT 8 PM ET") shift left so they never touch the edge.
-    # White, so the lime of the CREATOR CODE stamp is the one brand colour block.
+    # White, so the lime of the USE CODE: BAD stamp is the one brand colour block.
     stick_w = (anton_em(stick) + .84) * 56
     inner += sticker(stick, min(640, W - 56 - stick_w), 700, 56, HOOK_POP, bg="#ffffff",
                      rot=-5, anim="boing")

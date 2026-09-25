@@ -13,7 +13,7 @@ by cc_series_plan.py and cc_quiz_plan.py):
                         emote, three choices each, and people comment their combo
 
 Same frame as every other video: the first frame is the thumbnail with the big
-CREATOR CODE BAD stamp, the corner badge and #EpicPartner stay up the whole way,
+USE CODE: BAD stamp, the corner badge and #EpicPartner stay up the whole way,
 and the USE CREATOR CODE BAD outro closes it.
 
 Truth rules: every date and "first time in the shop" comes from the item's shop

@@ -385,7 +385,7 @@ def burst(cx: float, cy: float, start: float, seed: int, n: int = 26,
 def code_badge(start: float = 0) -> str:
     # On screen and at rest from frame 0 whatever `start` says: the code is the
     # whole point. The hook scene (cc_formats._hook_scene) overrides this through
-    # the .codebadge class: while its big CREATOR CODE stamp is on screen, this
+    # the .codebadge class: while its big USE CODE: BAD stamp is on screen, this
     # corner badge waits, then appears as the stamp shrinks into its spot.
     # USE CODE: BAD on the channel's lime, big enough to read at a glance (the
     # owner asked for the code to be noticeable in every video), and kept in the

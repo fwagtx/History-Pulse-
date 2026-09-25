@@ -10,7 +10,7 @@ creator-code/quiz/plan.json (see cc_quiz_plan.py).
     Throwback          eight skins from one season
 
 Same frame as the shop videos, so the code gets the same push in every one: the
-first frame is the thumbnail with the big CREATOR CODE BAD stamp, the corner
+first frame is the thumbnail with the big USE CODE: BAD stamp, the corner
 badge and #EpicPartner stay up the whole way, and the USE CREATOR CODE BAD outro
 closes it.
 
