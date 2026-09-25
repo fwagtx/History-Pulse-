@@ -20,6 +20,15 @@ The player's own lettering (PLAY, the lime USE CODE: BAD line, #EpicPartner) sit
 crisp on top of the picture from the first blue frame to the last; before that the
 code is the big sticker on the cassette.
 
+Every app lays its UI over the edges (cc_safe): a header across the top, the
+like/comment/share rail down the right from y 740, the caption block across the
+bottom. So the camcorder's corners are the safe box's corners, not the frame's:
+PLAY and the counter sit just inside its top edge, the date stamp in its
+bottom-right corner beside the rail, the skin stands in the box's narrow column,
+and the desk is laid out inside it (photos in the wide band, the cassette in the
+column below). Only the picture itself -- the field, the fog, the tape's noise,
+scanlines and the desk's wood -- runs to the frame's edges.
+
 The footage is put together once, before the first frame, by a script in the
 page: the field (a committed texture), the skin lit by the moon, the fog and corn
 in front of it, then the tape's smear (a soft picture, colour bleeding sideways, a
@@ -38,7 +47,7 @@ import json
 import random
 
 from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, rough_ellipse, rough_line, tex
-from cc_motion import W, Comp, esc
+from cc_motion import SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP, SAFE_TOP, W, Comp, esc
 
 HOOK = 3.0
 R = 6.5
@@ -50,9 +59,17 @@ FONTS = ("VT323", "Permanent Marker", "Kalam")
 T_LIFT, T_CUT, T_ROLL = .9, 1.3, 2.7
 
 # The footage is 1160x2000: the frame plus 40 px all round for the camera to
-# drift in. The skin's feet stand at FEET (frame coordinates).
+# drift in. The skin stands in the safe box's narrow column (x 60-900, beside the
+# apps' button rail), centred at FIG_X with its feet at FEET (frame
+# coordinates), so that even at the camera's closest it stays clear of the
+# player's lettering above it and the apps' caption block below; the corn and
+# the burned-in captions come up over its legs, as they would on the tape.
+# Anything that isn't an outfit (a pickaxe, an emote) hangs in the fog, centred
+# at ITEM_Y.
 PW, PH, M = 1160, 2000, 40
-FEET, FIG_H, FIG_W = 1470, 900, 860
+FIG_X = (SAFE_LEFT + SAFE_RIGHT) // 2          # 480
+FEET, FIG_H, FIG_W = 1330, 780, 680
+ITEM_Y, ITEM_S = 850, 560
 
 BLUE_BG = "radial-gradient(ellipse 80% 60% at 50% 45%,#2b40c9,#1c2ca6 70%,#15208b)"
 
@@ -76,13 +93,13 @@ CSS = """
 .cass3d{transform-style:preserve-3d}
 .face{border-radius:16px;overflow:hidden}
 .edge{transform-origin:50% 0;transform:rotateX(-90deg);border-radius:0 0 10px 10px}
-@keyframes vhpush{from{transform:scale(1)}to{transform:scale(1.045)}}
+@keyframes vhpush{from{transform:scale(1)}to{transform:scale(1.03)}}
 @keyframes vhlift{from{transform:translate3d(0,0,0) rotateX(0deg) rotateZ(0deg)}
   to{transform:translate3d(-30px,-300px,430px) rotateX(-14deg) rotateZ(3deg)}}
 @keyframes vhland{from{transform:translate3d(-30px,-300px,430px) rotateX(-14deg) rotateZ(3deg)}
   70%{transform:translate3d(0,6px,0) rotateX(0deg) rotateZ(0deg)}
   to{transform:translate3d(0,0,0) rotateX(0deg) rotateZ(0deg)}}
-@keyframes vhpull{from{transform:scale(1.045)}to{transform:scale(1)}}
+@keyframes vhpull{from{transform:scale(1.03)}to{transform:scale(1)}}
 @keyframes vhjit{0%{transform:translate(0,0)}12%{transform:translate(2px,0)}24%{transform:translate(0,0)}
   41%{transform:translate(-2px,1px)}52%{transform:translate(1px,0)}66%{transform:translate(0,0)}
   79%{transform:translate(3px,0)}88%{transform:translate(-1px,0)}100%{transform:translate(0,0)}}
@@ -230,22 +247,31 @@ def _is_figure(it: dict) -> bool:
 # ------------------------------------------------------------------ the desk and the cassette
 
 CW, CH, CT = 960, 530, 128             # cassette face, and its thickness
-PHOTO_S = 420                          # an instant photo's picture
-DESK_Y = 1085                          # where the cassette's centre lies on the desk (before perspective)
-PHOTOS = [(-560, -1085, -7), (-40, -1115, 6)]     # the two photos, on the desk (x, y, rotation)
+PHOTO_S = 400                          # an instant photo's picture
+# Frame 0 is the thumbnail, laid out inside the safe box (and Instagram's 4:5
+# grid crop, y >= 285): the two photos side by side in the wide band at the
+# top, the cassette in the box's column below them, scaled (CS) and turned (CR)
+# so that its right end stays clear of the apps' button rail. DESK_X/DESK_Y is
+# where the cassette's centre lies on the desk (before perspective); the photos
+# are placed from it (x, y, rotation), the second overlapping the first a
+# little. PUSH is the slow lean in on the desk and where it leans to.
+CS, CR = .82, -4
+DESK_X, DESK_Y = 469, 1054
+PHOTOS = [(-451, -900, -6), (19, -889, 5)]
+PUSH_ORIGIN = "480px 850px"
 
 
 def _hand(text: str, seed: int, rot: float = 3.2, dy: float = 2.2, sc: float = .04) -> str:
-    """Per-letter jitter so marker lettering doesn't repeat identical glyphs like a font does."""
+    """Per-letter jitter so marker lettering doesn't repeat identical glyphs like a font does.
+    Each word holds together, so lettering that wraps breaks only between words."""
     rnd = random.Random(seed)
-    out = []
-    for ch in text:
-        if ch == " ":
-            out.append(" ")
-            continue
-        out.append(f'<span style="display:inline-block;transform:translateY({rnd.uniform(-dy, dy):.1f}px) '
-                   f'rotate({rnd.uniform(-rot, rot):.1f}deg) scale({1 + rnd.uniform(-sc, sc):.3f})">{esc(ch)}</span>')
-    return "".join(out)
+    words = []
+    for word in text.split(" "):
+        letters = "".join(f'<span style="display:inline-block;transform:translateY({rnd.uniform(-dy, dy):.1f}px) '
+                          f'rotate({rnd.uniform(-rot, rot):.1f}deg) scale({1 + rnd.uniform(-sc, sc):.3f})">'
+                          f'{esc(ch)}</span>' for ch in word)
+        words.append(f'<span style="white-space:nowrap">{letters}</span>' if word else "")
+    return " ".join(words)
 
 
 def _reel(cx: int, cy: int, pack_r: int, win_r: int = 84) -> str:
@@ -270,47 +296,51 @@ def _reel(cx: int, cy: int, pack_r: int, win_r: int = 84) -> str:
 
 
 def _label(title: str, names: str, day_txt: str, part: str) -> str:
-    """The paper label, written on in marker: what's on the tape."""
+    """The paper label, written on in marker: what's on the tape. Sized for the
+    cassette at CS: each line reads at 30 px or more on the phone (the title at
+    about 50), #EpicPartner at about 26."""
     paper = tex("paper.jpg")
     ink = tex("vhs-marker.png")
-    u1, _ = rough_line(50, 158, 438, 150, seed=5)
-    u2, _ = rough_line(62, 170, 420, 164, seed=6)
-    ring, _ = rough_ellipse(648, 144, 132, 50, seed=18, overshoot=.12, wobble=.06)
     warn = f"{part} · DON'T TAPE OVER!" if part else "DON'T TAPE OVER!"
-    return (f'<div class="abs" style="left:80px;top:30px;width:800px;height:236px;transform:rotate(-1.1deg);'
-            f'background:url({paper}) -140px -300px/1080px 1920px;box-shadow:0 1px 2px rgba(0,0,0,.5)">'
+    ux = min(500, 70 + 24 * len(warn))                     # the underlines run about as far as the words
+    u1, _ = rough_line(48, 150, ux, 143, seed=5)
+    u2, _ = rough_line(60, 161, ux - 22, 156, seed=6)
+    ring, _ = rough_ellipse(702, 148, 140, 54, seed=18, overshoot=.12, wobble=.06)
+    return (f'<div class="abs" style="left:58px;top:20px;width:844px;height:260px;transform:rotate(-1.1deg);'
+            f'background:url({paper}) -120px -300px/1080px 1920px;box-shadow:0 1px 2px rgba(0,0,0,.5)">'
             f'<div class="abs" style="inset:0;background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 57px,'
-            f'rgba(120,140,170,.22) 57px 59px);background-position:0 10px"></div>'
+            f'rgba(120,140,170,.22) 57px 59px);background-position:0 12px"></div>'
             f'<div class="abs" style="inset:0;-webkit-mask:url({ink}) 0 0/100% 100%;mask:url({ink}) 0 0/100% 100%">'
-            f'<div class="abs mk" data-fit="740" style="left:28px;top:8px;font-size:72px;transform:rotate(-1.6deg);'
+            f'<div class="abs mk" data-fit="792" style="left:24px;top:14px;font-size:80px;transform:rotate(-1.2deg);'
             f'transform-origin:0 50%">{_hand(title, 31)}</div>'
-            f'<div class="abs kl" data-fit="470" style="left:46px;top:98px;font-size:46px;color:#c1271e;font-weight:700;'
+            f'<div class="abs kl" data-fit="520" style="left:44px;top:96px;font-size:48px;color:#c1271e;font-weight:700;'
             f'transform:rotate(-2.4deg);transform-origin:0 50%">{_hand(warn, 32, rot=2.5, dy=1.6)}</div>'
-            f'<svg class="abs" width="800" height="236" style="left:0;top:0;overflow:visible">'
+            f'<svg class="abs" width="844" height="260" style="left:0;top:0;overflow:visible">'
             f'<g fill="none" stroke="#c1271e" stroke-width="4" stroke-linecap="round" opacity=".92">'
             f'<path d="{u1}"/><path d="{u2}"/></g>'
             f'<g fill="none" stroke="#161616" stroke-width="4" stroke-linecap="round" opacity=".9">'
             f'<path d="{ring}"/></g></svg>'
-            f'<div class="abs kl" data-fit="470" style="left:50px;top:180px;font-size:31px;color:#5d5a55;'
+            f'<div class="abs kl" data-fit="520" style="left:48px;top:182px;font-size:42px;color:#57544f;'
             f'transform:rotate(-1deg);transform-origin:0 50%">{esc(names)}</div>'
-            f'<div class="abs mk" data-fit="230" style="left:536px;top:122px;width:230px;text-align:center;'
-            f'font-size:44px;transform:rotate(-5deg)">{_hand(day_txt, 33, rot=3.5)}</div>'
-            f'<div class="abs kl" style="left:606px;top:204px;font-size:22px;color:#5d5a55;'
+            f'<div class="abs mk" data-fit="248" style="left:574px;top:122px;width:250px;text-align:center;'
+            f'font-size:48px;transform:rotate(-4deg)">{_hand(day_txt, 33, rot=3.5)}</div>'
+            f'<div class="abs kl" style="left:648px;top:210px;font-size:34px;color:#57544f;'
             f'transform:rotate(-3deg)">#EpicPartner</div></div>'
             f'<div class="abs" style="inset:0;background:linear-gradient(100deg,rgba(0,0,0,.04),rgba(255,255,255,0) 30%,'
             f'rgba(0,0,0,.05) 75%,rgba(0,0,0,.12));pointer-events:none"></div></div>')
 
 
 def _code_sticker() -> str:
-    """The creator code on a fluorescent lime sticker slapped across the cassette."""
-    return (f'<div class="abs vhs-code" style="left:317px;top:292px;width:326px;height:216px;'
-            f'transform:rotate(4deg);background:{LIME};border-radius:7px;box-shadow:0 1px 1px rgba(0,0,0,.5),'
+    """The creator code on a fluorescent lime sticker slapped across the cassette
+    (the code's element for the safe-box check: data-safe="key")."""
+    return (f'<div class="abs vhs-code" data-safe="key" data-name="code" style="left:314px;top:294px;width:332px;'
+            f'height:212px;transform:rotate(8deg);background:{LIME};border-radius:7px;box-shadow:0 1px 1px rgba(0,0,0,.5),'
             f'0 4px 8px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;'
             f'text-align:center">'
             f'<div class="abs" style="inset:0;border-radius:7px;background:linear-gradient(160deg,'
             f'rgba(255,255,255,.16),rgba(255,255,255,0) 45%,rgba(0,0,0,.07))"></div>'
-            f'<div class="mk" style="position:relative;font-size:48px;color:#111">{_hand("USE CODE:", 41, 2.5, 1.5)}</div>'
-            f'<div class="mk" style="position:relative;font-size:134px;line-height:.9;color:#111;margin-top:4px">'
+            f'<div class="mk" style="position:relative;font-size:50px;color:#111">{_hand("USE CODE:", 41, 2.5, 1.5)}</div>'
+            f'<div class="mk" style="position:relative;font-size:136px;line-height:.9;color:#111;margin-top:2px">'
             f'{_hand("BAD", 42, 3, 2)}</div></div>')
 
 
@@ -320,7 +350,7 @@ def _cassette(title: str, names: str, day_txt: str, part: str) -> str:
             f'<div class="abs" style="left:26px;top:40px;width:{CW - 10}px;height:{CH - 10}px;border-radius:24px;'
             f'transform:translateZ(-{CT}px);background:rgba(0,0,0,.85);box-shadow:0 0 40px 24px rgba(0,0,0,.85)"></div>'
             f'<div class="abs face" style="inset:0;background:url({pl}) 0 0/{CW}px 658px">'
-            f'<div class="abs" style="left:66px;top:18px;width:{CW - 132}px;height:262px;border-radius:10px;'
+            f'<div class="abs" style="left:50px;top:12px;width:{CW - 100}px;height:278px;border-radius:10px;'
             f'box-shadow:inset 0 2px 5px rgba(0,0,0,.85),0 1px 0 rgba(255,255,255,.06)"></div>'
             + _label(title, names, day_txt, part)
             + '<div class="abs" style="left:150px;top:292px;width:660px;height:196px;border-radius:98px;'
@@ -356,8 +386,9 @@ def _photo(k: int, it: dict, x: float, y: float, rot: float, has_art: bool) -> s
             f'0 14px 26px rgba(0,0,0,.4);padding:{P}px {P}px 0">{pic}'
             f'<div class="abs" style="left:{P}px;top:{P}px;width:{S}px;height:{S}px;box-shadow:inset 0 0 0 1px '
             f'rgba(0,0,0,.25);background:linear-gradient(125deg,rgba(255,255,255,.14),rgba(255,255,255,0) 35%)"></div>'
-            f'<div class="abs mk" data-fit="{S - 16}" style="left:{P + 6}px;top:{S + P + 22}px;font-size:48px;'
-            f'color:#23201c;transform:rotate(-1.5deg);transform-origin:0 50%">{_hand(it["name"].lower(), 50 + k, 2.5, 1.5)}</div>'
+            f'<div class="abs mk" data-fit="{S - 8}" data-lines="2" style="left:{P + 6}px;top:{S + P + 14}px;'
+            f'width:{S - 8}px;font-size:48px;line-height:1;white-space:normal;color:#23201c;transform:rotate(-1.5deg);'
+            f'transform-origin:0 50%">{_hand(it["name"].lower(), 50 + k, 2.5, 1.5)}</div>'
             f'<div class="abs" style="inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),'
             f'rgba(0,0,0,.08));pointer-events:none"></div></div>')
 
@@ -370,17 +401,25 @@ def _desk(group: list, idx: list, title: str, names: str, day_txt: str, part: st
     lift = _style(_a("vhlift", T_LIFT, T_CUT - T_LIFT + .08, "cubic-bezier(.5,0,.85,.4)"),
                   _a("vhland", t_land, .5, "cubic-bezier(.2,.7,.3,1)", fill="forwards"))
     return (f'<div class="full" style="background:url({tex("vhs-desk.jpg")}) center/cover"></div>'
-            f'<div class="full" style="perspective:1500px;perspective-origin:540px 560px;transform-origin:520px 760px;'
+            f'<div class="full" style="perspective:1500px;perspective-origin:540px 560px;transform-origin:{PUSH_ORIGIN};'
             f'{_style(_a("vhpush", 0, T_CUT, "cubic-bezier(.4,0,.5,1)"), _a("vhpull", t_land, .5, "ease-out", fill="forwards"))}">'
-            f'<div class="abs" style="left:534px;top:{DESK_Y}px;transform-style:preserve-3d;'
+            f'<div class="abs" style="left:{DESK_X}px;top:{DESK_Y}px;transform-style:preserve-3d;'
             f'transform:rotateX(24deg) scale(.97)">{photos}'
             f'<div style="transform-style:preserve-3d;{lift}"><div style="transform-style:preserve-3d;'
-            f'transform:rotateZ(-8.5deg)">{_cassette(title, names, day_txt, part)}</div></div></div></div>'
-            f'<div class="full" style="background:radial-gradient(ellipse 90% 75% at 46% 40%,rgba(0,0,0,0) 55%,'
+            f'transform:rotateZ({CR}deg) scale3d({CS},{CS},{CS})">{_cassette(title, names, day_txt, part)}</div></div></div></div>'
+            f'<div class="full" style="background:radial-gradient(ellipse 90% 75% at 45% 42%,rgba(0,0,0,0) 55%,'
             f'rgba(0,0,0,.55) 100%)"></div>')
 
 
 # ------------------------------------------------------------------ the footage
+
+# The burned-in captions, left-aligned from CAP_X and never wider than the box's
+# column (CAP_R); the camcorder's date stamp is right-aligned to CAP_R, in the
+# box's bottom-right corner: beside the button rail, above the apps' caption
+# block. Tops, from the bottom up: stamp (96 px), debut and kind (50), name (88).
+CAP_X, CAP_R = SAFE_LEFT + 20, SAFE_RIGHT - 20            # 80, 880
+CAP_TOPS = (1096, 1190, 1244, 1318)
+
 
 def _caption(it: dict, theme: dict) -> str:
     """Burned into the recording: the name, rarity and type with the event year,
@@ -388,32 +427,39 @@ def _caption(it: dict, theme: dict) -> str:
     line2 = " · ".join(x for x in (_kind(it), _era(it, theme)) if x)
     known = bool(it.get("first_shop"))
     debut = (theme["debut"](it) if known and theme.get("debut") else "").upper()
-    return (f'<div class="cam" data-fit="880" style="left:78px;top:1142px;font-size:88px">{esc(it["name"].upper())}</div>'
-            f'<div class="cam" data-fit="880" style="left:80px;top:1240px;font-size:50px">{esc(line2)}</div>'
-            f'<div class="cam" data-fit="880" style="left:80px;top:1294px;font-size:50px">{esc(debut)}</div>'
-            f'<div class="cam" style="right:{W - 944}px;top:1366px;font-size:96px;text-align:right">'
-            f'{esc(_stamp(it, theme) if known else "")}</div>')
+    fit = CAP_R - CAP_X
+    y_name, y_kind, y_debut, y_stamp = CAP_TOPS
+    return (f'<div class="cam" data-fit="{fit}" style="left:{CAP_X - 2}px;top:{y_name}px;font-size:88px">'
+            f'{esc(it["name"].upper())}</div>'
+            f'<div class="cam" data-fit="{fit}" style="left:{CAP_X}px;top:{y_kind}px;font-size:50px">{esc(line2)}</div>'
+            f'<div class="cam" data-fit="{fit}" style="left:{CAP_X}px;top:{y_debut}px;font-size:50px">{esc(debut)}</div>'
+            f'<div class="cam" data-fit="{fit}" style="right:{W - CAP_R}px;top:{y_stamp}px;font-size:96px;'
+            f'text-align:right">{esc(_stamp(it, theme) if known else "")}</div>')
 
 
 # How the camera moves in each recording, in turn: a hand-held drift, a slow zoom
 # in on the face, holding still, a slow pan.
 MOVES = ("drift", "zoom", "hold", "drift", "pan", "zoom", "hold", "drift")
+CAM_MID = f"{FIG_X}px {FEET - FIG_H // 2}px"             # the skin's middle
+CAM_FACE = f"{FIG_X}px {FEET - FIG_H + 90}px"            # its face
 
 
 def _move(move: str, rnd: random.Random) -> tuple:
     """(transform-origin, (scale, x, y) from, (scale, x, y) to) for one
-    recording's camera. No rotation: the video encoder can't follow it cheaply."""
+    recording's camera. No rotation: the video encoder can't follow it cheaply.
+    Even at its closest the skin stays inside the box's column: under the
+    player's lettering, beside the rail, its feet above the apps' captions."""
     j = lambda a: rnd.uniform(-a, a)
     if move == "zoom":
-        return "580px 760px", (1.03, j(6), j(6)), (rnd.uniform(1.2, 1.24), j(8), j(8))
+        return CAM_FACE, (1.02, j(4), j(4)), (rnd.uniform(1.1, 1.12), j(5), j(5))
     if move == "pan":
         d = 1 if rnd.random() < .5 else -1
-        return "580px 1000px", (1.1, 34 * d, j(6)), (1.11, -34 * d, j(6))
+        return CAM_MID, (1.06, 26 * d, j(4)), (1.07, -26 * d, j(4))
     if move == "hold":
-        s0 = rnd.uniform(1.05, 1.07)
-        return "580px 1000px", (s0, j(4), j(4)), (s0 + .006, j(4), j(4))
-    s0 = rnd.uniform(1.035, 1.06)
-    return "580px 1000px", (s0, j(14), j(14)), (s0 + rnd.uniform(.025, .06), j(14), j(14))
+        s0 = rnd.uniform(1.03, 1.045)
+        return CAM_MID, (s0, j(4), j(4)), (s0 + .006, j(4), j(4))
+    s0 = rnd.uniform(1.02, 1.04)
+    return CAM_MID, (s0, j(10), j(10)), (s0 + rnd.uniform(.02, .04), j(10), j(10))
 
 
 def _clip(comp: Comp, tr: _Tracks, k: int, it: dict, theme: dict, t0: float, t_in: float, roll: bool,
@@ -663,8 +709,8 @@ function plate(P, T, art) {
       sh.addColorStop(0, 'rgba(0,0,0,.6)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = sh; g.fillRect(-1200, -1200, 2400, 2400); g.restore();
     } else {
-      [fw, fh] = contain(art, 640, 640);
-      x = M + P.cx - fw / 2; y = M + 1000 - fh / 2;
+      [fw, fh] = contain(art, CFG.ITEM_S, CFG.ITEM_S);
+      x = M + P.cx - fw / 2; y = M + CFG.ITEM_Y - fh / 2;
     }
     g.drawImage(moonlit(art, fw, fh, side), x, y);
   }
@@ -676,11 +722,15 @@ function plate(P, T, art) {
   if (P.cornflip) { g.translate(CFG.PW, 0); g.scale(-1, 1); }
   g.drawImage(T.corn, -80, -80);
   g.restore();
-  g.save(); g.translate(M + 560, M + 960); g.scale(760 / 1180, 1);
+  g.save(); g.translate(M + CFG.FIG_X + 30, M + 930); g.scale(760 / 1180, 1);
   const vg = g.createRadialGradient(0, 0, 0, 0, 0, 1298);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(.35, 'rgba(0,0,0,0)');
   vg.addColorStop(.55, 'rgba(0,0,0,.1)'); vg.addColorStop(.75, 'rgba(0,0,0,.3)'); vg.addColorStop(1, 'rgba(0,0,0,.62)');
   g.fillStyle = vg; g.fillRect(-2400, -2400, 4800, 4800); g.restore();
+  // a darker lower third under the burned-in captions
+  const lo = g.createLinearGradient(0, M + CFG.CAP_Y - 110, 0, M + CFG.CAP_Y + 360);
+  lo.addColorStop(0, 'rgba(0,0,0,0)'); lo.addColorStop(.5, 'rgba(0,0,0,.26)'); lo.addColorStop(1, 'rgba(0,0,0,.4)');
+  g.fillStyle = lo; g.fillRect(0, M + CFG.CAP_Y - 110, CFG.PW, CFG.PH);
   return tape(c, CFG.seed + P.k * 101);
 }
 // An instant photo: the skin in the camera's flash, in full colour, the field
@@ -780,11 +830,21 @@ async function vhsPrep() {
 """
 
 
+# The player's lettering sits just inside the safe box's top edge, not the
+# frame's: the mode (PLAY, FF...) and the tape speed on the left, the channel or
+# the counter right-aligned to OSD_R on the right (baselines level), then the
+# lime code line and #EpicPartner under them. Everything the blue screens show
+# below RAIL_TOP fits the box's column (OSD_FIT wide from x 88).
+OSD_X, OSD_Y, OSD_R = SAFE_LEFT + 18, SAFE_TOP + 8, SAFE_RIGHT_TOP - 20     # 78, 238, 1000
+CODE_Y, TAG_Y = OSD_Y + 62, OSD_Y + 198                                    # 300, 436
+OSD_FIT = SAFE_RIGHT - 20 - 88                                             # 792
+
+
 def _osd(text: str, x: float, y: float, size: float, anim: str = "", extra: str = "", cls: str = "osd",
-         fit: int = 0) -> str:
+         fit: int = 0, attrs: str = "") -> str:
     fit_attr = f' data-fit="{fit}"' if fit else ""
-    return (f'<div class="{cls}"{fit_attr} style="left:{x:.0f}px;top:{y:.0f}px;font-size:{size:.0f}px;{extra}{anim}">'
-            f'{text}</div>')
+    return (f'<div class="{cls}"{fit_attr}{attrs} style="left:{x:.0f}px;top:{y:.0f}px;font-size:{size:.0f}px;'
+            f'{extra}{anim}">{text}</div>')
 
 
 # ------------------------------------------------------------------ the video
@@ -810,14 +870,15 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
             arts.append(a)
     idx = [art_idx.get(ctx.art(it) or "", -1) for it in group]
     plates = [{"k": k, "art": idx[k], "moon": 1 if k % 2 == 0 else -1, "figure": _is_figure(it),
-               "cx": round(580 + (-18 if k % 2 else 18) + rnd.uniform(-12, 12)), "zoom": round(rnd.uniform(1.0, 1.05), 3),
+               "cx": round(FIG_X + (-14 if k % 2 else 14) + rnd.uniform(-8, 8)), "zoom": round(rnd.uniform(1.0, 1.05), 3),
                "fx": round(rnd.uniform(-30, 30)), "fy": round(rnd.uniform(-30, 30)),
                "fogx": round(rnd.uniform(-40, 40)), "cornflip": k % 3 == 1}
               for k, it in enumerate(group)]
     photos = [{"k": j, "art": idx[j], "moon": 1 if j == 0 else -1, "figure": _is_figure(group[j])}
               for j in range(min(2, n))]
     cfg = {"seed": int(ctx.seed) % 2147483647, "PW": PW, "PH": PH, "M": M, "FEET": FEET, "FIG_H": FIG_H,
-           "FIG_W": FIG_W, "plates": plates, "photos": photos}
+           "FIG_W": FIG_W, "FIG_X": FIG_X, "ITEM_Y": ITEM_Y, "ITEM_S": ITEM_S, "CAP_Y": CAP_TOPS[0],
+           "plates": plates, "photos": photos}
     comp.add('<div style="display:none">'
              f'<img id="vhs-field" src="{tex("vhs-field.jpg")}"><img id="vhs-fog" src="{tex("vhs-fog.jpg")}">'
              f'<img id="vhs-corn" src="{tex("vhs-stalks.jpg")}">'
@@ -838,20 +899,21 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
 
     # ---- the hook: the desk (frame 0), then the player's blue screen
     title = _label_title(group, theme)
-    names = " + ".join(it["name"].lower() for it in group[:2]) + (f" + {n - 2} more" if n > 2 else "")
-    if len(names) > 40:                               # long names: the first, and how many more
-        names = f"{group[0]['name'].lower()} + {n - 1} more"
+    # what's on the tape, as whoever labelled it wrote it: the first skin and how many more
+    names = f"{group[0]['name'].lower()} + {n - 1} more"
+    if len(names) > 26:                               # a long name: just how many
+        names = f"{n} on this tape"
     ep, of = spec.get("episode"), spec.get("of", 31)
     day_txt = f"DAY {ep} OF {of}" if ep else "THROWBACK"
     part = f"PART {spec['part']}" if spec.get("part") else ""
     comp.add(_layer(tr, [(0, T_CUT), (t_land, dur + 1)], 8, _desk(group, idx, title, names, day_txt, part, t_land)))
     comp.cue(T_LIFT - .05, "tape")
     blue = (f'<div class="full" style="background:{BLUE_BG}"></div>'
-            + _osd(f"PLAY{_icon(PLAY_ROWS, 11)}", 84, 600, 170)
-            + _osd(esc((theme.get("title") or title).upper()), 88, 850, 106, fit=904)
+            + _osd(f"PLAY{_icon(PLAY_ROWS, 11)}", 84, 660, 170)
+            + _osd(esc((theme.get("title") or title).upper()), 88, 904, 106, fit=OSD_FIT)
             + _osd(esc(" · ".join(x for x in ((part or "THROWBACK"), f"DAY {ep} OF {of}" if ep else "") if x)),
-                   90, 980, 62, fit=900)
-            + _osd(esc((theme.get("sub") or "HOW MANY DO YOU REMEMBER?").upper()), 90, 1070, 78, fit=900))
+                   90, 1034, 62, fit=OSD_FIT)
+            + _osd(esc((theme.get("sub") or "HOW MANY DO YOU REMEMBER?").upper()), 90, 1124, 78, fit=OSD_FIT))
     comp.add(_layer(tr, [(T_CUT, T_ROLL + .5)], 2, blue))
     comp.cue(T_CUT, "click")
 
@@ -874,7 +936,7 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     # ---- the end: the tape rewinds through every skin, then the player's menu
     step = (t_menu - t_rew) / n
     rew = "".join(f'<div class="vl" style="{_style(tr.vis([(t_rew + j * step, t_rew + (j + 1) * step)]))}">'
-                  f'<div class="full" style="transform:scale(1.06);transform-origin:580px 1000px">'
+                  f'<div class="full" style="transform:scale(1.06);transform-origin:{CAM_MID}">'
                   f'<img class="plate vhs-plate" data-p="{k}"></div></div>'
                   for j, k in enumerate(reversed(range(n))))
     rew = (f'<div class="full" style="overflow:hidden;background:#000"><div class="full lay" '
@@ -895,13 +957,15 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
         on = [(a, min(b, t_eject)) for a, b in on if a < t_eject - .2]
         name = esc(it["name"].upper())
         row = f"height:{size:.0f}px;display:flex;align-items:center;"      # a shrunk long name stays centred
-        menu += (f'<div class="osd" data-fit="840" style="left:84px;top:{y:.0f}px;font-size:{size:.0f}px;{row}'
+        menu += (f'<div class="osd" data-fit="{OSD_FIT - 12}" style="left:84px;top:{y:.0f}px;font-size:{size:.0f}px;{row}'
                  f'{_style(_a("lkin", t_list + j * .09, .01, "steps(1,end)"))}">'
                  f'<span style="color:#aab3ff">{j + 1:02d}</span>&nbsp;{name}</div>')
         if on:
-            menu += (f'<div class="abs" style="left:70px;top:{y - 8:.0f}px;width:870px;height:{size + 12:.0f}px;'
+            menu += (f'<div class="abs" style="left:70px;top:{y - 8:.0f}px;width:{SAFE_RIGHT - 16 - 70}px;'
+                     f'height:{size + 12:.0f}px;'
                      f'background:#f2f2ee;box-shadow:4px 4px 0 rgba(0,0,0,.6);visibility:hidden;{_style(tr.vis(on))}">'
-                     f'<div class="osd" data-fit="840" style="left:14px;top:6px;font-size:{size:.0f}px;{row}color:#1c2ca6;'
+                     f'<div class="osd" data-fit="{OSD_FIT - 12}" style="left:14px;top:6px;font-size:{size:.0f}px;{row}'
+                     f'color:#1c2ca6;'
                      f'text-shadow:none"><span style="color:#5563d6">{j + 1:02d}</span>&nbsp;{name}</div></div>')
     comp.add(_layer(tr, stop_w + eject_w, 7, menu))
     comp.cue(t_eject, "click"); comp.cue(t_land - .05, "tape")
@@ -934,17 +998,18 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     # ---- the player's lettering, crisp on top
     play_w = _minus((T_ROLL, t_land), ff_w + rew_w + stop_w + eject_w)
     vis = lambda w: _style(tr.vis(w)) + "visibility:hidden;" if w else "visibility:hidden;"
-    osd = (_osd(f"PLAY{_icon(PLAY_ROWS, 5)}", 78, 212, 80, vis(play_w))
-           + _osd(f"FF{_icon(FF_ROWS, 6)}", 78, 212, 80, vis(ff_w))
-           + _osd(f"REW{_icon(REW_ROWS, 6)}", 78, 212, 80, vis(rew_w))
-           + _osd(f"STOP{_icon(STOP_ROWS, 8)}", 78, 212, 80, vis(stop_w))
-           + _osd(f"EJECT{_icon(EJECT_ROWS, 6)}", 78, 212, 80, vis(eject_w))
-           + _osd("SP", 318, 228, 64, vis([(T_ROLL, t_menu)]))
-           + _osd("CH 03", 0, 218, 64, vis([(T_CUT, T_ROLL)]), "right:66px;left:auto;")
-           + "".join(_osd(f"{k + 1}/{n}", 0, 218, 64, vis([(starts[k] if k else T_ROLL, cuts[k] if k < n - 1 else t_rew)]),
-                          "right:66px;left:auto;") for k in range(n))
-           + _osd("USE CODE: BAD", 72, 292, 144, cls="osd codeline")
-           + _osd("#EpicPartner", 80, 444, 44))
+    right = f"right:{W - OSD_R}px;left:auto;"
+    osd = (_osd(f"PLAY{_icon(PLAY_ROWS, 5)}", OSD_X, OSD_Y, 80, vis(play_w))
+           + _osd(f"FF{_icon(FF_ROWS, 6)}", OSD_X, OSD_Y, 80, vis(ff_w))
+           + _osd(f"REW{_icon(REW_ROWS, 6)}", OSD_X, OSD_Y, 80, vis(rew_w))
+           + _osd(f"STOP{_icon(STOP_ROWS, 8)}", OSD_X, OSD_Y, 80, vis(stop_w))
+           + _osd(f"EJECT{_icon(EJECT_ROWS, 6)}", OSD_X, OSD_Y, 80, vis(eject_w))
+           + _osd("SP", OSD_X + 240, OSD_Y + 14, 64, vis([(T_ROLL, t_menu)]))
+           + _osd("CH 03", 0, OSD_Y + 14, 64, vis([(T_CUT, T_ROLL)]), right)
+           + "".join(_osd(f"{k + 1}/{n}", 0, OSD_Y + 14, 64,
+                          vis([(starts[k] if k else T_ROLL, cuts[k] if k < n - 1 else t_rew)]), right) for k in range(n))
+           + _osd("USE CODE: BAD", OSD_X - 6, CODE_Y, 144, cls="osd codeline", attrs=' data-safe="key" data-name="code"')
+           + _osd("#EpicPartner", OSD_X + 2, TAG_Y, 48))
     comp.add(_layer(tr, [(T_CUT, t_land)], 30, osd, "pointer-events:none;"))
 
     comp.add(PREP_JS)
