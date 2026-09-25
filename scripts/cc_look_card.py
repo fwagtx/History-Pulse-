@@ -12,7 +12,7 @@ shot from above.
                    A hold, then 3... 2... 1... in red marker on the note, a second
                    apart; the card flips (the LOCKER LEGENDS back shows in the
                    air) and lands revealed -- name, colours, set and season -- the
-                   right note is circled and ticked in red, the others get a
+                   right note gets a red marker loop and a tick, the others get a
                    pencil line. Then the notes are peeled off and the card goes.
     ~1:00 outro    every card of the video laid out face up, and the classic's
                    question on a fresh note: how many did you get out of 6?
@@ -23,6 +23,13 @@ No invented stats. The options and the answer are the plan's. Silhouettes stay
 black and names stay taped over until each reveal. The lime token is on screen
 in every frame.
 
+Layout: everything a viewer reads sits in the apps' safe box (cc_safe: x 60-1020
+above y 740, x 60-900 from there down to y 1420; frame 0's text below y 285).
+The note pad and the lime token fill the top band; the card (drawn at 580x812,
+laid down at CARD_S) and the four answer notes share the band beside the
+button rail; the end spread is a 3-by-2 grid inside it. Only the felt, the
+wood, the grain and the shadows reach the covered edges.
+
 Render cost: the renderer keeps every animation paused, and Chrome gives each
 paused-but-unfinished transform/opacity/filter animation its own compositing
 layer, so swaps are done with visibility and shading with colour, and nothing
@@ -30,9 +37,10 @@ full-frame moves for the whole video.
 """
 
 import math
+import random
 
-from cc_looks import (KIT_CSS, LIME, PREP_JS, pad_to, rough_check, rough_ellipse, rough_line, stroke_static,
-                      stroke_svg, tex, write_on)
+from cc_looks import (KIT_CSS, LIME, PREP_JS, _catmull, _plen, pad_to, rough_check, rough_ellipse, rough_line,
+                      stroke_static, stroke_svg, tex, write_on)
 from cc_motion import RARITY, Comp, esc
 
 HOOK = 3.0
@@ -41,11 +49,12 @@ FONTS = ("Caveat", "Playfair Display", "Barlow Condensed", "Permanent Marker")
 MARK = "#c8261f"                # red marker
 PENCIL = "#4b463f"
 
-# Where things sit (safe area y 190-1480; below y 880 nothing right of x 960).
-CARD_X, CARD_Y, CARD_W, CARD_H = 40, 552, 580, 812
-NOTE_X, NOTE_Y, NOTE_W, NOTE_H, NOTE_STEP = 648, 552, 298, 186, 209
-PAD_X, PAD_Y, PAD_W, PAD_H = 40, 206, 364, 304          # the note pad: title + countdown
-TOKEN_X, TOKEN_Y, TOKEN_D = 668, 208, 290
+# Where things sit (the safe box above; the rail is the right 180 px from y 740).
+CARD_S = .93                                            # the card, drawn 580x812, laid down at this scale
+CARD_X, CARD_Y, CARD_W, CARD_H = 66, 598, 580, 812      # (so it covers x 66-605, y 598-1353)
+NOTE_X, NOTE_Y, NOTE_W, NOTE_H, NOTE_STEP = 612, 572, 272, 184, 204   # A-D: right edge <= ~890
+PAD_X, PAD_Y, PAD_W, PAD_H = 66, 284, 374, 292          # the note pad: title + countdown
+TOKEN_X, TOKEN_Y, TOKEN_D = 716, 262, 272
 
 # Beats inside a round, seconds from its start.
 T_DEAL = -.32                   # the card slides in from below ...
@@ -58,6 +67,26 @@ T_REV = 6.3
 T_OUT = 9.0                     # notes peeled off, card cleared
 
 NOTE_COLS = ("#fde978", "#f9c1cc", "#bfe0f3", "#fcd2a4")    # yellow, pink, blue, peach
+
+# Handwriting that must fit a box both ways: shrink until no word runs past the
+# width and it takes at most data-lines lines (PREP_JS's data-fit checks only
+# the height of wrapping text, so one long word could still run out sideways).
+FIT_JS = """<script>(() => {
+  const prev = window.__ready;
+  window.__ready = (async () => {
+    if (prev) { try { await prev; } catch (e) {} }
+    try {
+      await document.fonts.ready;
+      for (const el of document.querySelectorAll('[data-cdfit]')) {
+        const maxW = +el.dataset.cdfit, lines = +(el.dataset.lines || 1);
+        let size = parseFloat(getComputedStyle(el).fontSize), guard = 90;
+        const lh = () => parseFloat(getComputedStyle(el).lineHeight) || size * 1.1;
+        const tooBig = () => el.scrollWidth > maxW + 2 || el.offsetHeight > lh() * lines + 2;
+        while (guard-- > 0 && size > 12 && tooBig()) { size *= 0.96; el.style.fontSize = size + 'px'; }
+      }
+    } catch (e) {}
+  })();
+})();</script>"""
 
 
 def _a(name, t, dur, ease="linear", extra=""):
@@ -187,9 +216,9 @@ CSS = """
     inset -3px -5px 7px rgba(0,0,0,.20),inset 3px 4px 5px rgba(255,255,255,.55),
     0 2px 1px rgba(0,0,0,.5),0 6px 4px rgba(0,0,0,.28),0 20px 22px -6px rgba(0,0,0,.55);
   display:flex;flex-direction:column;align-items:center;justify-content:center;color:#111}
-.cd-token .a{font-family:'Barlow Condensed';font-weight:800;font-size:41px;line-height:1;letter-spacing:.08em;margin:14px 0 -10px .08em}
-.cd-token .b{font-family:'Barlow Condensed';font-weight:800;font-size:128px;line-height:1;letter-spacing:.03em;margin-left:.03em}
-.cd-token .c{font-family:'Barlow Condensed';font-weight:600;font-size:20px;letter-spacing:.06em;margin-top:-12px}
+.cd-token .a{font-family:'Barlow Condensed';font-weight:800;font-size:40px;line-height:1;letter-spacing:.08em;margin:18px 0 -10px .08em}
+.cd-token .b{font-family:'Barlow Condensed';font-weight:800;font-size:122px;line-height:1;letter-spacing:.03em;margin-left:.03em}
+.cd-token .c{font-family:'Barlow Condensed';font-weight:600;font-size:25px;letter-spacing:.05em;margin-top:-10px}
 
 /* the card */
 .cd-persp{position:absolute;inset:0;perspective:2400px}
@@ -212,18 +241,18 @@ CSS = """
 .cd-window{position:absolute;left:10px;top:96px;right:10px;height:436px;border-radius:7px;overflow:hidden}
 .cd-winshade{position:absolute;inset:0;box-shadow:inset 0 0 28px rgba(40,20,5,.4),inset 0 10px 14px -8px rgba(30,15,0,.45)}
 .cd-type{position:absolute;left:10px;right:10px;top:544px;height:46px;border-radius:7px;
-  font-family:'Barlow Condensed';font-weight:800;font-size:26px;letter-spacing:.12em;color:#2e1d0c;
+  font-family:'Barlow Condensed';font-weight:800;font-size:34px;letter-spacing:.1em;color:#2e1d0c;
   display:flex;align-items:center;padding-left:18px;white-space:nowrap}
 .cd-stats{position:absolute;left:10px;right:10px;top:602px;height:106px;border-radius:7px;
   background:rgba(255,250,236,.55);box-shadow:inset 0 0 0 2px rgba(135,82,28,.3);padding:4px 18px}
 .cd-row{position:relative;height:49px;display:flex;align-items:center;gap:12px;
   border-bottom:1.5px solid rgba(135,82,28,.2);font-family:'Barlow Condensed'}
 .cd-row:last-child{border-bottom:0}
-.cd-k{font-weight:600;font-size:27px;color:#7a5530;white-space:nowrap}
-.cd-v{font-weight:800;font-size:31px;color:#22170e;white-space:nowrap}
+.cd-k{font-weight:600;font-size:33px;color:#7a5530;white-space:nowrap}
+.cd-v{font-weight:800;font-size:36px;color:#22170e;white-space:nowrap}
 .cd-blank{position:absolute;right:6px;bottom:12px;width:230px;border-bottom:3px dotted rgba(122,68,20,.5)}
-.cd-foot{position:absolute;left:0;right:0;bottom:26px;text-align:center;font-family:'Barlow Condensed';font-weight:600;
-  font-size:18px;letter-spacing:.2em;color:rgba(40,22,8,.8)}
+.cd-foot{position:absolute;left:0;right:0;bottom:25px;text-align:center;font-family:'Barlow Condensed';font-weight:600;
+  font-size:33px;line-height:1;letter-spacing:.06em;color:rgba(40,22,8,.82);white-space:nowrap}
 .cd-foot b{font-weight:800}
 .cd-shade{position:absolute;inset:0;background-color:rgba(11,9,6,0)}
 .cd-edge{position:absolute;inset:0;border-radius:28px;box-shadow:inset 0 0 0 1.5px rgba(255,244,220,.55)}
@@ -243,7 +272,7 @@ CSS = """
 .cd-seal{position:absolute;left:220px;top:600px;width:120px;height:120px;
   background:radial-gradient(circle at 40% 35%,#f4d58e,#d49d3f 60%,#a8741f);
   display:flex;flex-direction:column;align-items:center;justify-content:center;color:#16213a}
-.cd-seal .s1{font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:.25em;margin:0 0 -4px .25em}
+.cd-seal .s1{font-family:'Barlow Condensed';font-weight:800;font-size:25px;letter-spacing:.2em;margin:0 0 -6px .2em}
 .cd-seal .s2{font-family:'Playfair Display';font-weight:900;font-size:40px;line-height:1}
 .cd-shd{position:absolute;border-radius:30px;background:rgba(3,8,6,.55);
   box-shadow:0 0 22px 10px rgba(3,8,6,.45),0 0 60px 22px rgba(3,8,6,.22)}
@@ -259,7 +288,7 @@ CSS = """
 @keyframes cdspread{from{transform:rotate(var(--r))}to{transform:translate(var(--dx),var(--dy)) rotate(var(--r2))}}
 @keyframes cdgather{from{transform:translate(var(--dx),var(--dy)) rotate(var(--r2))}
   to{transform:translate(-120px,1250px) rotate(-8deg)}}
-@keyframes cdfan{0%{opacity:0;transform:translate(-40px,900px) rotate(calc(var(--r) - 10deg))}
+@keyframes cdfan{0%{opacity:0;transform:translate(-16px,90px) rotate(calc(var(--r) - 6deg)) scale(1.06)}
   70%{opacity:1;transform:translate(0,-5px) rotate(calc(var(--r) + .6deg))}100%{opacity:1;transform:rotate(var(--r))}}
 """
 
@@ -267,7 +296,8 @@ CSS = """
 # ---------------------------------------------------------------- pieces
 
 def _token() -> str:
-    return (f'<div class="cd-token" style="left:{TOKEN_X}px;top:{TOKEN_Y}px;width:{TOKEN_D}px;height:{TOKEN_D}px">'
+    return (f'<div class="cd-token" data-safe="key" data-name="code" style="left:{TOKEN_X}px;top:{TOKEN_Y}px;'
+            f'width:{TOKEN_D}px;height:{TOKEN_D}px">'
             f'<div class="a">USE CODE:</div><div class="b">BAD</div><div class="c">#EpicPartner</div></div>')
 
 
@@ -334,11 +364,12 @@ def _card_face(ctx, it: dict, k: int, n: int, t_swap=None, art_img=True) -> str:
                 f'</div>')
     set_ = it.get("set") or ""
     season = it.get("season_label") or ""
-    rows = [("Set:", esc(set_) if set_ else "&mdash;"), ("Introduced:", esc(season) if season else "&mdash;")]
+    rows = [("Set:", esc(set_) if set_ else "&mdash;", 392),
+            ("Introduced:", esc(season) if season else "&mdash;", 292)]
     stats = "".join(
         f'<div class="cd-row"><span class="cd-k">{kk}</span>'
-        f'<span class="cd-v" {r} data-fit="{CARD_W - 44 - 20 - 36 - 150}">{vv}</span>'
-        + (f'<span class="cd-blank" {q}></span>' if t_swap is not None else "") + '</div>' for kk, vv in rows)
+        f'<span class="cd-v" {r} data-fit="{fw}">{vv}</span>'
+        + (f'<span class="cd-blank" {q}></span>' if t_swap is not None else "") + '</div>' for kk, vv, fw in rows)
     tape = f'<div class="cd-tape" {q}>???</div>' if t_swap is not None else ""
     return (f'<div class="abs" style="inset:0;background:{border}"></div>'
             f'<div class="cd-inner">'
@@ -350,7 +381,7 @@ def _card_face(ctx, it: dict, k: int, n: int, t_swap=None, art_img=True) -> str:
             f'{_mix(base, "#ffffff", .35)});box-shadow:inset 0 0 0 2px {lo}88"><span data-fit="{CARD_W - 44 - 20 - 36}" '
             f'style="white-space:nowrap">{esc(kind)}</span></div>'
             f'<div class="cd-stats">{stats}</div></div>'
-            f'<div class="cd-foot">LOCKER LEGENDS · {k} / {n} · <b>CODE BAD</b></div>'
+            f'<div class="cd-foot"><span data-fit="{CARD_W - 60}" style="display:inline-block">LOCKER LEGENDS · {k}/{n} · <b>CODE BAD</b></span></div>'
             f'<div class="cd-edge"></div>')
 
 
@@ -382,7 +413,9 @@ def _card(ctx, it: dict, k: int, n: int, t0: float, rot: float, deal: bool, t_ou
         move.append(f"cddeal {DEAL:.3f}s cubic-bezier(.2,.75,.3,1) {t0 + T_DEAL:.3f}s 1 normal both")
     move.append(f"cdclear .5s cubic-bezier(.55,0,.85,.35) {t_out:.3f}s 1 normal forwards")
     front = _card_face(ctx, it, k, n, t_swap)
-    return (f'<div class="abs" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px;animation:{",".join(move)}">'
+    return (f'<div class="abs" style="left:{x}px;top:{y}px;width:{w * CARD_S:.0f}px;height:{h * CARD_S:.0f}px;'
+            f'animation:{",".join(move)}">'
+            f'<div class="abs" style="left:0;top:0;width:{w}px;height:{h}px;transform:scale({CARD_S});transform-origin:0 0">'
             f'<div class="abs" style="left:{w / 2:.0f}px;top:{h / 2:.0f}px;width:0;height:0;transform:rotate({rot}deg)">'
             f'<div class="cd-shd" style="left:{-w / 2 + 14:.0f}px;top:{-h / 2 + 18:.0f}px;width:{w - 28}px;height:{h - 30}px;'
             f'{_a("cdshadow", t_flip, FLIP_D)}"></div></div>'
@@ -391,7 +424,7 @@ def _card(ctx, it: dict, k: int, n: int, t0: float, rot: float, deal: bool, t_ou
             f'<div class="cd-card" style="left:0;top:0;width:{w}px;height:{h}px;{_a("cdflip", t_flip, FLIP_D)}">'
             f'<div class="cd-face">{front}<div class="cd-shade" style="{_a("cdshade", t_flip, FLIP_D)}"></div></div>'
             f'<div class="cd-face cd-back">{_card_back()}<div class="cd-shade" style="{_a("cdshade", t_flip, FLIP_D)}"></div></div>'
-            f'</div></div></div></div>')
+            f'</div></div></div></div></div>')
 
 
 def _flat_card(ctx, it: dict, k: int, n: int, cx: float, cy: float, scale: float, rot: float, anim: str,
@@ -428,25 +461,65 @@ def _countdown(t: float) -> str:
             f'transform:rotate(-3deg);white-space:nowrap;letter-spacing:-.02em">{"".join(out)}</div>')
 
 
+def _rough_box(w, h, m, seed=1, r=28, n=40, overshoot=.12, wobble=2.0, drift=5.0):
+    """A red marker loop drawn round a w x h note, m px outside its edges: a
+    rounded rectangle, a little wobbly, ending past where it started. It stays
+    off the note, so the letter and the name under it stay clear.
+    Returns (path_d, approx_length)."""
+    rnd = random.Random(seed)
+    a, b = w / 2 + m, h / 2 + m
+    sw, sh = a - r, b - r
+    segs = [("l", (0, -b), (sw, -b)), ("c", (sw, -sh), -90), ("l", (a, -sh), (a, sh)), ("c", (sw, sh), 0),
+            ("l", (sw, b), (-sw, b)), ("c", (-sw, sh), 90), ("l", (-a, sh), (-a, -sh)), ("c", (-sw, -sh), 180),
+            ("l", (-sw, -b), (0, -b))]
+    lens = [math.dist(p, q) if k == "l" else math.pi * r / 2 for k, p, q in segs]
+    per = sum(lens)
+
+    def at(s_):
+        s_ %= per
+        for (k, p, q), L in zip(segs, lens):
+            if s_ <= L:
+                u = s_ / max(L, 1e-6)
+                if k == "l":
+                    x, y = p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u
+                    nx, ny = (0, -1) if p[1] == q[1] == -b else (0, 1) if p[1] == q[1] == b else \
+                        (1, 0) if p[0] == q[0] == a else (-1, 0)
+                    return x, y, nx, ny
+                ang = math.radians(q + 90 * u)
+                return p[0] + r * math.cos(ang), p[1] + r * math.sin(ang), math.cos(ang), math.sin(ang)
+            s_ -= L
+        return 0, -b, 0, -1
+    s0 = per * rnd.uniform(.03, .1)
+    ph1, ph2 = rnd.uniform(0, 6.3), rnd.uniform(0, 6.3)
+    pts = []
+    for i in range(n + 1):
+        t = i / n
+        x, y, nx, ny = at(s0 + per * (1 + overshoot) * t)
+        off = wobble * (math.sin(t * 9 + ph1) + .6 * math.sin(t * 23 + ph2)) + drift * (t - .5)
+        pts.append((w / 2 + x + nx * off, h / 2 + y + ny * off))
+    return _catmull(pts), _plen(pts) * 1.04
+
+
 def _options(opts: list, answer: int, t0: float, t_out: float) -> tuple:
     """Four sticky notes, A-D, slapped on one after another. On the reveal the
-    right one is circled and ticked in red; the others get a pencil line.
+    right one gets a red marker loop and a tick; the others get a pencil line.
     Returns (html, sounds)."""
     html, sounds = [], []
     t_rev = t0 + T_REV
     rnd = (int(t0 * 10) * 7919) % 1000
     for j, text in enumerate(opts):
         jit = ((rnd * (j + 3) * 37) % 100) / 100
-        x, y = NOTE_X + (jit - .5) * 14, NOTE_Y + j * NOTE_STEP + (jit - .5) * 6
-        rot = (1.2 + 1.6 * jit) * (1 if (j + rnd) % 2 else -1)
+        x, y = NOTE_X + (jit - .5) * 8, NOTE_Y + j * NOTE_STEP + (jit - .5) * 6
+        rot = (1.0 + 1.4 * jit) * (1 if (j + rnd) % 2 else -1)
         t_in = t0 + T_OPT + j * .09
         col = NOTE_COLS[j]
         right = j == answer
         marks = ""
         if right:
-            marks = stroke_svg([rough_ellipse(NOTE_W / 2 + 6, NOTE_H / 2 + 2, NOTE_W / 2 - 16, NOTE_H / 2 - 20,
-                                              seed=int(t0 * 7) + j, overshoot=.14)], MARK, 7, t_rev + .15, .42)
-            marks += stroke_svg(rough_check(NOTE_W - 78, NOTE_H - 30, 52, seed=j + 3), MARK, 8, t_rev + .62, .22)
+            # a loop round the whole note (clear of its letter and name), and a
+            # tick in its empty top-right corner
+            marks = stroke_svg([_rough_box(NOTE_W, NOTE_H, 9, seed=int(t0 * 7) + j)], MARK, 7, t_rev + .15, .46)
+            marks += stroke_svg(rough_check(NOTE_W - 76, 68, 50, seed=j + 3), MARK, 8, t_rev + .66, .22)
         else:
             marks = stroke_svg([rough_line(84, NOTE_H * .58, NOTE_W - 30, NOTE_H * .5, seed=j + int(t0), bow=.02)],
                                PENCIL, 4, t_rev + .9 + j * .06, .16, opacity=.8)
@@ -459,7 +532,7 @@ def _options(opts: list, answer: int, t0: float, t_out: float) -> tuple:
             f'align-items:center;justify-content:center">{"ABCD"[j]}</div>'
             + _svg_box(stroke_static([rough_ellipse(47, 43, 27, 25, seed=j + 11, overshoot=.12, wobble=.06)],
                                      "#1d1b18", 4, .85), NOTE_W, NOTE_H) +
-            f'<div class="abs cd-hand" data-fit="{NOTE_W - 40}" data-lines="2" style="left:22px;top:76px;'
+            f'<div class="abs cd-hand" data-cdfit="{NOTE_W - 40}" data-lines="2" style="left:22px;top:76px;'
             f'width:{NOTE_W - 40}px;font-size:50px;line-height:.95;text-wrap:balance">{_words(text)}</div>'
             f'{_svg_box(marks, NOTE_W, NOTE_H)}</div>')
         sounds.append((t_in, "paper"))
@@ -490,7 +563,7 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
     fan = ""
     # frame 0 has the fan; at .3 s a hand spreads it a little more, at 2.45 s it's
     # gathered up and only the first card stays.
-    spread = [(560, 930, 5, .86, 3.5, 14, 6), (680, 990, 10, .8, 5, 20, 12)]
+    spread = [(470, 960, 6, .84, 2.5, 12, 4), (560, 990, 11, .78, 3.5, 16, 8)]
     for j, (x, y, rot, sc, dr, dx, dy) in reversed(list(enumerate(spread))):
         if j + 1 < n:
             it = rounds[j + 1][0]
@@ -527,10 +600,10 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
         comp.cue(t_out + .05, "whoosh")
 
     # ---- the note pad (top left): a note for the hook, then a fresh one per round
-    pad = [_pad_note(None, f'<div class="abs cd-hand" data-fit="{PAD_W - 50}" style="left:26px;top:178px;'
-                           f'font-size:62px;line-height:1.05;color:{MARK};transform:rotate(-2.5deg);white-space:nowrap">'
+    pad = [_pad_note(None, f'<div class="abs cd-hand" data-fit="{PAD_W - 50}" style="left:26px;top:156px;'
+                           f'font-size:60px;line-height:1.05;color:{MARK};transform:rotate(-2.5deg);white-space:nowrap">'
                            f'{n} rounds<br>4 choices each</div>',
-                     f"quiz #{ep}" if ep else "", -4)]
+                     f"quiz #{ep}" if ep else "", -3)]
     for k in range(1, n + 1):
         t0 = HOOK + (k - 1) * R1
         pad.append(_pad_note(t0 + T_NOTE, _countdown(t0 + T_CD), f"{k}/{n}", [3, -2.5, 2, -3.5, 1.5, -2][k % 6]))
@@ -539,19 +612,18 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
     # ---- outro: every card, face up, and the question
     t = content_end
     spread = ""
-    sc = .5
+    sc = .44
     cw_, ch_ = CARD_W * sc, CARD_H * sc
     top_row = (n + 1) // 2 if n <= 4 else 3
     for i, (it, _, _) in enumerate(rounds):
         row, col = (0, i) if i < top_row else (1, i - top_row)
         in_row = top_row if row == 0 else n - top_row
-        gap = (910 - in_row * cw_) / max(1, in_row - 1) if in_row > 1 else 0
-        x0 = 45 + (910 - (in_row * cw_ + (in_row - 1) * min(gap, 30))) / 2
-        cx = x0 + col * (cw_ + min(gap, 30)) + cw_ / 2
-        cy = 560 + ch_ / 2 + row * (ch_ + 26)
+        # centred in the band beside the rail (x 60-900), under the pad
+        cx = 480 + (col - (in_row - 1) / 2) * (cw_ + 20)
+        cy = 604 + ch_ / 2 + row * (ch_ + 26)
         jit = ((i * 37 + n * 11) % 10) / 10 - .5
         # the first one comes in while the last round's card is still leaving
-        spread += _flat_card(ctx, it, i + 1, n, cx + jit * 16, cy + jit * 10, sc, jit * 7,
+        spread += _flat_card(ctx, it, i + 1, n, cx + jit * 8, cy + jit * 10, sc, jit * 4,
                              _a("cdfan", t - .3 + i * .1, .5, "cubic-bezier(.2,.8,.3,1)"), True)
         if i % 2 == 0:
             comp.cue(t - .3 + i * .1, "paper")
@@ -560,7 +632,7 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
     pad.append(f'<div class="abs" style="left:{PAD_X}px;top:{PAD_Y}px;width:{PAD_W}px;height:{PAD_H}px;--r:-2deg;'
                f'transform:rotate(-2deg);{_a("lkslap", t + .1, .5, "cubic-bezier(.2,.9,.25,1)")}">'
                f'<div class="cd-note" style="{_note_bg(NOTE_COLS[0])}"></div>'
-               f'<div class="abs cd-hand" data-fit="{PAD_W - 44}" data-lines="3" style="left:24px;top:22px;'
+               f'<div class="abs cd-hand" data-cdfit="{PAD_W - 44}" data-lines="3" style="left:24px;top:24px;'
                f'width:{PAD_W - 44}px;font-size:70px;line-height:.95">How many did you get out of {n}?</div></div>')
     comp.cue(t + .1, "paper")
     comp.add(f'<div class="full" style="z-index:20;overflow:hidden"><div class="cd-cam">{"".join(pad)}</div></div>')
@@ -569,5 +641,6 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
     comp.add(f'<div class="full" style="z-index:30"><div class="cd-cam">{_token()}</div>'
              f'<div class="cd-vig"></div><div class="cd-grain"></div></div>')
     comp.add(PREP_JS)
+    comp.add(FIT_JS)
     comp.cues.sort()
     return comp
