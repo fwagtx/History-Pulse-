@@ -14,16 +14,17 @@ is big: "BAD" is at least 110 px tall in a 1920 px video.
 |---|---|---|---|
 | Scrapbook | On This Day | `on_this_day` | **On** since Sep 25, 2026 |
 | VHS tape | Fortnitemares throwbacks | `throwback@fortnitemares` | **On** since Sep 25, 2026 |
-| Yearbook | Guess the Season | `guess_season` | Off, being tested |
-| Yearbook | Season Throwback | `throwback` | Off, being tested |
-| Trading card | Who's That Skin? | `whos_that` | Off, being tested |
-| Case board | Odd One Out | `odd_one_out` | Off, being tested |
-| Departures board | Last Chance (shop) | `last_chance` | Off, being tested |
+| Yearbook | Guess the Season | `guess_season` | **On** since Sep 25, 2026 |
+| Yearbook | Season Throwback | `throwback` | **On** since Sep 25, 2026 |
+| Trading card | Who's That Skin? | `whos_that` | **On** since Sep 25, 2026 |
+| Case board | Odd One Out | `odd_one_out` | **On** since Sep 25, 2026 |
+| Departures board | Last Chance (shop) | `last_chance` | **On** since Sep 25, 2026 |
 | Receipt | Bundle Math (shop) | `bundle_math` | **On** since Sep 25, 2026 |
 | Museum | OG Check (shop) | `og_check` | **On** since Sep 25, 2026 |
 
-Every other video keeps the classic look. From Sep 25, 2026 the classic look has a bigger
-corner badge: USE CODE: BAD in a lime box, with #EpicPartner under it.
+Every other video keeps the classic look, and so do the seasonal quiz editions (Fortnitemares
+and Winterfest), apart from the Fortnitemares throwbacks. From Sep 25, 2026 the classic look has
+a bigger corner badge: USE CODE: BAD in a lime box, with #EpicPartner under it.
 
 ## How a look goes live
 

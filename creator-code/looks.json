@@ -1,11 +1,11 @@
 {
   "on_this_day": true,
   "throwback@fortnitemares": true,
-  "guess_season": false,
-  "throwback": false,
-  "whos_that": false,
-  "odd_one_out": false,
-  "last_chance": false,
+  "guess_season": true,
+  "throwback": true,
+  "whos_that": true,
+  "odd_one_out": true,
+  "last_chance": true,
   "bundle_math": true,
   "og_check": true
 }
