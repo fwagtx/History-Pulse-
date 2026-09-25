@@ -302,7 +302,9 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     size = min(170, 940 / anton_em(title))
     inner += (f'<div class="full" style="transform-origin:50% 430px;'
               f'{style_anim(an("thump", HOOK_SLAM, .4))}">'
-              + words(title, W / 2, 350 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center", 1000)
+              # words() leaves .18em after the last word too; half of it back keeps the title centred.
+              + words(title, W / 2 + size * .09, 350 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center",
+                      1000)
               + "</div>")
     # Long stickers ("GONE AT 8 PM ET") shift left so they never pass the safe
     # box's edge. White, so the lime of the USE CODE: BAD stamp is the one brand

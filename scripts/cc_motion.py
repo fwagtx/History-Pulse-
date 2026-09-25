@@ -430,11 +430,14 @@ def disclosure() -> str:
 
 def progress(start: float, end: float, index: int, total: int) -> str:
     """ROUND 2/5 pips. Knowing how much is left keeps people watching."""
+    # 26 px: the smallest words on screen still have to read on a phone.
+    pw = 46 if total <= 6 else 36
     pips = "".join(
-        f'<i style="display:inline-block;width:46px;height:10px;border-radius:6px;margin:0 5px;'
+        f'<i style="display:inline-block;width:{pw}px;height:12px;border-radius:6px;margin:0 5px;'
         f'background:{ACCENT if j <= index else "rgba(255,255,255,.25)"}"></i>' for j in range(1, total + 1))
-    return (f'<div class="abs" style="right:{W-SAFE_RIGHT_TOP}px;top:{SAFE_TOP+14}px;text-align:right;z-index:40">'
-            f'<div style="font-size:20px;font-weight:800;letter-spacing:.22em;color:#fff;margin-bottom:10px">'
+    return (f'<div class="abs" style="right:{W-SAFE_RIGHT_TOP}px;top:{SAFE_TOP+10}px;text-align:right;z-index:40">'
+            f'<div style="font-size:26px;font-weight:800;letter-spacing:.18em;color:#fff;margin-bottom:8px;'
+            f'text-shadow:0 2px 6px rgba(0,0,0,.8)">'
             f"ROUND {index}/{total}</div>{pips}</div>")
 
 
