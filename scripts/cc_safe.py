@@ -84,7 +84,9 @@ CHECK_JS = r"""(z) => {
   const box = (r) => [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
   const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const range = document.createRange();
+  let idx = -1;
   for (let n; (n = tw.nextNode());) {
+    idx++;                        // the node's place in the page: the same on every seek
     const s = n.textContent.replace(/\s+/g, ' ').trim();
     if (!s) continue;
     const el = n.parentElement;
@@ -99,7 +101,7 @@ CHECK_JS = r"""(z) => {
       const r = {left: rr.left, right: rr.right, top: rr.top + rr.height * .18,
                  bottom: rr.bottom - rr.height * .18, width: rr.width, height: rr.height * .64};
       const f = outside(r);
-      if (f > z.textTol) out.push({kind: 'text', key: s.slice(0, 60), frac: +f.toFixed(2), box: box(r)});
+      if (f > z.textTol) out.push({kind: 'text', key: s.slice(0, 60), id: 't' + idx, frac: +f.toFixed(2), box: box(r)});
     }
   }
   const imgs = [...document.images];
@@ -110,14 +112,16 @@ CHECK_JS = r"""(z) => {
     if (r.width < 40 || r.height < 40 || r.width * r.height > 0.45 * W * H) return;
     const f = outside(r);
     const name = img.getAttribute('data-name') || img.alt || ('image ' + i);
-    if (f > z.imgTol) out.push({kind: 'image', key: name, frac: +f.toFixed(2), box: box(r)});
+    if (f > z.imgTol) out.push({kind: 'image', key: name, id: 'i' + i, frac: +f.toFixed(2), box: box(r)});
   });
+  let ki = -1;
   for (const el of document.querySelectorAll('[data-safe="key"]')) {
+    ki++;
     if (alpha(el) < z.minAlpha) continue;
     const r = el.getBoundingClientRect();
     const f = outside(r);
     const name = el.getAttribute('data-name') || el.textContent.replace(/\s+/g, ' ').trim().slice(0, 40);
-    if (f > z.keyTol) out.push({kind: 'key', key: name, frac: +f.toFixed(2), box: box(r)});
+    if (f > z.keyTol) out.push({kind: 'key', key: name, id: 'k' + ki, frac: +f.toFixed(2), box: box(r)});
   }
   return out;
 }"""
@@ -128,7 +132,9 @@ def _spans(samples: list, step: float) -> list:
     spans = {}
     for t, hits in samples:
         for h in hits:
-            k = (h["kind"], h["key"])
+            # One span per element, so two elements that happen to say the same
+            # thing (a leaving card and the recap's) never add up to one hold.
+            k = (h["kind"], h["key"], h.get("id"))
             s = spans.get(k)
             if s and t - s["end"] <= step * 1.5:
                 s["end"] = t
