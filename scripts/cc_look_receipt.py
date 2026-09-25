@@ -17,9 +17,18 @@ RECEIPT -- Bundle Math, as a thermal receipt printing on a shop counter.
 Facts are the format's: each item's price alone today, their sum, the bundle's
 price and the difference. Never "discount". The lime label is on the printer, in
 frame and readable in every frame (the camera zooms around it).
+
+Everything with words on it, the label, the photos and the paper stay inside the
+apps' safe box (cc_safe) with the counter's tilt and the camera's zoom counted
+in: the receipt hangs left of the button rail and ends above the caption line,
+the photo pile is above y 740, and the camera never pushes in past 1:1 (it only
+leans in a touch at the end, on a short receipt). Only the counter, the
+printer's body and the pen run to the edges. A line is on the paper only once
+it has been printed.
 """
 
 import html as _html
+import math
 import random
 
 from cc_fmt_bundle_math import _title
@@ -31,15 +40,15 @@ CONTENT = 52.0
 R_MIN, R_MAX = 10.4, 17.0
 FONTS = ("IBM Plex Mono", "Archivo Black", "Barlow Condensed", "Caveat")
 
-# The receipt: IBM Plex Mono on 26 columns.
-FS, LH = 40, 56
+# The receipt: IBM Plex Mono on 26 columns (38 px: 33-38 px on screen as the
+# camera pulls back).
+FS, LH = 38, 53
 CHW = FS * .6                     # Plex Mono's advance
 COLS = 26
 TW = COLS * CHW
-PW = 690                          # paper width
-PM = (PW - TW) / 2                # side margin
-PX = 30                           # paper left, in frame px
-LIP = 437                         # where the paper leaves the printer (frame y)
+PM = 20                           # side margin
+PW = round(TW + 2 * PM)           # paper width
+PX = 52                           # paper left (counter px, before its tilt)
 HIDE = 6                          # paper hidden under the lip
 ZZ = 12                           # zig-zag tooth height of a torn edge
 SHOW_ITEMS = 7                    # item lines; more share one "+N more items" line
@@ -49,18 +58,33 @@ FIT_STEPS = [(0, 7, False), (1, 7, False), (2, 7, False), (3, 7, False),
 INK = "#2d2a26"
 PEN = "#1f3b99"
 
-# The printer (frame px; its top is off the frame) and its lime label.
-PR_X, PR_W, PR_TOP = -20, 760, -120
+# The printer's lime label: its centre and size (counter px). On frame 0 its
+# words sit below Instagram's grid crop (y 285).
+LBL_X, LBL_Y, LBL_W, LBL_H = 238, 366, 310, 156
+LIP = LBL_Y + LBL_H // 2 + 40     # where the paper leaves the printer
+# The printer (its top is off the frame).
+PR_X, PR_W, PR_TOP = PX - 46, PW + 86, -120
 PR_H = LIP - PR_TOP
-LABEL = (60, 342, 350, 177)       # printer-local x, y, w, h
+LABEL = (LBL_X - LBL_W // 2 - PR_X, LBL_Y - LBL_H // 2 - PR_TOP, LBL_W, LBL_H)   # printer-local x, y, w, h
+TILT = -1.2                       # the counter is turned a touch (.rc-rig), about (540, 700)
+
+
+def _tilt(x: float, y: float) -> tuple:
+    a = math.radians(TILT)
+    dx, dy = x - 540, y - 700
+    return 540 + dx * math.cos(a) - dy * math.sin(a), 700 + dx * math.sin(a) + dy * math.cos(a)
+
+
 # The camera zooms about the label, so the label never moves: it is in frame and
-# readable in every frame. The paper's lowest printed line stays above BOTTOM.
-ZOX, ZOY = 215, 310
-Z_MAX, Z_MIN = 1.02, .92
-BOTTOM = 1440
-# The pile of bundle photos on the counter, top right (above y 880, so it may
-# reach past x 960).
-PH_X, PH_Y, PH_W = 744, 246, 298
+# readable in every frame. It pulls back as a receipt grows, so the paper's torn
+# edge stays above BOTTOM (inside the caption line once tilted), and never
+# pushes in past Z_MAX, so the photo pile stays left of x 1020.
+ZOX, ZOY = (round(v) for v in _tilt(LBL_X, LBL_Y))
+Z_MAX, Z_MIN = 1.0, .88
+Z_END = 1.02                      # the last lean in on the code
+BOTTOM = 1398
+# The pile of bundle photos on the counter, top right, above y 740.
+PH_X, PH_Y, PH_W = PX + PW + 12, 250, 288
 PH_IMG = PH_W - 24
 
 CSS = """
@@ -109,14 +133,14 @@ CSS = """
   background:linear-gradient(172deg,rgba(255,255,255,.26) 0%%,rgba(255,255,255,0) 38%%),
              linear-gradient(0deg,rgba(0,0,0,.07),rgba(0,0,0,0) 30%%)}
 .rc-code::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.10;background:url('%(grain)s') 0 0/256px 256px}
-.rc-code .u{position:absolute;left:0;right:0;top:15px;font-family:'IBM Plex Mono';font-weight:700;font-size:44px;
-  line-height:44px;letter-spacing:.02em}
-.rc-code .b{position:absolute;left:0;right:0;top:61px;font-family:'Archivo Black';font-size:134px;line-height:108px;
+.rc-code .u{position:absolute;left:0;right:0;top:13px;font-family:'IBM Plex Mono';font-weight:700;font-size:40px;
+  line-height:40px;letter-spacing:.02em}
+.rc-code .b{position:absolute;left:0;right:0;top:53px;font-family:'Archivo Black';font-size:118px;line-height:96px;
   letter-spacing:-.01em}
-.rc-ep{position:absolute;height:34px;padding:0 13px 0 14px;border-radius:4px;display:flex;align-items:center;
+.rc-ep{position:absolute;height:38px;padding:0 13px 0 14px;border-radius:4px;display:flex;align-items:center;
   background:linear-gradient(180deg,#34343a 0%%,#1d1d21 55%%,#141417 100%%);
   box-shadow:0 2px 2px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.18);
-  font-family:'Barlow Condensed';font-weight:600;font-size:22px;letter-spacing:.1em;color:#e9e9e6;white-space:nowrap}
+  font-family:'Barlow Condensed';font-weight:600;font-size:28px;letter-spacing:.06em;color:#e9e9e6;white-space:nowrap}
 .rc-ep span{display:inline-block;text-shadow:0 1px 0 rgba(0,0,0,.7),0 -1px 0 rgba(255,255,255,.25)}
 .rc-photo{position:absolute;width:%(phw)dpx;padding:12px 12px 0;background:#fbf9f3;
   box-shadow:0 2px 2px rgba(40,22,8,.35),0 12px 20px rgba(40,22,8,.30)}
@@ -124,7 +148,7 @@ CSS = """
 .rc-photo .img::after{content:"";position:absolute;inset:0;
   background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,0) 40%%),
     radial-gradient(ellipse 90%% 80%% at 50%% 45%%,rgba(0,0,0,0) 60%%,rgba(0,0,0,.22))}
-.rc-photo .cap{height:112px;padding:8px 6px 0;text-align:center;display:flex;flex-direction:column;align-items:center;
+.rc-photo .cap{height:150px;padding:6px 6px 0;text-align:center;display:flex;flex-direction:column;align-items:center;
   justify-content:center}
 .rc-photo .t{font-family:'Caveat';font-weight:700;font-size:38px;line-height:.95;color:#232220}
 .rc-photo .q{font-family:'Caveat';font-weight:700;font-size:34px;line-height:1;color:%(pen)s;margin-top:5px}
@@ -139,6 +163,7 @@ CSS = """
   60%%{transform:translate(-201px,-29px)}80%%{transform:translate(97px,149px)}}
 .rc-vig{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(120%% 75%% at 42%% 38%%,rgba(0,0,0,0) 55%%,rgba(20,10,4,.5) 100%%)}
+@keyframes rcon{from{visibility:hidden}to{visibility:visible}}
 @keyframes rcland{0%%{opacity:0;transform:translate(60px,-90px) rotate(calc(var(--r) + 9deg)) scale(1.08)}
   60%%{opacity:1;transform:translate(0,0) rotate(calc(var(--r) - .6deg)) scale(.995)}
   100%%{opacity:1;transform:translate(0,0) rotate(var(--r)) scale(1)}}
@@ -326,7 +351,7 @@ def _doc_bundle(b: dict, parts: list, total: int, k: int, n: int, when: str, com
     line height -- only as far as a long receipt needs. For the longest receipts,
     clip=True cuts item names to one line (as a till does), and `show` folds the
     last items into one "+N more items" line with their summed price."""
-    doc = Doc(LH if compact < 3 else 46)
+    doc = Doc(LH if compact < 3 else 44)
     _header(doc, when)
     if compact < 2:
         doc.add("text", f"BUNDLE {k} OF {n}", align="c", group="head", small=True)
@@ -370,21 +395,25 @@ def _doc_close(when: str) -> Doc:
     doc.add("text", "TELL US BELOW", align="c", group="q2", small=True)
     doc.add("dash", "-" * COLS, group="c")
     doc.add("bars", group="c")
-    doc.add("text", "SUPPORT-A-CREATOR CODE: BAD", align="c", group="c2")
+    doc.add("text", "SUPPORT-A-CREATOR", align="c", group="c2")
+    doc.add("text", "CODE: BAD", align="c", group="c2")
     doc.add("text", "#EpicPartner", align="c", group="c2")
     doc.add("text", "THANK YOU!", align="c", group="c3")
     doc.gap(40)
     return doc
 
 
-def _row_html(r: dict, rnd: random.Random) -> str:
+def _row_html(r: dict, rnd: random.Random, t_show=None) -> str:
+    """One printed line. t_show: when it prints (None: already printed). Until
+    then it isn't there at all, not just below the paper's torn edge."""
     kind, t = r["kind"], r["text"]
+    show = f";animation:rcon .01s steps(1,end) {t_show - .01:.3f}s 1 normal both" if t_show is not None else ""
     if kind == "bars":
-        return _barcode(r["y"] + 10)
+        return f'<div class="abs" style="left:0;top:0{show}">{_barcode(r["y"] + 10)}</div>'
     jit = rnd.uniform(-.6, .6)
     op = rnd.uniform(.9, 1.0)
     cls = "rc-ln"
-    style = f"top:{r['y']:.1f}px;height:{r['h']:.1f}px;line-height:{r['h']:.1f}px;opacity:{op:.2f}"
+    style = f"top:{r['y']:.1f}px;height:{r['h']:.1f}px;line-height:{r['h']:.1f}px;opacity:{op:.2f}{show}"
     if kind == "big":
         cls += " big"
         left = PM + (TW - len(t) * CHW * 2) / 2
@@ -483,7 +512,13 @@ class Print:
 
     def html(self, dur: float) -> str:
         final = max([self.h0] + [b for (_, _, b) in self.feeds])
-        rows = "".join(_row_html(r, self.rnd) for r in self.doc.rows if r["y"] < final)
+        feeds = sorted(self.feeds)
+
+        def printed(r):
+            if r["y"] + 1 < self.h0:
+                return None
+            return next((ft for ft, _, b in feeds if b > r["y"] + 1), None)
+        rows = "".join(_row_html(r, self.rnd, printed(r)) for r in self.doc.rows if r["y"] < final)
         tear = f"animation:rct{self.uid} {dur:.3f}s linear 0s 1 normal both;" if self.tear else ""
         return (f'<div class="rc-rcpt" style="{tear}"><div class="rc-pj" style="animation:rcj{self.uid} {dur:.3f}s '
                 f'linear 0s 1 normal both"><div class="rc-pshadow" style="height:{final + ZZ + 2:.0f}px;'
@@ -523,15 +558,15 @@ def _printer(dur: float) -> str:
     return (f'<div class="rc-printer"><div class="tex"></div>'
             f'<div class="lid" style="top:30px;height:{seam - 34}px"></div>'
             f'<div class="seam" style="top:{seam}px"></div>'
-            f'<div class="btn" style="left:{PR_W - 124}px;top:{PR_H - 34 - 92}px">FEED</div>'
-            f'<div class="led" style="left:{PR_W - 160}px;top:{PR_H - 34 - 78}px;'
+            f'<div class="btn" data-safe="ignore" style="left:{PR_W - 118}px;top:{ly + 14}px">FEED</div>'
+            f'<div class="led" style="left:{PR_W - 152}px;top:{ly + 28}px;'
             f'animation:rcled {dur:.3f}s linear 0s 1 normal both"></div>'
             f'<div class="lip"></div>'
             f'<div class="teeth" style="left:{slot_l}px;width:{slot_w}px;clip-path:polygon(0 0,{teeth},100% 0)"></div>'
             f'<div class="slot" style="left:{slot_l}px;width:{slot_w}px"></div>'
-            f'<div class="rc-code" style="left:{lx}px;top:{ly}px;width:{lw}px;height:{lh}px;transform:rotate(-2deg)">'
-            f'<div class="u">USE CODE:</div><div class="b">BAD</div></div>'
-            f'<div class="rc-ep" style="left:{lx + lw + 22}px;top:{ly + lh - 44}px;transform:rotate(1.5deg)">{ep}</div>'
+            f'<div class="rc-code" data-safe="key" data-name="code" style="left:{lx}px;top:{ly}px;width:{lw}px;'
+            f'height:{lh}px;transform:rotate(-2deg)"><div class="u">USE CODE:</div><div class="b">BAD</div></div>'
+            f'<div class="rc-ep" style="left:{lx + lw + 24}px;top:{ly + lh - 42}px;transform:rotate(1.5deg)">{ep}</div>'
             f'</div>')
 
 
@@ -563,7 +598,7 @@ def _photo(ctx, b: dict, k: int, t_land) -> str:
     # each photo lands a little lower than the last, so it covers the caption below
     # it and only a sliver of the older photo shows along the top
     rot = [3.5, -2.5, 3, -2, 2.5, -3][k % 6]
-    dx, dy = [0, -6, 5, -4, 7, -3][k % 6], 14 * k
+    dx, dy = [0, -6, 5, -4, 7, -3][k % 6], 10 * k
     anim = _a("rcland", t_land, .6, "cubic-bezier(.2,.8,.25,1)") if t_land is not None else ""
     name = _title(b)
     img = (f'<div class="rc-art" data-w="{PH_IMG - 16}" data-h="{PH_IMG - 10}" style="left:{PH_IMG // 2}px;'
@@ -573,7 +608,7 @@ def _photo(ctx, b: dict, k: int, t_land) -> str:
            f'text-shadow:0 2px 6px rgba(0,0,0,.4)">{esc(name)}</div>')
     return (f'<div class="rc-photo" style="left:{PH_X + dx}px;top:{PH_Y + dy}px;--r:{rot}deg;transform:rotate({rot}deg);'
             f'{anim}"><div class="img" style="background:radial-gradient(ellipse 85% 75% at 50% 40%,{c1},{c2})">'
-            f'{img}</div><div class="cap"><div class="t" data-fit="{PH_W - 36}" data-lines="2" '
+            f'{img}</div><div class="cap"><div class="t" data-fit="{PH_W - 36}" data-lines="3" '
             f'style="width:{PH_W - 36}px">{esc(name)}</div>'
             f'<div class="q">worth it?</div></div></div>')
 
@@ -675,7 +710,7 @@ def bundle_math(ctx, picks: list) -> Comp:
             marks = []
             for j, (g, bottom) in enumerate(prices):
                 last = [r for r in doc.rows if r.get("group") == g][-1]
-                marks += rough_check(PM + TW + 9, last["y"] + last["h"] * .62, 19, seed=40 + 7 * k + j)
+                marks += rough_check(PM + TW + 3, last["y"] + last["h"] * .62, 15, seed=40 + 7 * k + j)
             t_tick = t_save + .6
             p.extra.append(_pen_svg(marks, t_tick, .15, 3.6, .05))
             for j in range(0, len(prices), 3):
@@ -709,7 +744,7 @@ def bundle_math(ctx, picks: list) -> Comp:
     # last, the camera leans in on the code (the label is the zoom's centre, so it
     # grows in place; the receipt still ends above BOTTOM)
     last_bottom = LIP - HIDE + max(b for (_, _, b) in close.feeds) + ZZ
-    z_end = min(1.09, (BOTTOM - ZOY) / max(1.0, last_bottom - ZOY))
+    z_end = min(Z_END, (BOTTOM - ZOY) / max(1.0, last_bottom - ZOY))
     t_lean = max(t_q + 1.2, dur - 3.2)
     zooms += [(t_lean, zooms[-1][1]), (min(dur - .3, t_lean + 2.4), z_end), (dur, z_end)]
 
@@ -735,7 +770,7 @@ def bundle_math(ctx, picks: list) -> Comp:
         cues.append((s + .08, "paper"))
 
     # film grain and a soft vignette sit under the printer: nothing covers the label
-    rig = (_pen(850, 960, 16) + "".join(photos) + "".join(pr.html(dur) for pr in prints)
+    rig = (_pen(806, 990, 16) + "".join(photos) + "".join(pr.html(dur) for pr in prints)
            + '<div class="rc-lipshade"></div><div class="rc-grain"></div><div class="rc-vig"></div>' + _printer(dur))
     comp.add(f'<div class="full" style="z-index:0;background:#6b4a2e;overflow:hidden">'
              f'<div class="rc-cam"><div class="rc-zoom" style="{_a("rczoom", 0, dur)}">'

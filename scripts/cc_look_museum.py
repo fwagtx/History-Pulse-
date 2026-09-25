@@ -8,16 +8,24 @@ MUSEUM -- OG Check, as a walk through a quiet gallery after hours.
     0:03  items     the camera pans from exhibit to exhibit, counting down to the
                     oldest (6.6 s each, a little longer when there are fewer):
                     each one waits in the dark, its spot clicks on, then its
-                    label light; outfits stand on a plinth, everything else sits
+                    label light, and its lights go out again behind the guide as
+                    the camera walks on (the gallery is after hours: motion
+                    sensors); outfits stand on a plinth, everything else sits
                     in a glass case. No. 1 gets "The oldest today" (or "Tied for
                     oldest") on the wall.
-    0:56  outro     the exit wall: "How OG is your locker?", postcards of three
-                    exhibits, and the guide holds the paddle up
+    0:56  outro     the exit wall lights up: "How OG is your locker?", postcards
+                    of three exhibits, and the guide holds the paddle up
 
 The placard carries only the format's facts: the name, rarity and type, Epic's
 own "Introduced in Chapter 1, Season 3", and today's price. The lime paddle is
 carried by the tour guide, so it stays in frame while the camera walks: it is on
 screen, whole and readable, in every frame.
+
+Everything a viewer reads, the exhibits and the paddle stay inside the apps'
+safe box (cc_safe) at rest, with room for the dolly's push-in (up to 1.055
+about FOCUS) and the guide's sway: the exhibit and its column sit left of the
+button rail below y 740, and the headers start below the apps' top bars. Only
+the room -- walls, floor, plinths, lights and the rope -- runs to the edges.
 """
 
 import re
@@ -38,22 +46,27 @@ FONTS = ("Cormorant Garamond",)
 
 # The room. Every bay is one screen wide; the camera frames one bay at a time.
 BAY = 1080
-FX = 300                          # the exhibit's centre in its bay
+FX = 290                          # the exhibit's centre in its bay
 CEIL, WALL_LINE = 118, 1352
 FOCUS = (540, 760)                # the dolly pushes in toward here
 PL_W, PL_D, PL_H, PL_FRONT = 300, 72, 278, 1152           # an outfit's plinth
 OB_W, OB_D, OB_FRONT = 380, 60, 1080                       # a glass case's plinth
 OB_H = PL_FRONT + PL_H - OB_FRONT
 VT_TOP, VT_D = 560, 48            # the glass case: front face top, depth of its lid
-FIG_H, FIG_W = 740, 420           # an outfit, head to sole
+FIG_H, FIG_W = 740, 400           # an outfit, head to sole
 OBJ_W, OBJ_H = 318, 430           # anything else, inside its case
 OBJ_MID = 800                     # ... mounted with its middle here
-COL_X, COL_W = 524, 430           # the right-hand column: header and placard
-HDR_Y, PLACARD_Y = 196, 440
-PLACARD_MAXH = 478                # it ends above the paddle
+# The right-hand column (header and placard) and the text on the hook and exit
+# walls: at the dolly's closest (1.055) x 96..880 stays inside x 69..899, and a
+# header at y 262 stays below y 235.
+COL_X, COL_W = 512, 368
+TXT_X = 96
+HDR_Y, PLACARD_Y = 262, 500
+PLACARD_MAXH = 456                # it ends above the paddle
 ROPE_P = 1480                     # the rope is nearer: it pans 1480 px a bay, not 1080
-# The guide's paddle (the creator code): board top-left, in frame pixels.
-PAD_X, PAD_Y, PAD_W = 603, 948, 304
+# The guide's paddle (the creator code): board top-left, in frame pixels. The
+# guide's walk sways it about 30 px either way; it stays left of the rail.
+PAD_X, PAD_Y, PAD_W = 546, 990, 304
 PIVOT = (PAD_X + PAD_W / 2, 2350)        # the guide's hand, below the frame
 
 CSS = """
@@ -79,26 +92,26 @@ CSS = """
   background:radial-gradient(ellipse 50%% 50%% at 50%% 50%%,rgba(255,228,190,.30),rgba(255,228,190,0))}
 .mz-title{position:absolute;font-family:'Inter';font-weight:250;font-size:64px;letter-spacing:.3em;color:#231f1b;line-height:1}
 .mz-sub{position:absolute;font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:44px;color:#3a332c;line-height:1.08}
-.mz-sc{position:absolute;font-family:'Inter';font-weight:500;font-size:26px;letter-spacing:.2em;color:#4a4239;line-height:1}
+.mz-sc{position:absolute;font-family:'Inter';font-weight:500;font-size:30px;letter-spacing:.16em;color:#433b33;line-height:1}
 .mz-hair{position:absolute;height:1.5px;background:#5e554b}
-.mz-hdr-k{font-family:'Inter';font-weight:500;font-size:24px;letter-spacing:.36em;color:#4f473e;line-height:1}
+.mz-hdr-k{font-family:'Inter';font-weight:500;font-size:30px;letter-spacing:.3em;color:#463e36;line-height:1}
 .mz-hdr-n{font-family:'Cormorant Garamond';font-weight:500;font-size:124px;color:#1f1b17;line-height:.9;margin-top:8px;
   letter-spacing:.01em}
 .mz-hdr-x{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:52px;color:#2a241e;line-height:1;
   margin-top:8px}
 
-.mz-card{position:absolute;width:%(colw)dpx;padding:30px 32px 32px;background:#f7f4ee;
+.mz-card{position:absolute;width:%(colw)dpx;padding:28px 28px 30px;background:#f7f4ee;
   box-shadow:0 1px 1px rgba(0,0,0,.24),0 6px 12px rgba(0,0,0,.16),inset 0 0 0 1px rgba(0,0,0,.04)}
 .mz-card .n{font-family:'Cormorant Garamond';font-weight:700;font-size:50px;letter-spacing:.04em;color:#1d1a17;line-height:1;
   text-transform:uppercase}
 .mz-card .k{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:38px;color:#4b443c;margin-top:8px;
   line-height:1.05;white-space:nowrap}
 .mz-card .r{width:46px;height:1.5px;background:#b2a898;margin:18px 0 15px}
-.mz-card .l{font-family:'Inter';font-weight:500;font-size:29px;font-variant-caps:all-small-caps;letter-spacing:.08em;
-  color:#665d53;line-height:1.1;white-space:nowrap}
+.mz-card .l{font-family:'Inter';font-weight:500;font-size:30px;text-transform:uppercase;letter-spacing:.04em;
+  color:#5c534a;line-height:1.1;white-space:nowrap}
 .mz-card .v{font-family:'Cormorant Garamond';font-weight:700;font-size:48px;color:#1d1a17;line-height:1.08;margin-top:1px;
   white-space:nowrap}
-.mz-card .v+.l{margin-top:14px}
+.mz-card .v+.l{margin-top:16px}
 .mz-card .p{font-family:'Cormorant Garamond';font-weight:500;font-size:37px;color:#2b2520;line-height:1.14}
 .mz-card .dim{position:absolute;inset:0;background:rgba(20,16,12,.6)}
 
@@ -129,13 +142,14 @@ CSS = """
 .mz-tent{position:absolute;width:290px;padding:26px 20px 24px;background:#fbf8f1;text-align:center;
   box-shadow:0 2px 3px rgba(0,0,0,.25),0 8px 14px rgba(0,0,0,.12)}
 .mz-tent .t{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:46px;color:#2a241e;line-height:1.05}
-.mz-tent .u{font-family:'Inter';font-weight:500;font-size:21px;letter-spacing:.14em;color:#6a6157;margin-top:12px}
+.mz-tent .u{font-family:'Inter';font-weight:500;font-size:30px;line-height:1.15;letter-spacing:.06em;color:#5c534a;margin-top:12px}
 
 .mz-post{position:absolute;width:236px;padding:11px 11px 0;background:#fbf8f1;
   box-shadow:0 2px 3px rgba(0,0,0,.3),0 10px 16px rgba(0,0,0,.18)}
 .mz-post .ph{position:relative;width:214px;height:214px;overflow:hidden}
-.mz-post .cap{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:28px;color:#2a241e;
-  text-align:center;height:46px;line-height:46px;white-space:nowrap;overflow:hidden}
+.mz-post .cap{font-family:'Cormorant Garamond';font-style:italic;font-weight:600;font-size:32px;color:#2a241e;
+  text-align:center;height:72px;display:flex;align-items:center;justify-content:center}
+.mz-post .cap div{line-height:1.02}
 .mz-ledge{position:absolute;height:18px;background:linear-gradient(#6b4a2e,#4a321f);box-shadow:0 6px 10px rgba(0,0,0,.35)}
 
 .mz-walk{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:%(px)dpx %(py)dpx}
@@ -149,7 +163,7 @@ CSS = """
 .mz-board .s1{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:30px;color:#26261a;line-height:1}
 .mz-board .s2{font-family:'Inter';font-weight:800;font-size:40px;letter-spacing:.06em;line-height:1;margin:10px 0 0 .06em}
 .mz-board .s3{font-family:'Inter';font-weight:800;font-size:118px;letter-spacing:.02em;line-height:.9;margin:2px 0 4px .02em}
-.mz-board .s4{font-family:'Inter';font-weight:500;font-size:19px;letter-spacing:.04em;color:#2d2d20}
+.mz-board .s4{font-family:'Inter';font-weight:600;font-size:26px;line-height:1.1;letter-spacing:.02em;color:#26261a}
 
 .mz-vig{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 92%% 68%% at 44%% 43%%,rgba(0,0,0,0) 52%%,rgba(8,5,2,.46) 100%%)}
@@ -161,6 +175,12 @@ CSS = """
 @keyframes mzblip{0%%,100%%{opacity:1}30%%{opacity:.55}55%%{opacity:.9}70%%{opacity:.7}}
 @keyframes mzfade{from{opacity:0}to{opacity:1}}
 @keyframes mzunfade{from{opacity:1}to{opacity:0}}
+/* the gallery's lights are on motion sensors: a bay goes dark as the guide walks on */
+@keyframes mzdown{from{opacity:1}to{opacity:0}}
+@keyframes mzdown8{from{opacity:.8}to{opacity:0}}
+@keyframes mzfigout{from{filter:brightness(1) saturate(1)}to{filter:brightness(.3) saturate(.55)}}
+@keyframes mztin{from{opacity:.26}to{opacity:1}}
+@keyframes mztout{from{opacity:1}to{opacity:.26}}
 @keyframes mzrule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 """
 
@@ -315,6 +335,21 @@ def _a(name: str, t: float, dur: float, ease: str = "linear", extra: str = "") -
     return f"animation:{name} {dur:.3f}s {ease} {t:.3f}s 1 normal both;{extra}"
 
 
+def _on_off(on: str, t_on, off: str, t_off, dur_on: float = .62, ease_on: str = "linear",
+            dur_off: float = .4) -> str:
+    """Inline animation for something a bay's lights control: `on` at t_on (None:
+    it starts on), `off` from t_off (None: it stays on). The gallery is after
+    hours: a bay waits in the dark, its lights click on as the guide arrives and
+    go out as the guide walks on, so its words are only lit while the camera
+    rests on them."""
+    a = []
+    if t_on is not None:
+        a.append(f"{on} {dur_on:.3f}s {ease_on} {t_on:.3f}s 1 normal both")
+    if t_off is not None:
+        a.append(f"{off} {dur_off:.3f}s ease-in {t_off:.3f}s 1 normal forwards")
+    return f"animation:{','.join(a)};" if a else ""
+
+
 def _kind(it: dict) -> str:
     rarity = it.get("rarity_label") or (it.get("rarity") or "").title()
     return " ".join(x for x in (rarity, it.get("type") or "") if x).strip()
@@ -402,11 +437,11 @@ def _glass(x: float, top: float, w: int, bottom: float, d: int) -> str:
             f'stroke-width="2.5"/></svg>')
 
 
-def _lights(x0: float, t_on, placard: bool = True) -> str:
+def _lights(x0: float, t_on, placard: bool = True, t_off=None) -> str:
     """The pools of light an exhibit's spot and label light throw on the wall and
-    floor. t_on=None: already on."""
-    on = "" if t_on is None else _a("mzon", t_on, .62)
-    wash = "" if t_on is None else _a("mzfade", t_on + (LABEL - CLICK), .45, "ease-out")
+    floor. t_on=None: already on; t_off: when they go out."""
+    on = _on_off("mzon", t_on, "mzdown", t_off)
+    wash = _on_off("mzfade", None if t_on is None else t_on + (LABEL - CLICK), "mzdown", t_off, .45, "ease-out")
     out = (f'<div class="mz-pool" style="left:{x0 + FX + 26:.0f}px;top:700px;{on}"></div>'
            f'<div class="mz-fpool" style="left:{x0 + FX + 10:.0f}px;top:{PL_FRONT + PL_H + 16}px;{on}"></div>')
     if placard:
@@ -415,49 +450,52 @@ def _lights(x0: float, t_on, placard: bool = True) -> str:
     return out
 
 
-def _fixture(x0: float, t_on) -> str:
+def _fixture(x0: float, t_on, t_off=None) -> str:
     fx = x0 + FX - 64
-    lens = "" if t_on is None else _a("mzon", t_on, .62)
+    lens = _on_off("mzon", t_on, "mzdown", t_off)
     return (f'<div class="mz-fix" style="left:{fx - 17:.0f}px;top:{CEIL + 12}px;transform:rotate(-16deg)">'
             f'<div class="mz-lens" style="left:4px;bottom:-3px;{lens}"></div></div>')
 
 
-def _cone(x0: float, t_on, bottom: float) -> str:
+def _cone(x0: float, t_on, bottom: float, t_off=None) -> str:
     fx = x0 + FX - 64
     cl, cr, ctop, cbot = x0 + FX - 214, x0 + FX + 196, CEIL + 70, bottom - 30
     lens = (fx + 6 - cl) / (cr - cl) * 100
-    on = "" if t_on is None else _a("mzon", t_on, .62)
+    on = _on_off("mzon", t_on, "mzdown", t_off)
     return (f'<div class="mz-conew" style="left:{cl:.0f}px;top:{ctop}px;width:{cr - cl:.0f}px;height:{cbot - ctop:.0f}px;'
             f'{on}"><div class="mz-cone" style="clip-path:polygon({lens - 1.5:.1f}% 0,{lens + 1.5:.1f}% 0,100% 100%,'
             f'0 100%)"></div></div>')
 
 
-def _exhibit(ctx, it: dict, uid: str, x0: float, t_on, fig_h: int = FIG_H) -> str:
+def _exhibit(ctx, it: dict, uid: str, x0: float, t_on, fig_h: int = FIG_H, t_off=None) -> str:
     """The plinth and what's on it: an outfit standing on a plinth, or anything
-    else inside a glass case; a card with the name when there's no art."""
+    else inside a glass case; a card with the name when there's no art. t_on /
+    t_off: when its spot comes on and goes out (None: on from the start / stays on)."""
     art = ctx.art(it)
     figure = _is_figure(it) and bool(art)
-    dim = "" if t_on is None else _a("mzoff", t_on, .62)
-    dimfig = "" if t_on is None else _a("mzfig", t_on, .62)
+    dark = t_on is not None or t_off is not None            # there's a darkened state to draw
+    dim = _on_off("mzoff", t_on, "mzfade", t_off) + ("opacity:0;" if t_on is None else "")
+    dimfig = _on_off("mzfig", t_on, "mzfigout", t_off)
+    lit = _on_off("mzon", t_on, "mzdown", t_off)
     cx = x0 + FX
     html = []
     if figure:
         top = PL_FRONT - PL_D
         html.append(f'<div class="mz-slot mz-wsh" id="mzwsh-{uid}" style="left:{cx:.0f}px;top:{PL_FRONT - 10}px;'
-                    f'{_a("mzon", t_on, .62) if t_on is not None else ""}"></div>')
-        html.append(_cone(x0, t_on, PL_FRONT))
+                    f'{lit}"></div>')
+        html.append(_cone(x0, t_on, PL_FRONT, t_off))
         pb = PL_FRONT + PL_H
         html.append(f'<div class="mz-pbase" style="left:{cx - PL_W // 2 - 26:.0f}px;top:{pb - 22}px;width:{PL_W + 58}px;'
                     f'height:40px"></div>')
         html.append(f'<div class="mz-refl" style="left:{cx - PL_W // 2:.0f}px;top:{pb + 4}px;width:{PL_W}px;height:120px;'
-                    f'{_a("mzon", t_on, .62) if t_on is not None else ""}"></div>')
+                    f'{lit}"></div>')
         html.append(_plinth(uid, cx - PL_W // 2, PL_FRONT, PL_W, PL_D, PL_H))
-        if t_on is not None:
+        if dark:
             html.append(f'<div class="abs" style="left:{cx - PL_W // 2 - 2:.0f}px;top:{top - 2}px;width:{PL_W + 10}px;'
                         f'height:{PL_D + PL_H + 4}px;background:rgba(16,12,9,.62);clip-path:polygon(0 {PL_D + 2}px,'
                         f'8.5% 0,100% 0,100% 100%,0 100%);{dim}"></div>')
         html.append(f'<div class="mz-cast" style="left:{cx - 40:.0f}px;top:{top + 8}px;width:150px;height:40px;'
-                    f'{_a("mzon", t_on, .62) if t_on is not None else ""}"></div>')
+                    f'{lit}"></div>')
         html.append(f'<div class="mz-slot" id="mzfeet-{uid}" style="left:{cx:.0f}px;top:{PL_FRONT - 10}px"></div>')
         html.append(f'<div class="mz-art" data-id="{uid}" data-mode="figure" data-w="{FIG_W}" data-h="{fig_h}" '
                     f'data-up="2.6" style="left:{cx:.0f}px;top:{PL_FRONT - 10}px;{dimfig}">'
@@ -467,12 +505,12 @@ def _exhibit(ctx, it: dict, uid: str, x0: float, t_on, fig_h: int = FIG_H) -> st
     # a glass case on a plinth
     top = OB_FRONT - OB_D
     floor_y = OB_FRONT - 22
-    html.append(_cone(x0, t_on, OB_FRONT))
+    html.append(_cone(x0, t_on, OB_FRONT, t_off))
     pb = OB_FRONT + OB_H
     html.append(f'<div class="mz-pbase" style="left:{cx - OB_W // 2 - 26:.0f}px;top:{pb - 22}px;width:{OB_W + 58}px;'
                 f'height:40px"></div>')
     html.append(f'<div class="mz-refl" style="left:{cx - OB_W // 2:.0f}px;top:{pb + 4}px;width:{OB_W}px;height:120px;'
-                f'{_a("mzon", t_on, .62) if t_on is not None else ""}"></div>')
+                f'{lit}"></div>')
     html.append(_plinth(uid, cx - OB_W // 2, OB_FRONT, OB_W, OB_D, OB_H))
     html.append(f'<div class="mz-slot" id="mzfeet-{uid}" style="left:{cx - 8:.0f}px;top:{floor_y}px"></div>')
     if art:
@@ -482,71 +520,85 @@ def _exhibit(ctx, it: dict, uid: str, x0: float, t_on, fig_h: int = FIG_H) -> st
     else:
         # no picture of it: a card with its name stands in the case
         html.append(f'<div class="abs" style="left:{cx - 8 - 150:.0f}px;top:{floor_y - 2}px;width:300px;height:0;'
-                    f'{dimfig}"><div class="mz-tent" style="left:5px;bottom:0;transform:rotate(-2deg);'
-                    f'transform-origin:50% 100%"><div class="t" data-mzfit="250" data-mzlines="3" '
-                    f'style="width:250px;margin:0 auto">{esc(it["name"])}</div>'
-                    f'<div class="u">{esc(_kind(it).upper())}</div></div></div>')
+                    f'{dimfig}"><div class="abs" style="left:0;top:0;width:300px;height:0;'
+                    f'{_on_off("mztin", t_on, "mztout", t_off, .3)}"><div class="mz-tent" style="left:5px;bottom:0;'
+                    f'transform:rotate(-2deg);transform-origin:50% 100%"><div class="t" data-mzfit="250" '
+                    f'data-mzlines="3" style="width:250px;margin:0 auto">{esc(it["name"])}</div>'
+                    f'<div class="u" data-mzfit="250" data-mzlines="2" style="width:250px;margin:12px auto 0">'
+                    f'{esc(_kind(it).upper())}</div></div></div></div>')
     html.append(_glass(cx - OB_W // 2 + 4, VT_TOP, OB_W - 8, OB_FRONT - 4, VT_D))
-    if t_on is not None:
+    if dark:
         html.append(f'<div class="abs" style="left:{cx - OB_W // 2 - 2:.0f}px;top:{VT_TOP - VT_D - 2}px;'
                     f'width:{OB_W + 30}px;height:{OB_FRONT + OB_H - VT_TOP + VT_D + 4}px;background:rgba(16,12,9,.55);'
                     f'{dim}"></div>')
     return "".join(html)
 
 
-def _placard(it: dict, x: float, y: float, t_label) -> str:
-    dim = "" if t_label is None else f'<div class="dim" style="{_a("mzunfade", t_label, .45, "ease-out")}"></div>'
-    iw = COL_W - 64
-    return (f'<div class="mz-card" data-mzmaxh="{PLACARD_MAXH}" style="left:{x:.0f}px;top:{y:.0f}px">'
-            f'<div class="n" data-mzfit="{iw}" data-mzlines="2" style="width:{iw}px">{esc(it["name"])}</div>'
+def _placard(it: dict, x: float, y: float, t_label, t_off=None) -> str:
+    dim = (f'<div class="dim" style="{_on_off("mzunfade", t_label, "mzfade", t_off, .45, "ease-out")}"></div>'
+           if t_label is not None or t_off is not None else "")
+    iw = COL_W - 56
+    return (f'<div class="mz-card" data-mzmaxh="{PLACARD_MAXH}" style="left:{x:.0f}px;top:{y:.0f}px;'
+            f'{_on_off("mztin", t_label, "mztout", t_off, .45, "ease-out")}">'
+            f'<div class="n" data-mzfit="{iw}" data-mzlines="3" style="width:{iw}px">{esc(it["name"])}</div>'
             f'<div class="k" data-fit="{iw}">{esc(_kind(it))}</div><div class="r"></div>'
             f'<div class="l">Introduced in</div><div class="v" data-mzfit="{iw}" data-mzlines="2" data-mzone=".82" '
             f'style="width:{iw}px;white-space:normal">{_nb(esc(_intro(it)))}</div>'
-            f'<div class="l">In the shop today</div><div class="v" data-fit="{iw}">{int(it["price"]):,} V-Bucks</div>'
+            f'<div class="l">Today\'s price</div><div class="v" data-fit="{iw}">{int(it["price"]):,} V-Bucks</div>'
             f'{dim}</div>')
 
 
-def _bay_exhibit(ctx, it: dict, k: int, n: int, x0: float, t0: float, last_note: str) -> tuple:
-    """One exhibit's bay; t0 is the start of its slot. Returns (html, sounds)."""
+def _bay_exhibit(ctx, it: dict, k: int, n: int, x0: float, t0: float, last_note: str, t_off: float) -> tuple:
+    """One exhibit's bay; t0 is the start of its slot, t_off when its lights go
+    out behind the guide. Returns (html, sounds)."""
     rank = n - k
     t_on, t_label = t0 + CLICK, t0 + LABEL
     uid = f"e{k}"
-    html = [_lights(x0, t_on), _fixture(x0, t_on), _exhibit(ctx, it, uid, x0, t_on),
-            f'<div class="abs" style="left:{x0 + COL_X:.0f}px;top:{HDR_Y}px">'
-            f'<div class="mz-hdr-k mz-nw">EXHIBIT</div><div class="mz-hdr-n mz-nw">No. {rank}</div></div>',
-            _placard(it, x0 + COL_X, PLACARD_Y, t_label)]
-    sounds = [(t0 - PAN_LEAD + .08, "whoosh"), (t_on, "click")]
+    note = ""
     if last_note:
         # No. 1: the wall says so, in the museum's hand, and a gold rule draws under it.
         tw = t0 + 2.25
-        html.append(f'<div class="abs mz-hdr-x mz-nw" data-fit="{COL_W}" style="left:{x0 + COL_X + 2:.0f}px;'
-                    f'top:{HDR_Y + 152}px;{write_on(tw, .7, 16)}">{esc(last_note)}</div>'
-                    f'<div class="abs" style="left:{x0 + COL_X + 4:.0f}px;top:{HDR_Y + 214}px;width:230px;height:3px;'
-                    f'background:linear-gradient(90deg,#9a7a32,#e4c77e 45%,#a8843a);transform-origin:0 50%;'
-                    f'{_a("mzrule", tw + .55, .45, "cubic-bezier(.3,0,.2,1)")}"></div>')
+        note = (f'<div class="abs mz-hdr-x mz-nw" data-fit="{COL_W}" style="left:{x0 + COL_X + 2:.0f}px;'
+                f'top:{HDR_Y + 158}px;{write_on(tw, .7, 16)}">{esc(last_note)}</div>'
+                f'<div class="abs" style="left:{x0 + COL_X + 4:.0f}px;top:{HDR_Y + 220}px;width:230px;height:3px;'
+                f'background:linear-gradient(90deg,#9a7a32,#e4c77e 45%,#a8843a);transform-origin:0 50%;'
+                f'{_a("mzrule", tw + .55, .45, "cubic-bezier(.3,0,.2,1)")}"></div>')
+    html = [_lights(x0, t_on, t_off=t_off), _fixture(x0, t_on, t_off), _exhibit(ctx, it, uid, x0, t_on, t_off=t_off),
+            f'<div class="abs" style="inset:0;{_on_off("mztin", t_on, "mztout", t_off, .45, "ease-out")}">'
+            f'<div class="abs" style="left:{x0 + COL_X:.0f}px;top:{HDR_Y}px">'
+            f'<div class="mz-hdr-k mz-nw">EXHIBIT</div><div class="mz-hdr-n mz-nw">No. {rank}</div></div>{note}</div>',
+            _placard(it, x0 + COL_X, PLACARD_Y, t_label, t_off)]
+    sounds = [(t0 - PAN_LEAD + .08, "whoosh"), (t_on, "click")]
+    if last_note:
         sounds.append((tw, "reveal"))
     return "".join(html), sounds
 
 
-def _bay_hook(ctx, hero: dict, n: int, x0: float = 0) -> str:
+def _bay_hook(ctx, hero: dict, n: int, x0: float, t_off: float) -> str:
     day = ctx.day
     when = day.strftime("%B %-d, %Y").upper()
     # the spot hums once as the video starts (frame 0 is fully lit)
     blip = _a("mzblip", .3, .35)
-    html = [f'<div class="abs" style="inset:0;{blip}">{_lights(x0, None)}</div>',
-            f'<div class="mz-wash" style="left:{x0 + 420}px;top:300px;opacity:.8"></div>',
-            _fixture(x0, None), _exhibit(ctx, hero, "hero", x0, None, FIG_H - 44),
-            f'<div class="mz-title mz-nw" style="left:{x0 + 84}px;top:212px">THE OG MUSEUM</div>'
-            f'<div class="mz-hair" style="left:{x0 + 88}px;top:294px;width:86px"></div>'
-            f'<div class="mz-sub mz-nw" style="left:{x0 + 86}px;top:310px">The oldest items in today\'s Item Shop</div>'
-            f'<div class="mz-sc mz-nw" style="left:{x0 + 88}px;top:374px">FORTNITE · {esc(when)}</div>']
+    words_off = _on_off("", None, "mztout", t_off, dur_off=.35)
+    html = [f'<div class="abs" style="inset:0;{blip}">{_lights(x0, None, t_off=t_off)}</div>',
+            f'<div class="mz-wash" style="left:{x0 + 420}px;top:300px;opacity:.8;'
+            f'{_on_off("", None, "mzdown8", t_off)}"></div>',
+            _fixture(x0, None, t_off), _exhibit(ctx, hero, "hero", x0, None, FIG_H - 100, t_off),
+            f'<div class="abs" style="inset:0;{words_off}">',
+            # the title block sits under Instagram's grid crop (frame 0 is the cover)
+            f'<div class="mz-title mz-nw" data-fit="{880 - TXT_X}" style="left:{x0 + TXT_X - 2}px;top:294px">'
+            f'THE OG MUSEUM</div>'
+            f'<div class="mz-hair" style="left:{x0 + TXT_X + 2}px;top:372px;width:86px"></div>'
+            f'<div class="mz-sub mz-nw" data-fit="{880 - TXT_X}" style="left:{x0 + TXT_X}px;top:384px">'
+            f'The oldest items in today\'s Item Shop</div>'
+            f'<div class="mz-sc mz-nw" style="left:{x0 + TXT_X + 2}px;top:450px">FORTNITE · {esc(when)}</div>']
     words = {6: "Six", 7: "Seven", 8: "Eight"}.get(n, str(n))
-    html.append(f'<div class="mz-card" style="left:{x0 + COL_X}px;top:{PLACARD_Y + 30}px">'
-                f'<div class="l">Today\'s exhibition</div>'
-                f'<div class="p" style="margin-top:10px">{words} items from today\'s shop, counting down to the '
+    html.append(f'<div class="mz-card" style="left:{x0 + COL_X}px;top:{PLACARD_Y + 20}px">'
+                f'<div class="p" style="font-style:italic;font-size:42px;line-height:1">Today\'s exhibition</div>'
+                f'<div class="p" style="margin-top:14px">{words} items from today\'s shop, counting down to the '
                 f'oldest.</div><div class="r"></div>'
-                f'<div class="l" style="white-space:normal;line-height:1.25">Each is dated by the season Epic says it '
-                f'was introduced in.</div></div>')
+                f'<div class="p" style="font-family:Inter;font-size:30px;line-height:1.25;color:#4b443c">Each is dated '
+                f'by the season Epic says it was introduced in.</div></div></div>')
     return "".join(html)
 
 
@@ -562,33 +614,36 @@ def _postcard(ctx, it: dict, x: float, y: float, rot: float) -> str:
              f'{esc(it["name"])}</div>')
     return (f'<div class="mz-post" style="left:{x:.0f}px;top:{y:.0f}px;transform:rotate({rot}deg)">'
             f'<div class="ph" style="background:{bg}">{inner}</div>'
-            f'<div class="cap" data-fit="206">{esc(it["name"])}</div></div>')
+            f'<div class="cap"><div data-mzfit="214" data-mzlines="2" style="width:214px">{esc(it["name"])}</div>'
+            f'</div></div>')
 
 
-def _bay_exit(ctx, picks: list, x0: float) -> str:
+def _bay_exit(ctx, picks: list, x0: float, t_on: float) -> str:
+    """The exit wall: dark until the guide arrives, then its lights come on."""
     outfits = [i for i in picks if _is_figure(i)]
     three = (outfits + [i for i in picks if i not in outfits])[:3]
-    html = [f'<div class="mz-pool" style="left:{x0 + 540}px;top:760px;opacity:.9"></div>',
-            f'<div class="mz-wash" style="left:{x0 + 540}px;top:420px;opacity:.9"></div>',
-            f'<div class="mz-title mz-nw" style="left:{x0 + 84}px;top:212px;font-size:48px;letter-spacing:.28em">'
-            f'THANK YOU FOR VISITING</div>'
-            f'<div class="mz-hair" style="left:{x0 + 88}px;top:280px;width:86px"></div>'
-            f'<div class="mz-sub" style="left:{x0 + 84}px;top:296px;font-size:90px;line-height:1">How OG is<br>'
+    html = [f'<div class="abs" style="inset:0;{_on_off("mzon", t_on, "", None)}">'
+            f'<div class="mz-pool" style="left:{x0 + 540}px;top:760px;opacity:.9"></div>'
+            f'<div class="mz-wash" style="left:{x0 + 540}px;top:420px;opacity:.9"></div></div>',
+            f'<div class="abs" style="inset:0;{_on_off("mztin", t_on, "", None, .45, "ease-out")}">',
+            f'<div class="mz-title mz-nw" data-fit="{880 - TXT_X}" style="left:{x0 + TXT_X - 2}px;top:272px;'
+            f'font-size:42px;letter-spacing:.22em">THANK YOU FOR VISITING</div>'
+            f'<div class="mz-hair" style="left:{x0 + TXT_X + 2}px;top:334px;width:86px"></div>'
+            f'<div class="mz-sub" style="left:{x0 + TXT_X - 2}px;top:348px;font-size:88px;line-height:1">How OG is<br>'
             f'your locker?</div>'
-            f'<div class="mz-sc mz-nw" style="left:{x0 + 90}px;top:516px">TELL US IN THE COMMENTS</div>'
-            f'<div class="mz-sc mz-nw" style="left:{x0 + 90}px;top:574px;font-size:21px;letter-spacing:.3em;'
-            f'color:#5e554b">POSTCARDS · TODAY\'S EXHIBITS</div>']
+            f'<div class="mz-sc mz-nw" style="left:{x0 + TXT_X + 2}px;top:562px">TELL US IN THE COMMENTS</div>']
     for j, it in enumerate(three):
-        x, rot = [(84, -3), (372, 2), (660, -2)][j]
-        html.append(_postcard(ctx, it, x0 + x, 606, rot))
-    html.append(f'<div class="mz-ledge" style="left:{x0 + 60}px;top:880px;width:900px"></div>')
+        x, rot = [(102, -3), (364, 2), (626, -2)][j]
+        html.append(_postcard(ctx, it, x0 + x, 616, rot))
+    html.append(f'<div class="mz-ledge" style="left:{x0 + 70}px;top:918px;width:830px"></div></div>')
     return "".join(html)
 
 
 def _paddle() -> str:
     return (f'<div class="mz-paddle" style="left:{PAD_X}px;top:{PAD_Y}px">'
             f'<div class="mz-pole" style="top:200px"></div>'
-            f'<div class="mz-board"><div class="s1 mz-nw">Support the museum</div><div class="s2 mz-nw">USE CODE:</div>'
+            f'<div class="mz-board" data-safe="key" data-name="code"><div class="s1 mz-nw">Support the museum</div>'
+            f'<div class="s2 mz-nw">USE CODE:</div>'
             f'<div class="s3">BAD</div><div class="s4">#EpicPartner</div></div></div>')
 
 
@@ -609,7 +664,6 @@ def _camera(comp: Comp, pans: list, pushes: list, dur: float):
     rope.append((dur, f"transform:translateX({-len(pans) * ROPE_P}px)", ""))
 
     # dolly: a slow push while an exhibit holds, easing back out as the camera moves on
-    prev_end, prev_scale = 0.0, 1.0
     dol.append((0, "transform:scale(1)", "cubic-bezier(.35,0,.45,1)"))
     dolr.append((0, "transform:scale(1)", "cubic-bezier(.35,0,.45,1)"))
     for (s, e), push in zip(pans, pushes):
@@ -661,24 +715,26 @@ def og_check(ctx, picks: list) -> Comp:
     bays = n + 2
     width = bays * BAY + 800
 
+    # the camera walks bay to bay: pans[k] leaves bay k (0 = the entrance) for the next
+    pans = [(HOOK + k * R - PAN_LEAD, HOOK + k * R - PAN_LEAD + PAN_D) for k in range(n + 1)]
+    pushes = [1.03] * n + [1.055]                 # No. 1 gets a closer look
+    out = lambda k: pans[k][0] + .05              # bay k's lights go out as the guide walks on
+
     # ---- the room: one long wall, a bay per exhibit
     room = [f'<div class="mz-wall" style="width:{width}px"></div>',
             f'<div class="mz-floor" style="width:{width}px"></div>',
             f'<div class="mz-gap" style="width:{width}px"></div>',
             f'<div class="mz-ceil" style="width:{width}px"></div>',
             f'<div class="mz-track" style="width:{width}px"></div>',
-            _bay_hook(ctx, hero, n, 0)]
+            _bay_hook(ctx, hero, n, 0, out(0))]
     sounds = [(.3, "click")]
     for k, it in enumerate(show):
         t0 = HOOK + k * R
         note = ("Tied for oldest" if tied else "The oldest today") if k == n - 1 else ""
-        html, snd = _bay_exhibit(ctx, it, k, n, (k + 1) * BAY, t0, note)
+        html, snd = _bay_exhibit(ctx, it, k, n, (k + 1) * BAY, t0, note, out(k + 1))
         room.append(html)
         sounds += snd
-    room.append(_bay_exit(ctx, picks, (n + 1) * BAY))
-
-    pans = [(HOOK + k * R - PAN_LEAD, HOOK + k * R - PAN_LEAD + PAN_D) for k in range(n + 1)]
-    pushes = [1.03] * n + [1.055]                 # No. 1 gets a closer look
+    room.append(_bay_exit(ctx, picks, (n + 1) * BAY, pans[n][1] + .05))
     _camera(comp, pans, pushes, dur)
 
     comp.add(f'<div class="full" style="z-index:0;background:#1d1915">'
@@ -705,7 +761,7 @@ def og_check(ctx, picks: list) -> Comp:
     comp.add(PREP_JS)
     comp.add(ART_JS)
 
-    sounds += [(content_end - PAN_LEAD + .08, "whoosh"), (content_end + 1.3, "clap")]
+    sounds += [(content_end - PAN_LEAD + .08, "whoosh"), (pans[n][1] + .05, "click"), (content_end + 1.3, "clap")]
     for t, kind in sounds:
         comp.cue(t, kind)
     comp.cues.sort()
