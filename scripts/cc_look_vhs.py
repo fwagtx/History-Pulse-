@@ -323,8 +323,8 @@ def _cassette(title: str, names: str, day_txt: str, part: str) -> str:
             f'<div class="abs" style="left:66px;top:18px;width:{CW - 132}px;height:262px;border-radius:10px;'
             f'box-shadow:inset 0 2px 5px rgba(0,0,0,.85),0 1px 0 rgba(255,255,255,.06)"></div>'
             + _label(title, names, day_txt, part)
-            + f'<div class="abs" style="left:150px;top:292px;width:660px;height:196px;border-radius:98px;'
-              f'box-shadow:inset 0 3px 8px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.05);background:rgba(0,0,0,.18)"></div>'
+            + '<div class="abs" style="left:150px;top:292px;width:660px;height:196px;border-radius:98px;'
+              'box-shadow:inset 0 3px 8px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.05);background:rgba(0,0,0,.18)"></div>'
             + _reel(252, 390, 80) + _reel(708, 390, 44)
             + f'<div class="abs ribs" style="left:18px;top:300px;width:92px;height:190px"></div>'
               f'<div class="abs ribs" style="left:{CW - 110}px;top:300px;width:92px;height:190px"></div>'
@@ -401,19 +401,19 @@ MOVES = ("drift", "zoom", "hold", "drift", "pan", "zoom", "hold", "drift")
 
 
 def _move(move: str, rnd: random.Random) -> tuple:
-    """(transform-origin, from, to) for one recording's camera: scale and shift,
-    no rotation (which the video encoder can't follow cheaply)."""
+    """(transform-origin, (scale, x, y) from, (scale, x, y) to) for one
+    recording's camera. No rotation: the video encoder can't follow it cheaply."""
     j = lambda a: rnd.uniform(-a, a)
     if move == "zoom":
-        return "580px 760px", (1.03, j(6), j(6), 0), (rnd.uniform(1.2, 1.24), j(8), j(8), 0)
+        return "580px 760px", (1.03, j(6), j(6)), (rnd.uniform(1.2, 1.24), j(8), j(8))
     if move == "pan":
         d = 1 if rnd.random() < .5 else -1
-        return "580px 1000px", (1.1, 34 * d, j(6), 0), (1.11, -34 * d, j(6), 0)
+        return "580px 1000px", (1.1, 34 * d, j(6)), (1.11, -34 * d, j(6))
     if move == "hold":
         s0 = rnd.uniform(1.05, 1.07)
-        return "580px 1000px", (s0, j(4), j(4), 0), (s0 + .006, j(4), j(4), 0)
+        return "580px 1000px", (s0, j(4), j(4)), (s0 + .006, j(4), j(4))
     s0 = rnd.uniform(1.035, 1.06)
-    return "580px 1000px", (s0, j(14), j(14), 0), (s0 + rnd.uniform(.025, .06), j(14), j(14), 0)
+    return "580px 1000px", (s0, j(14), j(14)), (s0 + rnd.uniform(.025, .06), j(14), j(14))
 
 
 def _clip(comp: Comp, tr: _Tracks, k: int, it: dict, theme: dict, t0: float, t_in: float, roll: bool,
@@ -423,7 +423,7 @@ def _clip(comp: Comp, tr: _Tracks, k: int, it: dict, theme: dict, t0: float, t_i
     starts, and tears away at a tape cut."""
     hand = comp.uid("vh")
     move = MOVES[k % len(MOVES)] if _is_figure(it) else ("drift", "hold")[k % 2]
-    origin, (s0, tx0, ty0, r0), (s1, tx1, ty1, r1) = _move(move, rnd)
+    origin, (s0, tx0, ty0), (s1, tx1, ty1) = _move(move, rnd)
     comp.css(f"@keyframes {hand}{{from{{transform:scale({s0:.3f}) translate({tx0:.1f}px,{ty0:.1f}px)}}"
              f"to{{transform:scale({s1:.3f}) translate({tx1:.1f}px,{ty1:.1f}px)}}}}")
     band = comp.uid("vb")
@@ -731,15 +731,6 @@ function noise(c, kind, rand) {
       const y = Math.floor(rand() * h), x0 = Math.floor(rand() * w), L = 2 + Math.floor(rand() * 14), a = 150 + rand() * 105;
       for (let x = x0; x < Math.min(w, x0 + L); x++) { const j = (y * w + x) * 4; p[j] = p[j + 1] = p[j + 2] = 245; p[j + 3] = a; }
     }
-  } else if (kind === 'grain') {
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const j = (y * w + x) * 4, n = (rand() + rand() + rand() - 1.5) * 1.4;
-      p[j] = p[j + 1] = p[j + 2] = n > 0 ? 255 : 0; p[j + 3] = Math.min(255, Math.abs(n) * 26);
-    }
-    for (let k = 0; k < 26; k++) {                  // dropouts: short bright dashes
-      const y = Math.floor(rand() * h), x0 = Math.floor(rand() * w), L = 3 + Math.floor(rand() * 22);
-      for (let x = x0; x < Math.min(w, x0 + L); x++) { const j = (y * w + x) * 4; p[j] = p[j + 1] = p[j + 2] = 250; p[j + 3] = 200; }
-    }
   } else {                                          // snow, or a search bar (snow fading out top and bottom)
     const bar = kind === 'bar';
     for (let y = 0; y < h; y++) {
@@ -767,15 +758,21 @@ async function vhsPrep() {
   const rand = rng(CFG.seed);
   for (const c of document.querySelectorAll('canvas.vhs-noise')) noise(c, c.dataset.kind, rand);
   const jobs = [];
-  for (const P of CFG.plates) {
-    const url = await blob(plate(P, T, P.art >= 0 ? arts[P.art] : null));
-    for (const el of document.querySelectorAll(`img.vhs-plate[data-p="${P.k}"]`)) { el.src = url; jobs.push(ready(el)); }
+  for (const P of CFG.plates) {                     // one bad plate must not cost the others
+    try {
+      let url;
+      try { url = await blob(plate(P, T, P.art >= 0 ? arts[P.art] : null)); }
+      catch (e) { console.error('vhs plate', P.k, e); url = await blob(plate(P, T, null)); }
+      for (const el of document.querySelectorAll(`img.vhs-plate[data-p="${P.k}"]`)) { el.src = url; jobs.push(ready(el)); }
+    } catch (e) { console.error('vhs plate', P.k, e); }
   }
   for (const P of CFG.photos) {
-    const art = P.art >= 0 ? arts[P.art] : null;
-    if (!art) continue;
-    const url = await blob(photo(P, T, art));
-    for (const el of document.querySelectorAll(`img.vhs-photo[data-p="${P.k}"]`)) { el.src = url; jobs.push(ready(el)); }
+    try {
+      const art = P.art >= 0 ? arts[P.art] : null;
+      if (!art) continue;
+      const url = await blob(photo(P, T, art));
+      for (const el of document.querySelectorAll(`img.vhs-photo[data-p="${P.k}"]`)) { el.src = url; jobs.push(ready(el)); }
+    } catch (e) { console.error('vhs photo', P.k, e); }
   }
   await Promise.all(jobs);
 }
@@ -909,8 +906,10 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     comp.add(_layer(tr, stop_w + eject_w, 7, menu))
     comp.cue(t_eject, "click"); comp.cue(t_land - .05, "tape")
 
-    # ---- the tape over everything from the first blue frame: grain, snow at the
-    # cuts, search bars when it winds, scanlines and a CRT's dark corners, a flicker
+    # ---- the tape over everything from the first blue frame: dropouts, snow at
+    # the cuts, search bars when it winds, scanlines and a CRT's dark corners, a
+    # flicker. (Fine grain that changes every frame would triple the file size and
+    # the encoding time: the picture carries its own still grain instead.)
     snow_pts = [(0, 0), (T_ROLL - .1, 1), (T_ROLL + .04, 0)]
     for tc, st in zip(cuts, styles):
         if st == "glitch":           # the picture tears, a burst of snow, the next recording rolls in
