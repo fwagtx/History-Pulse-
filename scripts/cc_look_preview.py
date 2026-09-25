@@ -102,6 +102,7 @@ def main():
 
     from cc_formats import Ctx
     from cc_build import post_problems
+    import cc_looks as LK
     art = stand_in_art(args.art)
     if args.shop:
         from cc_build import builder
@@ -151,7 +152,8 @@ def main():
     probs = post_problems(v)
     lime = {p.stem: lime_pixels(p) for p in stills}
     print(json.dumps({
-        "format": v.format, "duration": round(dur, 2), "length_ok": 62 - .01 <= dur <= 90,
+        "format": v.format, "look": LK.draw.last or "classic",
+        "duration": round(dur, 2), "length_ok": 62 - .01 <= dur <= 90,
         "post_problems": probs, "title": v.title, "yt_title": v.yt_title,
         "lime_code_pixels_min": min(lime.values()) if lime else None,
         "lime_code_pixels": lime, "out": str(out),

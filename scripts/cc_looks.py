@@ -84,10 +84,16 @@ def draw(look, fn: str, *args):
     if look is None:
         return None
     try:
-        return getattr(look, fn)(*args)
+        comp = getattr(look, fn)(*args)
+        draw.last = look.__name__            # for QA: which look drew the last video
+        return comp
     except Exception:  # noqa: BLE001 - a bad day's data must never cost a video
         _warn(f"{look.__name__}.{fn} failed; using the classic look")
+        draw.last = f"classic ({look.__name__} failed)"
         return None
+
+
+draw.last = None
 
 
 def _warn(msg: str):
