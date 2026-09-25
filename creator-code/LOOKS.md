@@ -13,7 +13,7 @@ is big: "BAD" is at least 110 px tall in a 1920 px video.
 | Look | Video type | Switch in `looks.json` | Status |
 |---|---|---|---|
 | Scrapbook | On This Day | `on_this_day` | **On** since Sep 25, 2026 |
-| VHS tape | Fortnitemares throwbacks | `throwback@fortnitemares` | Off, being tested |
+| VHS tape | Fortnitemares throwbacks | `throwback@fortnitemares` | **On** since Sep 25, 2026 |
 | Yearbook | Guess the Season | `guess_season` | Off, being tested |
 | Yearbook | Season Throwback | `throwback` | Off, being tested |
 | Trading card | Who's That Skin? | `whos_that` | Off, being tested |
