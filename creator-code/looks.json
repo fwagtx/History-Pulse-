@@ -6,6 +6,6 @@
   "whos_that": false,
   "odd_one_out": false,
   "last_chance": false,
-  "bundle_math": false,
-  "og_check": false
+  "bundle_math": true,
+  "og_check": true
 }
