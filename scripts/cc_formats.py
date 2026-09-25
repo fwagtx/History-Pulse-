@@ -364,58 +364,165 @@ def this_or_that(ctx: Ctx):
     lead = next((k for k, (a, _) in enumerate(pairs) if a["type"] == "Outfit"), 0)
     pairs.insert(0, pairs.pop(lead))
 
-    HOOK, R = 3.0, 10.4
-    content_end = HOOK + len(pairs) * R
+    HOOK = 3.0
+    n = len(pairs)
+    example = "ABBAB"[:n]
+    # Five rounds of 10.4 s make a 62.5 s video. With only four pairs the rounds
+    # stretch a little (to 12 s) rather than leave a 17-second end card.
+    R = max(10.4, min(12.0, (MIN_SECONDS - 7.5 - HOOK) / n))
+    content_end = HOOK + n * R
     outro = _pad(content_end)
     comp = Comp(content_end + outro)
     _hook_scene(comp, ctx, "THIS OR THAT", "COMMENT A OR B FOR EVERY ROUND",
-                f"{len(pairs)} ROUNDS", HOOK + .3, pairs[0][0], pairs[0][1])
+                f"{n} ROUNDS", HOOK + .3, pairs[0][0], pairs[0][1])
     comp.cue(.2, "slam"); comp.cue(.9, "pop")
+
+    # Layout, all inside the apps' safe box (cc_safe). The A and B letters, the
+    # category and the call to comment sit in the wide top band; the two
+    # cosmetics stand side by side in the band beside the button rail (x 60-900),
+    # one column each, with their names and prices centred under them and the
+    # VS / countdown ring between their heads. The diagonal split between the two
+    # colour panels runs through the ring and between the columns.
+    COL_W = 372                                        # each column's text width
+    AX = SAFE_LEFT + 4 + COL_W / 2                     # 250
+    BX = SAFE_RIGHT - 4 - COL_W / 2                    # 710
+    ART_TOP, ART_MAXW = 600, 380
+    NAME_BOTTOM, PRICE_Y = 1338, 1352                  # the price pill ends ~1400
+    RING_X, RING_Y = W / 2, 648
+    SPLIT_TOP, SPLIT_BOTTOM = 570, 410                 # the split's x at y 0 and y 1920
+    LETTER, LETTER_Y, LETTER_INSET = 110, 392, 32
+    b_left = SAFE_RIGHT_TOP - LETTER_INSET - (anton_em("B") + .84 - .18) * LETTER
+
+    def lines(text: str, size: float) -> int:
+        """How many lines `text` wraps into at COL_W (each word carries .18em).
+        A few px under the column, so a borderline name counts as the longer case."""
+        k, cur = 1, 0.0
+        for w in text.upper().split():
+            ww = anton_em(w) * size
+            if cur and cur + ww > COL_W - 8:
+                k, cur = k + 1, ww
+            else:
+                cur += ww
+        return k
+
+    def name_size(*names) -> int:
+        """One size for both names, so neither side looks like the favourite:
+        both on one line if that holds at 56 px or more; else the largest size
+        (64 down to 48 px) that keeps each on two lines at most; past that,
+        48 px on as many lines as it takes."""
+        for s in range(64, 55, -2):
+            if all(lines(nm, s) == 1 for nm in names):
+                return s
+        for s in range(64, 47, -2):
+            if all(lines(nm, s) <= 2 for nm in names):
+                return s
+        # One enormous word would run out of its column at any size: shrink until it fits.
+        longest = max(anton_em(w) for nm in names for w in nm.upper().split())
+        return min(48, int((COL_W - 8) / longest))
+
+    def centred_name(text: str, cx: float, size: float, start: float) -> str:
+        """words(), centred in a column and anchored by its last line, so both
+        names end on the same line however many lines each takes. The lines are
+        set here, not left to the browser: one line stays one line, and a
+        two-line name breaks where its lines come out most even (no lone last
+        word). Each line is at least 8 px narrower than the column."""
+        ws = text.split()
+        n_lines, brk = lines(text, size), 0
+        if n_lines == 2:
+            ww = [anton_em(w) * size for w in ws]
+            brk = min(range(1, len(ws)), key=lambda j: max(sum(ww[:j]), sum(ww[j:])))
+        parts = "".join(
+            ("<br>" if i == brk and brk else "")
+            + f'<span style="display:inline-block;margin:0 .09em;{style_anim(an("rise", start + i * .06, .5))}">'
+            f'{esc(w)}</span>' for i, w in enumerate(ws))
+        nowrap = "white-space:nowrap;" if n_lines <= 2 else ""
+        return (f'<div class="abs d" style="left:{cx - COL_W / 2:.0f}px;bottom:{H - NAME_BOTTOM}px;width:{COL_W}px;'
+                f'font-size:{size}px;line-height:.92;color:#fff;text-align:center;{nowrap}'
+                f'text-shadow:0 6px 0 rgba(0,0,0,.4),0 0 30px rgba(0,0,0,.45)">{parts}</div>')
+
+    def plural(kind: str) -> str:
+        k = kind.strip()
+        low = k.lower()
+        if not k or low.endswith("s") or low == "music":
+            return k
+        if low.endswith("y") and len(k) > 1 and low[-2] not in "aeiou":
+            return k[:-1] + "ies"                       # Car Body -> Car Bodies
+        return k + ("es" if low.endswith(("x", "ch", "sh")) else "s")
 
     for k, (a, b) in enumerate(pairs, 1):
         t0 = HOOK + (k - 1) * R
+        # The countdown fills the round after the names land: no dead air at 0.
+        cd = int(R - 3.3)                               # 7 s in a 10.4 s round
+        t_cd = t0 + R - .8 - cd
         ca = (a.get("tile_colors") or [RARITY.get(a["rarity"], "#444")])
         cb = (b.get("tile_colors") or [RARITY.get(b["rarity"], "#444")])
         shake = style_anim(an("shake", t0 + .75, .35, "linear"))
+        # Each panel's stage is centred on its own column.
+        aw, bl = 2 * (AX + 70), SPLIT_BOTTOM
         inner = (f'<div class="full" style="{shake}">'
-                 f'<div class="abs" style="left:0;top:0;width:{W/2+60}px;height:{H}px;'
-                 f'clip-path:polygon(0 0,100% 0,calc(100% - 120px) 100%,0 100%)">{tile_bg(ca, a["rarity"], t0)}</div>'
-                 f'<div class="abs" style="right:0;top:0;width:{W/2+60}px;height:{H}px;'
-                 f'clip-path:polygon(120px 0,100% 0,100% 100%,0 100%)">{tile_bg(cb, b["rarity"], t0)}</div>')
-        inner += character(ctx.art(a), 285, 900, 700, t0 + .1, "fromL", .7, "float", a["rarity"], a["name"])
-        inner += character(ctx.art(b), 800, 960, 700, t0 + .25, "fromR", .7, "sway", b["rarity"], b["name"])
-        inner += sticker("A", 70, 420, 120, t0 + .5, rot=-8)
-        inner += sticker("B", 880, 420, 120, t0 + .6, bg="#ffffff", rot=7)
-        inner += (f'<div class="abs d" style="left:50%;top:560px;margin-left:-110px;width:220px;height:220px;'
-                  f'border-radius:50%;background:{INK};border:8px solid {ACCENT};display:flex;align-items:center;'
-                  f'justify-content:center;font-size:120px;color:{ACCENT};'
-                  f'{style_anim(an("slam", t0 + .65, .45))}">VS</div>')
-        inner += words(a["name"], 50, 1250, 64, t0 + .8, "#fff", .06, "rise", "left", 440)
-        inner += label(f'{a["price"]:,} V-Bucks · {a["type"]}', 50, 1380, 30, t0 + 1.0, ACCENT, 800)
-        inner += words(b["name"], SAFE_RIGHT - 10, 1250, 64, t0 + .9, "#fff", .06, "rise", "right", 440)
-        inner += (f'<div class="abs" style="right:{W - SAFE_RIGHT + 10}px;top:1380px;text-align:right">'
-                  f'<div style="font-size:30px;font-weight:800;color:{ACCENT};'
-                  f'{style_anim(an("rise", t0 + 1.1, .45))}">{esc(b["type"])} · {b["price"]:,} V-Bucks</div></div>')
+                 f'<div class="abs" style="left:-70px;top:0;width:{aw:.0f}px;height:{H}px;clip-path:polygon('
+                 f'0 0,{SPLIT_TOP + 70}px 0,{SPLIT_BOTTOM + 70}px 100%,0 100%)">{tile_bg(ca, a["rarity"], t0)}</div>'
+                 f'<div class="abs" style="left:{bl}px;top:0;width:{W - bl}px;height:{H}px;clip-path:polygon('
+                 f'{SPLIT_TOP - bl}px 0,100% 0,100% 100%,0 100%)">{tile_bg(cb, b["rarity"], t0)}</div>'
+                 f'<div class="full" style="background:linear-gradient(180deg,rgba(0,0,0,.35) 0,'
+                 f'rgba(0,0,0,0) 24%,rgba(0,0,0,0) 50%,rgba(0,0,0,.55) 64%,rgba(0,0,0,.6) 100%)"></div>')
+
+        size = name_size(a["name"], b["name"])
+        tops = [NAME_BOTTOM - lines(it["name"], size) * size * .92 for it in (a, b)]
+        art_bottom = min(tops) - 22
+        art_h = art_bottom - ART_TOP
+        cy = (ART_TOP + art_bottom) / 2
+        # data-trim (cc_looks.PREP_JS): Fortnite's art is a square with wide
+        # transparent margins; cropped to the cosmetic, it fills its column.
+        for it, x, t, enter, idle in ((a, AX, t0 + .1, "fromL", "float"), (b, BX, t0 + .25, "fromR", "sway")):
+            inner += character(ctx.art(it), x, cy, art_h, t, enter, .7, idle, it["rarity"], it["name"],
+                               maxw=ART_MAXW).replace('<img class="art"', '<img class="art" data-trim', 1)
+        inner += sticker("A", SAFE_LEFT + LETTER_INSET, LETTER_Y, LETTER, t0 + .5, rot=-8)
+        inner += sticker("B", b_left, LETTER_Y, LETTER, t0 + .6, bg="#ffffff", rot=7)
+        # What both are (a pair is always one type), then the ask once the clock starts.
+        kind = plural(a["type"]).upper()
+        if kind:
+            inner += label(kind, W / 2, LETTER_Y + 4, 30, t0 + .7, "#fff", 800, align="center",
+                           bg="rgba(10,10,11,.72)", pad="7px 18px 6px", spacing=".18em")
+        inner += (f'<div class="abs" style="left:0;width:{W}px;top:{LETTER_Y + 62}px;text-align:center">'
+                  f'<div class="d" style="display:inline-block;font-size:46px;color:#fff;background:rgba(10,10,11,.86);'
+                  f'padding:.16em .42em .1em;border-radius:12px;border-bottom:5px solid {ACCENT};'
+                  f'box-shadow:0 8px 0 rgba(0,0,0,.3);{style_anim(an("pop", t_cd, .5, EASE_BACK))}">'
+                  f'COMMENT <span style="color:{ACCENT}">A</span> OR B</div></div>')
+        vs_out = style_anim(an("fadeout", t_cd + .15, .1))
+        inner += (f'<div class="abs" style="left:{RING_X - 95:.0f}px;top:{RING_Y - 95:.0f}px;{vs_out}">'
+                  f'<div class="d" style="width:190px;height:190px;border-radius:50%;background:{INK};'
+                  f'border:8px solid {ACCENT};display:flex;align-items:center;justify-content:center;'
+                  f'font-size:100px;color:{ACCENT};box-shadow:0 10px 0 rgba(0,0,0,.3);'
+                  f'{style_anim(an("slam", t0 + .65, .45))}">VS</div></div>')
+        for it, x, t in ((a, AX, t0 + .8), (b, BX, t0 + .9)):
+            inner += centred_name(it["name"], x, size, t)
+            inner += label(f'{it["price"]:,} V-Bucks', x, PRICE_Y, 32, t + .2, ACCENT, 800, align="center",
+                           bg="rgba(10,10,11,.8)", pad="5px 18px 4px")
         # The ring takes over the VS badge and drains around it: one focal point,
-        # nothing covering the characters.
-        inner += countdown(5, W / 2, 670, 250, t0 + 2.8, "COMMENT A OR B")
+        # between the two heads. (Its dark disc and number would cover the VS from
+        # the start, so the whole ring waits for its moment.)
+        inner += (f'<div class="abs" style="left:0;top:0;{style_anim(an("fadein", t_cd, .15))}">'
+                  + countdown(cd, RING_X, RING_Y, 200, t_cd) + "</div>")
         comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .65, "slam")
-        for sec in range(5):
-            comp.cue(t0 + 2.8 + sec, "tick")
+        for sec in range(cd):
+            comp.cue(t_cd + sec, "tick")
         inner += "</div>"
-        inner += progress(t0, t0 + R, k, len(pairs))
-        comp.scene(t0, t0 + R, inner, fade_in=.25, fade_out=.25)
+        inner += progress(t0, t0 + R, k, n)
+        # Held .3 s past its slot while the next round (or the end card) fades in
+        # over it: a cross-fade, not a dip to black.
+        comp.scene(t0, t0 + R + .3, inner, fade_in=.25, fade_out=.05)
 
     comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
-    _outro_scene(comp, ctx, content_end, comp.duration,
-                 "DROP YOUR 5 PICKS LIKE: ABBAB" if len(pairs) == 5 else "DROP YOUR PICKS BELOW",
+    _outro_scene(comp, ctx, content_end, comp.duration, f"DROP YOUR {n} PICKS LIKE: {example}",
                  [p[0] for p in pairs] + [p[1] for p in pairs])
+    from cc_looks import PREP_JS
+    comp.add(PREP_JS)
     comp.add(code_badge(.4))
     comp.add(disclosure())
 
     rounds = "\n".join(f"{num(k)} {a['name']} 🆚 {b['name']}" for k, (a, b) in enumerate(pairs, 1))
     tags = _hashtags("thisorthat", *(p[0]["name"] for p in pairs[:2]))
-    example = "ABBAB"[:len(pairs)]
     return Video(
         "this_or_that", comp,
         title=f"This or That — Fortnite Item Shop, {ctx.day_label}",
