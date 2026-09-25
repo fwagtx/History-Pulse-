@@ -544,9 +544,8 @@ def build(ctx: Ctx):
     n = len(picked)
     show = _showcase(picked)
     look = LK.get(FORMAT)
-    if look:
-        comp = look.last_chance(ctx, picked)
-    else:
+    comp = LK.draw(look, "last_chance", ctx, picked)
+    if comp is None:
         content_end = HOOK + n * R
         comp = Comp(content_end + _pad(content_end))
         for rule in _css():

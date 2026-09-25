@@ -230,9 +230,9 @@ def guess_season(spec: dict, items: dict, ctx: Ctx):
     n = len(rounds)
     gear = spec.get("edition") == "gear"
     look = LK.get("guess_season")
-    if look:
-        comp = look.guess_season(ctx, spec, [(items[rd["item"]], rd["options"], rd["answer"]) for rd in rounds])
-    else:
+    comp = LK.draw(look, "guess_season", ctx, spec,
+                   [(items[rd["item"]], rd["options"], rd["answer"]) for rd in rounds])
+    if comp is None:
         content_end = HOOK + n * R1
         comp = _comp(content_end)
         first = [items[rd["item"]] for rd in rounds[:2]]
@@ -264,9 +264,9 @@ def _name_quiz(spec: dict, items: dict, ctx: Ctx, fmt: str, theme: dict = None):
     n = len(rounds)
     zoom = fmt == "zoomed_in"
     look = LK.get(fmt) if not theme else None
-    if look:
-        comp = look.whos_that(ctx, spec, [(items[rd["item"]], rd["options"], rd["answer"]) for rd in rounds])
-    else:
+    comp = LK.draw(look, "whos_that", ctx, spec,
+                   [(items[rd["item"]], rd["options"], rd["answer"]) for rd in rounds])
+    if comp is None:
         content_end = HOOK + n * R1
         comp = _comp(content_end)
         first = [items[rd["item"]] for rd in rounds[:2]]
@@ -412,10 +412,9 @@ def odd_one_out(spec: dict, items: dict, ctx: Ctx):
         return None
     n = len(rounds)
     look = LK.get("odd_one_out")
-    if look:
-        comp = look.odd_one_out(ctx, spec, [([items[i] for i in rd["items"]], rd["answer"], rd["set"])
-                                           for rd in rounds])
-    else:
+    comp = LK.draw(look, "odd_one_out", ctx, spec, [([items[i] for i in rd["items"]], rd["answer"], rd["set"])
+                                                   for rd in rounds])
+    if comp is None:
         content_end = HOOK + n * R2
         comp = _comp(content_end)
         r0 = [items[i] for i in rounds[0]["items"]]
@@ -495,9 +494,8 @@ def throwback(spec: dict, items: dict, ctx: Ctx, theme: dict = None):
     gear = spec.get("edition") == "gear"
     season = theme["title"] if theme else spec["season"]      # "Chapter 1 · Season 5"
     look = LK.get("throwback", spec.get("series", ""))
-    if look:
-        comp = look.throwback(ctx, spec, group, theme)
-    else:
+    comp = LK.draw(look, "throwback", ctx, spec, group, theme)
+    if comp is None:
         content_end = HOOK + n * R3
         comp = _comp(content_end)
         what = "GEAR" if gear else "SKINS"

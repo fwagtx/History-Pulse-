@@ -24,6 +24,8 @@ import json
 import math
 import os
 import random
+import sys
+import traceback
 from functools import lru_cache
 from pathlib import Path
 
@@ -71,8 +73,26 @@ def get(fmt: str, series: str = ""):
         return None
     try:
         return importlib.import_module(LOOKS[key])
-    except ModuleNotFoundError:
+    except Exception:  # noqa: BLE001 - a broken look must never cost a video
+        _warn(f"the {LOOKS[key]} look didn't load; using the classic look")
         return None
+
+
+def draw(look, fn: str, *args):
+    """The Comp from look.fn(*args); None when the look is off or fails on this
+    data, and the format then draws its classic version instead."""
+    if look is None:
+        return None
+    try:
+        return getattr(look, fn)(*args)
+    except Exception:  # noqa: BLE001 - a bad day's data must never cost a video
+        _warn(f"{look.__name__}.{fn} failed; using the classic look")
+        return None
+
+
+def _warn(msg: str):
+    traceback.print_exc()
+    print(f"::warning::{msg}", file=sys.stderr)     # shows on the GitHub run's page
 
 
 # ------------------------------------------------------------------ assets

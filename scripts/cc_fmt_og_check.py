@@ -68,9 +68,8 @@ def build(ctx: Ctx):
         return None
     outfits = [i for i in picks if i["type"] == "Outfit"] or picks
     look = LK.get(FORMAT)
-    if look:
-        comp = look.og_check(ctx, picks)
-    else:
+    comp = LK.draw(look, "og_check", ctx, picks)
+    if comp is None:
         n = len(picks)
         show = list(reversed(picks))            # count down: the oldest comes last
         content_end = HOOK + n * R

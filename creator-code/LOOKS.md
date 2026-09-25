@@ -12,7 +12,7 @@ is big: "BAD" is at least 110 px tall in a 1920 px video.
 
 | Look | Video type | Switch in `looks.json` | Status |
 |---|---|---|---|
-| Scrapbook | On This Day | `on_this_day` | Off, being tested |
+| Scrapbook | On This Day | `on_this_day` | **On** since Sep 25, 2026 |
 | VHS tape | Fortnitemares throwbacks | `throwback@fortnitemares` | Off, being tested |
 | Yearbook | Guess the Season | `guess_season` | Off, being tested |
 | Yearbook | Season Throwback | `throwback` | Off, being tested |
@@ -40,6 +40,9 @@ been checked frame by frame:
 To switch a look on or off, set its entry in `creator-code/looks.json` to `true` or `false`
 and push. The next nightly build uses it. Videos that are already built and scheduled keep the
 look they were built with until they are rebuilt.
+
+If a look ever fails on a day's data, that video is drawn in the classic look instead (the
+GitHub run shows a warning), so a look can never cost a video.
 
 ## Trying a look without switching it on
 

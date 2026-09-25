@@ -116,9 +116,8 @@ def build(ctx: Ctx):
     if not picks:
         return None
     look = LK.get(FORMAT)
-    if look:
-        comp = look.bundle_math(ctx, picks)
-    else:
+    comp = LK.draw(look, "bundle_math", ctx, picks)
+    if comp is None:
         n = len(picks)
         R = max(10.4, min(17.0, CONTENT / n))
         beat = R / 13.0                          # the beats stretch with the scene

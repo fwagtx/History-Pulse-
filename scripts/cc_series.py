@@ -129,9 +129,8 @@ def on_this_day(spec: dict, items: dict, ctx: Ctx):
     # The two thumbnail picks, and the newest one that isn't already among them.
     third = next((r[1] for r in reversed(rounds) if all(r[1] is not x[1] for x in lead)), None)
     look = LK.get("on_this_day")
-    if look:
-        comp = look.on_this_day(ctx, rounds, bday, lead, third)
-    else:
+    comp = LK.draw(look, "on_this_day", ctx, rounds, bday, lead, third)
+    if comp is None:
         content_end = Q.HOOK + n * R_OTD
         comp = Q._comp(content_end)
         if bday:
