@@ -33,6 +33,7 @@ BAKE = "url(#sbcut) drop-shadow(0 3px 2px rgba(0,0,0,.28)) drop-shadow(0 14px 16
 STICK_X, STICK_Y, STICK_H, STICK_WMAX = 96, 548, 770, 470
 COL_X, COL_W = 596, 356            # the right-hand column
 CODE_X, CODE_Y, CODE_D = 676, 1118, 252
+OUTRO_CODE_D = 312                 # the outro's code: covers the small one, still left of x 950
 TAG_Y = 1392
 
 CSS = """
@@ -40,6 +41,10 @@ CSS = """
 .sb-hand{font-family:'Caveat',cursive;color:#1d1c1a;font-weight:700;line-height:1.02}
 .sb-type{font-family:'Special Elite',monospace;color:#2b2926}
 @keyframes sbout{to{transform:translate(-1250px,90px) rotate(-12deg)}}
+@keyframes sbslap{0%{opacity:0;transform:translate(30px,-50px) scale(1.16) rotate(calc(var(--r,0deg) + 6deg))}
+  1%{opacity:1;transform:translate(30px,-50px) scale(1.16) rotate(calc(var(--r,0deg) + 6deg))}
+  55%{opacity:1;transform:translate(0,0) scale(.985) rotate(var(--r,0deg))}
+  100%{opacity:1;transform:translate(0,0) scale(1) rotate(var(--r,0deg))}}
 @keyframes sbthump{0%,100%{transform:scale(1)}40%{transform:scale(1.06)}}
 @keyframes sbwiggle{0%,100%{transform:rotate(0)}35%{transform:rotate(-2.5deg)}70%{transform:rotate(1.5deg)}}
 @keyframes sbtape{0%{opacity:0;transform:rotate(var(--r,0deg)) scaleX(.6)}100%{opacity:1;transform:rotate(var(--r,0deg)) scaleX(1)}}
@@ -154,8 +159,8 @@ def _header(when_short: str) -> str:
             + _stamp(when_short.upper(), "EVERY YEAR", 724, 250, 290, 146, 8) + '</div>')
 
 
-def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list) -> tuple:
-    """One year's page; t0 is when it has the frame to itself. Returns (html, sounds)."""
+def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list, r: float = R) -> tuple:
+    """One year's page; t0 is when it has the frame to itself, for r seconds. Returns (html, sounds)."""
     rot = [-3, 2.5, -2, 3, -2.5, 2, -3.5, 2.5, -2][idx % 9]
     y = rd["year"]
     yx, yy = COL_X + 44, 604
@@ -165,7 +170,7 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list) -> tuple:
     arrow = rough_arrow(COL_X - 8, note_y + 44, STICK_X + 330, note_y - 30, seed=y + 1, head=28, curve=.3)
     kind = " ".join(x for x in (it.get("rarity_label") or "", it.get("type") or "") if x).strip()
     s = t0 - .25                    # the sticker lands while the last page slides away
-    html = [f'<div class="abs" style="inset:0;{_a("sbout", t0 + R - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">',
+    html = [f'<div class="abs" style="inset:0;{_a("sbout", t0 + r - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">',
             _sticker(ctx.art(it), STICK_X, STICK_Y, STICK_H, rot, s, it["name"]),
             _tape(STICK_X + 150, STICK_Y - 20, rot - 8, s + .45),
             f'<div class="abs sb-marker" style="left:{yx}px;top:{yy}px;font-size:132px;white-space:nowrap;'
@@ -176,7 +181,7 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list) -> tuple:
             f'width:{COL_W}px;font-size:58px;{write_on(t0 + 1.25, .9)}">{esc(note)}</div>',
             stroke_svg(arrow, "#161514", 6, t0 + 2.1, .3, gap=.02)]
     sounds = [(s, "paper"), (s + .45, "paper"), (t0 + .35, "pen"), (t0 + .8, "pen"), (t0 + 1.25, "pen"),
-              (t0 + R - .5, "whoosh")]
+              (t0 + r - .5, "whoosh")]
     if debut:
         html.append(f'<div class="abs" style="left:0;top:0;'
                     f'{_a("lkstamp", t0 + 1.9, .28, "cubic-bezier(.3,1.6,.5,1)", "--r:0deg;")}">'
@@ -187,8 +192,8 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list) -> tuple:
     return "".join(html), sounds
 
 
-def _page_birthday(bday: dict, t0: float, years: list, when: str) -> tuple:
-    html = (f'<div class="abs" style="inset:0;{_a("sbout", t0 + R - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">'
+def _page_birthday(bday: dict, t0: float, years: list, when: str, r: float = R) -> tuple:
+    html = (f'<div class="abs" style="inset:0;{_a("sbout", t0 + r - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">'
             f'<div class="abs sb-marker" data-fit="900" data-lines="2" style="left:80px;top:560px;width:900px;'
             f'font-size:100px;line-height:1.08;{write_on(t0 - .1, 1.1, 24)}">Fortnite Battle Royale comes out!</div>'
             f'<div class="abs sb-hand" style="left:84px;top:800px;font-size:66px;{write_on(t0 + 1.1, .8)}">'
@@ -201,7 +206,7 @@ def _page_birthday(bday: dict, t0: float, years: list, when: str) -> tuple:
             '</div>')
     html += _tag_on(years, 0, t0 + .2)
     sounds = [(t0 - .1, "pen"), (t0 + 1.1, "pen"), (t0 + 1.8, "pen"), (t0 + 2.6, "stamp"), (t0 + 2.8, "clap"),
-              (t0 + R - .5, "whoosh")]
+              (t0 + r - .5, "whoosh")]
     return html, sounds
 
 
@@ -211,7 +216,9 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
     when_short = day.strftime("%b %-d")
     years = ([bday["year"]] if bday else []) + [rd["year"] for rd, _, _ in rounds]
     n = len(years)
-    content_end = HOOK + n * R
+    # Fewer years get longer pages, so a short day doesn't end on a long still card.
+    r = max(R, (62.0 - 7.5 - HOOK) / n)
+    content_end = HOOK + n * r
     comp = Comp(pad_to(content_end))
     comp.use_fonts(*FONTS)
     comp.css(KIT_CSS)
@@ -230,8 +237,8 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
              f'sans-serif;font-weight:700;font-size:50px;line-height:1;color:#3a2f24;letter-spacing:.04em">'
              f'ITEM SHOP</div><div class="sb-type" style="position:absolute;left:34px;top:120px;font-size:22px;'
              f'color:#6d5a44">{esc(when_short.upper())} · EVERY YEAR</div></div></div>')
-    # The small code sticker hands over to the outro's big one.
-    comp.add(f'<div class="full" style="z-index:30;{_a("lkout", content_end + .35, .2, "linear")}">{_code()}</div>')
+    # The small code sticker stays until the outro's big one has landed on top of it.
+    comp.add(f'<div class="full" style="z-index:30;{_a("lkout", content_end + .45, .01, "linear")}">{_code()}</div>')
     comp.add(PREP_JS)
 
     # ---- hook (frame 0 is the thumbnail: everything already on the page)
@@ -263,13 +270,13 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
     k = 0
     pages = []
     if bday:
-        pages.append(_page_birthday(bday, HOOK, years, when))
+        pages.append(_page_birthday(bday, HOOK, years, when, r))
         k = 1
     for j, (rd, it, debut) in enumerate(rounds):
-        pages.append(_page_year(ctx, rd, it, debut, HOOK + (k + j) * R, k + j, years))
+        pages.append(_page_year(ctx, rd, it, debut, HOOK + (k + j) * r, k + j, years, r))
     for i, (html, sounds) in enumerate(pages):
-        t0 = HOOK + i * R
-        comp.scene(t0 - LEAD, t0 + R, f'<div class="full">{html}</div>', fade_in=.01, fade_out=.05, z=10)
+        t0 = HOOK + i * r
+        comp.scene(t0 - LEAD, t0 + r, f'<div class="full">{html}</div>', fade_in=.01, fade_out=.05, z=10)
         for s in sounds:
             comp.cue(*s)
 
@@ -278,10 +285,15 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
     t = content_end
     out = (f'<div class="abs sb-marker" style="left:70px;top:560px;width:900px;font-size:88px;line-height:1.08;'
            f'{write_on(t - .2, 1.0, 22)}">which year had<br>the best shop?</div>')
-    for i, (x, y, h, rot) in enumerate([(60, 800, 380, -6), (355, 830, 360, 4), (650, 800, 380, -3)][:len(picks)]):
+    for i, (x, y, h, rot) in enumerate([(40, 800, 460, -6), (330, 850, 420, 4), (650, 760, 320, -3)][:len(picks)]):
         out += _sticker(ctx.art(picks[i]), x, y, h, rot, t + .6 + i * .25, picks[i]["name"], wmax=280)
-    out += _code(375, 1140, 330, -7, _a("lkslap", t - .1, .55, extra="--r:-7deg;"))
     comp.scene(t - LEAD, comp.duration, f'<div class="full">{out}</div>', fade_in=.01, fade_out=.01, z=12)
+    # The big code is slapped down right over the small one, covering it: the code
+    # never shows twice and is never missing. (sbslap: a sticker drops, it doesn't fade.)
+    cx, cy = CODE_X + CODE_D / 2 - 14, CODE_Y + CODE_D / 2 - 4
+    big = _code(cx - OUTRO_CODE_D / 2, cy - OUTRO_CODE_D / 2, OUTRO_CODE_D, -7,
+                _a("sbslap", t - .1, .55, extra="--r:-7deg;"))
+    comp.scene(t - LEAD, comp.duration, f'<div class="full">{big}</div>', fade_in=.01, fade_out=.01, z=31)
     comp.cue(t - .1, "paper"); comp.cue(t - .2, "pen")
     for i in range(len(picks)):
         comp.cue(t + .6 + i * .25, "paper")
