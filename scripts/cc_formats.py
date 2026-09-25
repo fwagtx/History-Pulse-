@@ -216,12 +216,16 @@ def _code_stamp(comp: Comp, end: float) -> str:
     dock_end = min(2.6, end - .7)          # clear of the first scene's wipe at 2.7s
     dock_start = dock_end - .5
     dock = comp.uid("dock")
-    comp.css(f"@keyframes {dock}{{0%{{transform:rotate({STAMP_ROT}deg);opacity:1}}55%{{opacity:1}}"
+    # The stamp stays fully opaque all the way into the corner, and the badge
+    # takes its place the moment it lands: the code is readable in every frame.
+    comp.css(f"@keyframes {dock}{{0%{{transform:rotate({STAMP_ROT}deg);opacity:1}}"
+             f"99.9%{{transform:translate({48 - STAMP_X}px,{SAFE_TOP - STAMP_Y}px) "
+             f"scale({STAMP_TO_BADGE:.3f}) rotate(0deg);opacity:1}}"
              f"100%{{transform:translate({48 - STAMP_X}px,{SAFE_TOP - STAMP_Y}px) "
              f"scale({STAMP_TO_BADGE:.3f}) rotate(0deg);opacity:0}}}}")
     # The corner badge waits until the stamp gets there.
     # ("paused" like every animation: the renderer moves them, real time never does)
-    comp.css(f".codebadge{{animation:fadein .15s linear {dock_end - .12:.3f}s both paused !important}}")
+    comp.css(f".codebadge{{animation:fadein .01s linear {dock_end - .01:.3f}s both paused !important}}")
     comp.cue(dock_start, "whoosh")
     beats = style_anim(an("thump", HOOK_SLAM, .4, fill="none"),
                        an("pulse", 1.5, .5, "ease-in-out", fill="none"))

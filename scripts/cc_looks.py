@@ -233,6 +233,9 @@ def diecut_filter(fid: str = "lkdiecut", radius: int = 14, color: str = "#fff") 
 
 # Run once, before the first frame is drawn (cc_motion.READY_JS waits for
 # window.__ready):
+#   - img[data-trim]: Fortnite's art is a square with wide transparent margins;
+#     the image is cropped to the cosmetic itself (plus 1%), so sizes mean the
+#     cosmetic, not the square. Done first.
 #   - img[data-bake="<css filter>"]: the filter (e.g. a die-cut border and a drop
 #     shadow) is drawn into the image once, instead of on every frame. SVG filters
 #     cost about three times the frame's own render time.
@@ -240,6 +243,38 @@ def diecut_filter(fid: str = "lkdiecut", radius: int = 14, color: str = "#fff") 
 #     explicit width and a unitless line-height): the text shrinks until it fits.
 PREP_JS = """<script>window.__ready = (async () => {
   try {
+    // The script sits before the scenes in the page: wait until they exist.
+    if (document.readyState === 'loading') {
+      await new Promise(r => document.addEventListener('DOMContentLoaded', r, {once: true}));
+    }
+    for (const img of document.querySelectorAll('img[data-trim]')) {
+      try {
+        if (img.decode) { await img.decode(); }
+        const w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) continue;
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, w, h).data;
+        let x0 = w, y0 = h, x1 = -1, y1 = -1;
+        for (let y = 0; y < h; y += 2) {
+          for (let x = 0; x < w; x += 2) {
+            if (d[(y * w + x) * 4 + 3] > 16) {
+              if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+            }
+          }
+        }
+        if (x1 < 0) continue;
+        const pad = Math.round(Math.max(w, h) * 0.01);
+        x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
+        x1 = Math.min(w - 1, x1 + pad + 1); y1 = Math.min(h - 1, y1 + pad + 1);
+        const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+        if (cw >= w - 2 && ch >= h - 2) continue;
+        const c2 = document.createElement('canvas'); c2.width = cw; c2.height = ch;
+        c2.getContext('2d').drawImage(img, x0, y0, cw, ch, 0, 0, cw, ch);
+        img.src = c2.toDataURL('image/png');
+        if (img.decode) { await img.decode(); }
+      } catch (e) {}
+    }
     for (const img of document.querySelectorAll('img[data-bake]')) {
       try {
         if (img.decode) { await img.decode(); }

@@ -19,7 +19,7 @@ The lime code sticker is on screen in every frame.
 
 from cc_looks import (KIT_CSS, LIME, PREP_JS, diecut_filter, pad_to, rough_arrow, rough_ellipse,
                       stroke_static, stroke_svg, tex, write_on)
-from cc_motion import W, Comp, esc
+from cc_motion import Comp, esc
 
 HOOK = 3.0
 R = 6.5
@@ -60,7 +60,7 @@ def _sticker(art: str, x: float, y: float, h: float, rot: float, t=None, label: 
     """A cosmetic as a die-cut sticker. t=None: already on the page."""
     anim = _a("lkslap", t, .55) if t is not None else ""
     if art:
-        img = (f'<img data-bake="{BAKE}" data-pad="64" src="{art}" style="display:block;height:{h:.0f}px;'
+        img = (f'<img data-trim data-bake="{BAKE}" data-pad="64" src="{art}" style="display:block;height:{h:.0f}px;'
                f'max-width:{wmax:.0f}px;object-fit:contain;filter:{BAKE}">')
     else:
         img = (f'<div class="sb-type" style="height:{h * .8:.0f}px;width:{wmax * .8:.0f}px;display:flex;'
@@ -162,7 +162,7 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list) -> tuple:
     circle = rough_ellipse(yx + 150, yy + 74, 196, 100, seed=y, overshoot=.2)
     note = "its very first day in the shop!" if debut else "in the Item Shop that day"
     note_y = 996
-    arrow = rough_arrow(COL_X + 150, note_y - 18, STICK_X + STICK_WMAX * .72, 880, seed=y + 1, head=30, curve=.22)
+    arrow = rough_arrow(COL_X - 8, note_y + 44, STICK_X + 330, note_y - 30, seed=y + 1, head=28, curve=.3)
     kind = " ".join(x for x in (it.get("rarity_label") or "", it.get("type") or "") if x).strip()
     s = t0 - .25                    # the sticker lands while the last page slides away
     html = [f'<div class="abs" style="inset:0;{_a("sbout", t0 + R - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">',
@@ -198,7 +198,7 @@ def _page_birthday(bday: dict, t0: float, years: list, when: str) -> tuple:
             f'<div class="abs" style="left:0;top:0;'
             f'{_a("lkstamp", t0 + 2.6, .28, "cubic-bezier(.3,1.6,.5,1)", "--r:0deg;")}">'
             + _stamp("HAPPY BIRTHDAY", f"{bday['age']} YEARS TODAY", 110, 1000, 520, 150, -7, 62) + '</div>'
-            f'</div>')
+            '</div>')
     html += _tag_on(years, 0, t0 + .2)
     sounds = [(t0 - .1, "pen"), (t0 + 1.1, "pen"), (t0 + 1.8, "pen"), (t0 + 2.6, "stamp"), (t0 + 2.8, "clap"),
               (t0 + R - .5, "whoosh")]
