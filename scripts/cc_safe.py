@@ -81,6 +81,24 @@ CHECK_JS = r"""(z) => {
     return o;
   };
   const skip = (el) => !!el.closest('[data-safe="ignore"],style,script');
+  // The window an element's ancestors leave it: a box with overflow hidden or
+  // clip cuts off whatever runs past it, so only the part inside can be seen.
+  const clips = new Map();
+  const clipOf = (el) => {
+    if (!el || el === document.body || el.nodeType !== 1) return {left: -1e9, top: -1e9, right: 1e9, bottom: 1e9};
+    if (clips.has(el)) return clips.get(el);
+    const c = Object.assign({}, clipOf(el.parentElement));
+    const cs = getComputedStyle(el);
+    if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') {
+      const b = el.getBoundingClientRect();
+      if (cs.overflowX !== 'visible') { c.left = Math.max(c.left, b.left); c.right = Math.min(c.right, b.right); }
+      if (cs.overflowY !== 'visible') { c.top = Math.max(c.top, b.top); c.bottom = Math.min(c.bottom, b.bottom); }
+    }
+    clips.set(el, c);
+    return c;
+  };
+  const cut = (r, c) => ({left: Math.max(r.left, c.left), right: Math.min(r.right, c.right),
+                          top: Math.max(r.top, c.top), bottom: Math.min(r.bottom, c.bottom)});
   const box = (r) => [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
   const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const range = document.createRange();
@@ -98,18 +116,20 @@ CHECK_JS = r"""(z) => {
       if (rr.width < 3 || rr.height < 3) continue;
       // A text box spans the font's whole ascent and descent; the letters fill
       // about its middle two thirds. Measure those.
-      const r = {left: rr.left, right: rr.right, top: rr.top + rr.height * .18,
-                 bottom: rr.bottom - rr.height * .18, width: rr.width, height: rr.height * .64};
+      const r = cut({left: rr.left, right: rr.right, top: rr.top + rr.height * .18,
+                     bottom: rr.bottom - rr.height * .18}, clipOf(el));
       const f = outside(r);
       if (f > z.textTol) out.push({kind: 'text', key: s.slice(0, 60), id: 't' + idx, frac: +f.toFixed(2), box: box(r)});
     }
   }
-  const imgs = [...document.images];
+  // Images, and canvases (a look may draw its art into one).
+  const imgs = [...document.images, ...document.querySelectorAll('canvas')];
   imgs.forEach((img, i) => {
     if (skip(img)) return;
     if (alpha(img) < z.minAlpha) return;
-    const r = img.getBoundingClientRect();
-    if (r.width < 40 || r.height < 40 || r.width * r.height > 0.45 * W * H) return;
+    const rb = img.getBoundingClientRect();
+    if (rb.width < 40 || rb.height < 40 || rb.width * rb.height > 0.45 * W * H) return;
+    const r = cut(rb, clipOf(img.parentElement));
     const f = outside(r);
     const name = img.getAttribute('data-name') || img.alt || ('image ' + i);
     if (f > z.imgTol) out.push({kind: 'image', key: name, id: 'i' + i, frac: +f.toFixed(2), box: box(r)});
