@@ -23,9 +23,9 @@ No "most people", no rating, no "back"/"returning"/"first time"/"rare".
 import math
 from datetime import date
 
-from cc_motion import (ACCENT, INK, RARITY, EASE_BACK, RAIL_TOP, SAFE_RIGHT, W, Comp, an, burst, character,
-                       code_badge, countdown, disclosure, esc, hexcol, price_roll, progress,
-                       sticker, style_anim, tile_bg, words)
+from cc_motion import (ACCENT, INK, RARITY, EASE_BACK, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP,
+                       W, Comp, an, burst, character, code_badge, countdown, disclosure, esc, hexcol,
+                       price_roll, progress, sticker, style_anim, tile_bg, words)
 from cc_formats import (MIN_SECONDS, Ctx, Video, num, _caption, _hashtags, _hook_scene, _outro_scene,
                         _pad, rng, singles)
 
@@ -52,19 +52,40 @@ T_CD, CD = 3.0, 4                # the voting ring takes over the OR disc
 T_END = T_CD + CD                # ring done: no verdict, just "COMMENT IT!"
 WIPE, WIPE_W = .56, 2400         # the colour wipe between scenes, centred on each cut
 
-# Layout (px). Important content stays in y 190..1480; below y=880 it stays left of
-# x=960 (TikTok's like/comment rail). Top-left 190..300 is the code badge.
-KICK_Y = 322
-NAME_X, NAME_Y, NAME_W = 60, 372, 920
-CHAR_CX, CHAR_BOTTOM = 505, 1212
-COIN_CX, COIN_D = 862, 240
-CARD_X, CARD_W = 50, 212
-TAG_XR = 1016                    # right edge of the leaves/since tag (it sits above y=880)
-BTN_Y, BTN_H, BTN_W = 1250, 140, 340
-COP_X, DROP_X = 60, 940 - BTN_W
-RING_CX, RING_CY, RING_D = 500, BTN_Y + BTN_H / 2, 168
+# Layout (px). Everything a viewer reads stays in the apps' safe box (cc_safe):
+# x 60-1020 above y 740, x 60-900 (left of the button rail) below it, y 230-1420.
+# The code badge and #EpicPartner own the top-left corner down to y ~350, the
+# round counter the top-right down to y ~292.
+#
+#   y 366-650   type chip + name (left column)   | V-Bucks coin + leaves/since sticker
+#   y 560-1176  INTRODUCED card (left) and the cosmetic, centred on the band
+#   y 1196-1336 COP [ring] DROP, centred on the band beside the rail
+#   y 1344-1400 COMMENT IT! once the ring runs out
+KICK_Y = 366                     # under #EpicPartner
+NAME_X, NAME_Y = SAFE_LEFT, 424
+COIN_D = 226
+COIN_CX, COIN_CY = SAFE_RIGHT_TOP - 8 - COIN_D / 2, 452      # top right: x 786-1012, y 339-565
+NAME_W = COIN_CX - COIN_D / 2 - 26 - NAME_X                  # the name column stops short of the coin
+TAG_XR = SAFE_RIGHT_TOP - 10     # right edge of the leaves/since sticker, under the coin
+TAG_SIZE = 32
+CARD_X, CARD_W, CARD_TOP = SAFE_LEFT, 240, 640
+CHAR_CX, CHAR_BOTTOM, CHAR_MAXW = 520, 1176, 660
+BTN_Y, BTN_H, BTN_W, BTN_FS = 1196, 120, 292, 86
+COP_X, DROP_X = SAFE_LEFT + 10, SAFE_RIGHT - 10 - BTN_W       # 70-362 and 598-890
+RING_CX, RING_CY, RING_D = (COP_X + DROP_X + BTN_W) / 2, BTN_Y + BTN_H / 2, 150
+CTA_Y, CTA_SIZE = BTN_Y + BTN_H + 28, 44
 COP_COL, COP_LIGHT, COP_EDGE = "#3BD16F", "#7CF0A3", "#1C8A43"
 DROP_COL, DROP_LIGHT, DROP_EDGE = "#FF4D4D", "#FF8A8A", "#B52323"
+
+# Inter 800 advance widths in em (caps, digits, punctuation), measured in the
+# render browser, for sizing the type chip to its column.
+_INTER800 = {
+    'A': .75, 'B': .647, 'C': .728, 'D': .706, 'E': .619, 'F': .593, 'G': .738, 'H': .722, 'I': .27,
+    'J': .573, 'K': .706, 'L': .565, 'M': .909, 'N': .731, 'O': .747, 'P': .639, 'Q': .747, 'R': .658,
+    'S': .668, 'T': .645, 'U': .705, 'V': .742, 'W': 1.033, 'X': .718, 'Y': .709, 'Z': .643, ' ': .2,
+    '·': .254, ',': .254, '.': .254, '-': .45, "'": .25, '0': .665, '1': .665, '2': .665, '3': .665,
+    '4': .665, '5': .665, '6': .665, '7': .665, '8': .665, '9': .665,
+}
 
 ENTER = ["pop", "drop", "fromR", "pop", "fromL", "drop", "pop"]
 
@@ -117,6 +138,25 @@ def _em(text: str) -> float:
 
 def _fit(text: str, width: float, cap: float) -> float:
     return min(cap, width / max(_em(text), .1))
+
+
+def _row_lines(name: str, width: float, h: float, cap: float = 52, min1: float = 40) -> tuple:
+    """(lines, size) for a name in a recap row: one line down to `min1` px, else
+    the two-line break that allows the biggest type (as tall as the row allows)."""
+    one = _fit(name, width, cap)
+    ws = name.split()
+    if one >= min1 or len(ws) < 2:
+        return [name], one
+    cap2 = min(min1, (h - 30 * 1.1 - 26) / 1.8)
+    best = max((min(cap2, width / max(_em(" ".join(ws[:i])), _em(" ".join(ws[i:])))), i)
+               for i in range(1, len(ws)))
+    return [" ".join(ws[:best[1]]), " ".join(ws[best[1]:])], best[0]
+
+
+def _inter_w(text: str, size: float, spacing: float = 0) -> float:
+    """Width in px of `text` in Inter 800 caps with `spacing` em of letter-spacing."""
+    s = text.upper()
+    return sum(_INTER800.get(ch, .7) + spacing for ch in s) * size
 
 
 def _name_lines(name: str, width: float = NAME_W) -> tuple:
@@ -202,6 +242,14 @@ def _pick(ctx: Ctx) -> list:
     return played
 
 
+def _scrim() -> str:
+    """Darkens the bands the words sit on, so white type and the lime code badge
+    hold on pale tile colours (some are acid yellow-green themselves)."""
+    return ('<div class="full" style="background:linear-gradient(180deg,rgba(0,0,0,.5) 0,'
+            'rgba(0,0,0,.36) 20%,rgba(0,0,0,.2) 30%,rgba(0,0,0,0) 42%,rgba(0,0,0,0) 58%,'
+            'rgba(0,0,0,.3) 70%,rgba(0,0,0,.55) 100%)"></div>')
+
+
 def _leaves_today(ctx: Ctx, it: dict) -> bool:
     try:
         return date.fromisoformat(it.get("out_day") or "") == ctx.day
@@ -226,28 +274,39 @@ def _intro(it: dict) -> tuple:
 
 # --------------------------------------------------------------- components
 
-def _kicker(it: dict, x: float, y: float, start: float) -> str:
+def _kicker(it: dict, x: float, y: float, start: float, width: float = NAME_W) -> str:
     """TYPE chip with a rarity-coloured dot. A series label ("ICON SERIES") is
-    added; plain tiers are not, so "RARE" never reads as a scarcity claim."""
+    added when the chip still fits its column ("GAMING LEGENDS" without the word
+    SERIES if that's what fits); plain tiers are not, so "RARE" never reads as a
+    scarcity claim."""
     col = RARITY.get(it.get("rarity", ""), "#9AA0A6")
-    kind = esc((it.get("type") or "").upper())
+    kind = (it.get("type") or "").upper()
     series = (it.get("rarity_label") or "").strip()
-    rest = (f'<span style="color:rgba(255,255,255,.72)">·&nbsp;{esc(series.upper())}</span>'
-            if series.lower().endswith("series") else "")
+    size, sp = 30, .1
+    room = width - 16 - 12 - 32 - 8                # dot, gap, padding, the tilt
+    rest = ""
+    if series.lower().endswith("series"):
+        for s in (series.upper(), series.upper()[:-len(" SERIES")].strip()):
+            if s and _inter_w(f"{kind} · {s}", size, sp) <= room:
+                rest = s
+                break
+    extra = (f'<span style="color:rgba(255,255,255,.74)">·&nbsp;{esc(rest)}</span>' if rest else "")
     return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;transform:rotate(-1.5deg)">'
-            f'<div style="display:inline-flex;align-items:center;gap:12px;background:rgba(10,10,11,.82);'
-            f'border-radius:12px;padding:9px 18px 9px 14px;font-size:24px;font-weight:800;'
-            f'letter-spacing:.16em;white-space:nowrap;{style_anim(an("rise", start, .45))}">'
+            f'<div style="display:inline-flex;align-items:center;gap:12px;background:rgba(10,10,11,.84);'
+            f'border-radius:12px;padding:6px 16px 6px 14px;font-size:{size}px;font-weight:800;line-height:1.2;'
+            f'letter-spacing:{sp}em;white-space:nowrap;{style_anim(an("rise", start, .45))}">'
             f'<i style="width:16px;height:16px;border-radius:50%;background:{col};'
-            f'box-shadow:0 0 14px {col}"></i><span>{kind}</span>{rest}</div></div>')
+            f'box-shadow:0 0 14px {col}"></i><span>{esc(kind)}</span>{extra}</div></div>')
 
 
 def _coin(price: int, cx: float, cy: float, t0: float) -> str:
     """A V-Bucks coin: pops in empty, the price counts up from 0 inside it, lands
     with a jolt, then the coin keeps a slow tilt-and-bob so it never sits dead."""
     d = COIN_D
-    size = _fit(f"{price:,}", d * .7, 88)
-    num_top = d / 2 - size * .9 / 2 - 13
+    size = _fit(f"{price:,}", d * .72, 92)
+    unit_size = 30
+    block = size * .9 + 6 + unit_size * .9          # the number, a gap, V-BUCKS
+    num_top = d / 2 - block / 2 - 4
     t_in, t_roll, t_land = t0 + T_COIN, t0 + T_ROLL, t0 + T_LAND
     face = (f'<div class="full" style="border-radius:50%;'
             f'background:radial-gradient(circle at 34% 28%,#34353f 0%,#121216 55%,#0a0a0b 100%);'
@@ -256,9 +315,9 @@ def _coin(price: int, cx: float, cy: float, t0: float) -> str:
     # price_roll's counter shows "0" before it starts; it only appears on cue.
     roll = (f'<div class="full" style="{style_anim(an("fadein", t_roll, .06))}">'
             f'{price_roll(price, d / 2, num_top, size, t_roll, ROLL, ACCENT, "center", "")}</div>')
-    unit = (f'<div class="abs" style="left:0;right:0;top:{num_top + size * .9 + 8:.0f}px;text-align:center;'
-            f'font-size:19px;font-weight:800;letter-spacing:.32em;text-indent:.32em;'
-            f'color:rgba(255,255,255,.78)">V-BUCKS</div>')
+    unit = (f'<div class="abs d" style="left:0;right:0;top:{num_top + size * .9 + 6:.0f}px;text-align:center;'
+            f'font-size:{unit_size}px;letter-spacing:.14em;text-indent:.14em;'
+            f'color:rgba(255,255,255,.82)">V-BUCKS</div>')
     return (f'<div class="abs" style="left:{cx - d / 2:.0f}px;top:{cy - d / 2:.0f}px;width:{d}px;height:{d}px">'
             f'<div class="full" style="{style_anim(an("pop", t_in, .6, EASE_BACK))}">'
             f'<div class="full" style="{style_anim(an("cdCoin", t_in + .6, 2.8, "ease-in-out", "infinite"))}">'
@@ -266,33 +325,45 @@ def _coin(price: int, cx: float, cy: float, t0: float) -> str:
             f'{face}{roll}{unit}</div></div></div></div>')
 
 
-def _intro_card(it: dict, x: float, cy: float, start: float) -> str:
+def _intro_card(it: dict, x: float, top: float, start: float) -> str:
     """'INTRODUCED / CHAPTER 2 / SEASON 1' from the row's own introduction field."""
     ch, se = _intro(it)
     if not ch or not se:
         return ""
     col = RARITY.get(it.get("rarity", ""), "#9AA0A6")
     lines = [f"CHAPTER {ch}", f"SEASON {se}"]
-    size = min(46, (CARD_W - 40) / max(_em(s) for s in lines))
+    size = min(52, (CARD_W - 44) / max(_em(s) for s in lines))
     a = style_anim(an("pop", start, .55, EASE_BACK))
-    return (f'<div class="abs" style="left:{x:.0f}px;top:{cy - 78:.0f}px;width:{CARD_W}px;'
-            f'transform:rotate(-5deg)"><div style="background:rgba(10,10,11,.86);border:3px solid {col};'
-            f'border-radius:18px;padding:14px 10px 16px;text-align:center;'
+    # Tilted 4 degrees into the frame, so its corners stay inside the safe box.
+    return (f'<div class="abs" style="left:{x + 8:.0f}px;top:{top:.0f}px;width:{CARD_W - 16}px;'
+            f'transform:rotate(-4deg)"><div style="background:rgba(10,10,11,.88);border:3px solid {col};'
+            f'border-radius:18px;padding:12px 8px 14px;text-align:center;'
             f'box-shadow:0 10px 0 rgba(0,0,0,.35);{a}">'
-            f'<div style="font-size:17px;font-weight:800;letter-spacing:.24em;text-indent:.24em;'
-            f'color:#9AA0A6;margin-bottom:8px">INTRODUCED</div>'
+            f'<div class="d" style="font-size:30px;letter-spacing:.1em;text-indent:.1em;'
+            f'color:#B4B9C2;margin-bottom:8px">INTRODUCED</div>'
             f'<div class="d" style="font-size:{size:.0f}px;line-height:1">{esc(lines[0])}</div>'
             f'<div class="d" style="font-size:{size:.0f}px;line-height:1;color:{ACCENT}">{esc(lines[1])}</div>'
             f'</div></div>')
 
 
+def _two_lines(text: str) -> list:
+    """Break a sticker's words into the two most even lines."""
+    ws = text.split()
+    if len(ws) < 3:
+        return [text]
+    best = min(range(1, len(ws)), key=lambda i: abs(_em(" ".join(ws[:i])) - _em(" ".join(ws[i:]))))
+    return [" ".join(ws[:best]), " ".join(ws[best:])]
+
+
 def _tag(text: str, xr: float, y: float, size: float, start: float, bg: str, fg: str,
          rot: float) -> str:
-    """A crooked sticker anchored by its right edge."""
+    """A crooked sticker on two lines, anchored by its right edge (under the coin)."""
     a = style_anim(an("pop", start, .55, EASE_BACK))
+    body = "<br>".join(esc(s) for s in _two_lines(text))
     return (f'<div class="abs" style="right:{W - xr:.0f}px;top:{y:.0f}px;transform:rotate({rot}deg)">'
-            f'<div class="d" style="background:{bg};color:{fg};font-size:{size:.0f}px;padding:.16em .42em .1em;'
-            f'border-radius:10px;white-space:nowrap;box-shadow:0 8px 0 rgba(0,0,0,.35);{a}">{esc(text)}</div></div>')
+            f'<div class="d" style="background:{bg};color:{fg};font-size:{size:.0f}px;line-height:.98;'
+            f'padding:.18em .42em .1em;border-radius:10px;white-space:nowrap;text-align:center;'
+            f'box-shadow:0 8px 0 rgba(0,0,0,.35);{a}">{body}</div></div>')
 
 
 def _icon(kind: str, col: str, d: int = 60) -> str:
@@ -315,15 +386,14 @@ def _button(text: str, x: float, rot: float, col: str, light: str, edge: str, ic
     """A chunky arcade key: lit top face, a hard bottom edge, a shine that sweeps
     across when it lands. It pops in, then wobbles on its own beat for as long as
     the vote is open, and gets a nudge when the ring runs out. Never pressed."""
-    fs = 104
     wob = an("cdWob", start + .55, .95, "ease-in-out", "infinite",
              "alternate-reverse" if reverse else "alternate")
-    face = (f'<div class="full" style="border-radius:32px;overflow:hidden;'
+    face = (f'<div class="full" style="border-radius:30px;overflow:hidden;'
             f'background:linear-gradient(180deg,{light} 0%,{col} 46%,{col} 100%);'
             f'box-shadow:0 14px 0 {edge},0 28px 36px rgba(0,0,0,.45),inset 0 4px 0 rgba(255,255,255,.45),'
-            f'inset 0 -8px 0 rgba(0,0,0,.14);display:flex;align-items:center;justify-content:center;gap:20px">'
-            f'{_icon(icon, col)}'
-            f'<span class="d" style="font-size:{fs}px;line-height:1;padding-top:.08em;color:#fff;'
+            f'inset 0 -8px 0 rgba(0,0,0,.14);display:flex;align-items:center;justify-content:center;gap:16px">'
+            f'{_icon(icon, col, 52)}'
+            f'<span class="d" style="font-size:{BTN_FS}px;line-height:1;padding-top:.08em;color:#fff;'
             f'text-shadow:0 6px 0 {edge}">{esc(text)}</span>'
             f'<div class="abs" style="top:-30%;bottom:-30%;left:0;width:26%;'
             f'background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);'
@@ -337,13 +407,13 @@ def _button(text: str, x: float, rot: float, col: str, light: str, edge: str, ic
 
 
 def _or_disc(cx: float, cy: float, start: float, out: float = 0) -> str:
-    d = 116
+    d = 106
     origin = f"transform-origin:{cx:.0f}px {cy:.0f}px;"
     gone = style_anim(an("cdOut", out, .2)) if out else ""
     return (f'<div class="full" style="{origin}{gone}">'
             f'<div class="abs d" style="left:{cx - d / 2:.0f}px;top:{cy - d / 2:.0f}px;width:{d}px;'
             f'height:{d}px;border-radius:50%;background:{INK};border:6px solid #fff;display:flex;'
-            f'align-items:center;justify-content:center;font-size:54px;padding-top:4px;color:#fff;'
+            f'align-items:center;justify-content:center;font-size:50px;padding-top:4px;color:#fff;'
             f'box-shadow:0 10px 0 rgba(0,0,0,.35);transform-origin:50% 50%;'
             f'{style_anim(an("pop", start, .5, EASE_BACK))}">OR</div></div>')
 
@@ -360,10 +430,10 @@ def _vote_center(t0: float, cd: int = CD) -> str:
             f'<div class="abs" style="left:{cx - d / 2 - 8:.0f}px;top:{cy - d / 2 - 8:.0f}px;width:{d + 16}px;'
             f'height:{d + 16}px;border-radius:50%;background:{INK};box-shadow:0 12px 0 rgba(0,0,0,.35)"></div>'
             f'{countdown(cd, cx, cy, d, t0 + T_CD)}</div></div>')
-    size = 42
-    cta_w = (_em("COMMENT IT!") + .84) * size
-    cta = (f'<div class="abs" style="left:{cx - cta_w / 2:.0f}px;top:{BTN_Y + BTN_H + 24}px;'
-           f'transform:rotate(-3deg)"><div class="d" style="background:#fff;color:{INK};font-size:{size}px;'
+    # COMMENT IT! lands under the buttons, centred on the ring, above the caption zone.
+    cta_w = (_em("COMMENT IT!") + .84) * CTA_SIZE
+    cta = (f'<div class="abs" style="left:{cx - cta_w / 2:.0f}px;top:{CTA_Y}px;'
+           f'transform:rotate(-3deg)"><div class="d" style="background:#fff;color:{INK};font-size:{CTA_SIZE}px;'
            f'padding:.16em .42em .1em;border-radius:10px;white-space:nowrap;'
            f'box-shadow:0 8px 0 rgba(0,0,0,.35);{style_anim(an("pop", t0 + t_end + .12, .55, EASE_BACK))}">'
            f'COMMENT IT!</div></div>')
@@ -382,35 +452,34 @@ def _round(comp: Comp, ctx: Ctx, it: dict, k: int, n: int, t0: float, rlen: floa
     art = ctx.art(it)
     lines, size = _name_lines(it["name"])
     name_bottom = NAME_Y + len(lines) * size * .92
-    top = name_bottom + 14
-    outfit = it["type"] == "Outfit"
-    h = min(780 if outfit else 560, CHAR_BOTTOM - top)
-    cy = CHAR_BOTTOM - h / 2 if outfit else (top + CHAR_BOTTOM) / 2 + 10
-    side_cy = max(652, name_bottom + 30 + COIN_D / 2)
     land = t0 + T_LAND
 
-    inner = tile_bg(it.get("tile_colors") or [], it["rarity"], t0)
+    # Under the coin: when it leaves, or how long it's been in the shop.
+    leaves = _leaves_today(ctx, it)
+    tag_text = "LEAVES AT THE NEXT RESET" if leaves else _in_since(ctx, it)
+    tag_y = COIN_CY + COIN_D / 2 + 20
+
+    # The cosmetic fills the band between the header and the buttons, centred a
+    # little right of the band so the INTRODUCED card has the left edge.
+    top = name_bottom + 16
+    outfit = it["type"] == "Outfit"
+    h = min(760 if outfit else 560, CHAR_BOTTOM - top)
+    cy = CHAR_BOTTOM - h / 2 if outfit else (top + CHAR_BOTTOM) / 2 + 10
+
+    inner = tile_bg(it.get("tile_colors") or [], it["rarity"], t0) + _scrim()
     inner += character(art, CHAR_CX, cy, h, t0 + T_CHAR, ENTER[(k - 1) % len(ENTER)], .75,
-                       "float" if k % 2 else "sway", it["rarity"], it["name"])
+                       "float" if k % 2 else "sway", it["rarity"], it["name"], maxw=CHAR_MAXW, trim=True)
     inner += _kicker(it, NAME_X, KICK_Y, t0 + T_KICK)
     for i, line in enumerate(lines):
         inner += words(line, NAME_X, NAME_Y + i * size * .92, size, t0 + T_NAME + i * .12,
                        "#fff", .07, "slam", "left", NAME_W + 40)
 
-    inner += _intro_card(it, CARD_X, side_cy + 24, t0 + T_CARD)
-    inner += _coin(it["price"], COIN_CX, side_cy, t0)
-    inner += burst(COIN_CX, side_cy, land, ctx.seed + k * 23, 22)
-    tag_y = side_cy + COIN_D / 2 + 34
-    leaves = _leaves_today(ctx, it)
-    tag_size = 32 if leaves else 28
-    # Right of x=960 only while the whole tag stays above the like/comment rail.
-    tag_xr = TAG_XR if tag_y + tag_size * 1.16 + 12 <= RAIL_TOP else SAFE_RIGHT - 2
-    if leaves:
-        inner += _tag("LEAVES AT THE NEXT RESET", tag_xr, tag_y, tag_size, t0 + T_TAG, ACCENT, INK, -3)
-    else:
-        since = _in_since(ctx, it)
-        if since:
-            inner += _tag(since, tag_xr, tag_y, tag_size, t0 + T_TAG, "rgba(10,10,11,.86)", "#fff", -3)
+    inner += _intro_card(it, CARD_X, max(CARD_TOP, name_bottom + 40), t0 + T_CARD)
+    inner += _coin(it["price"], COIN_CX, COIN_CY, t0)
+    inner += burst(COIN_CX, COIN_CY, land, ctx.seed + k * 23, 22)
+    if tag_text:
+        bg, fg = (ACCENT, INK) if leaves else ("rgba(10,10,11,.88)", "#fff")
+        inner += _tag(tag_text, TAG_XR, tag_y, TAG_SIZE, t0 + T_TAG, bg, fg, -3)
 
     inner += _button("COP", COP_X, -3, COP_COL, COP_LIGHT, COP_EDGE, "check",
                      t0 + T_BTN, t0 + t_end, False)
@@ -450,52 +519,76 @@ def _wipe(comp: Comp, t: float, colors: list, rarity: str = ""):
     comp.cue(t - WIPE / 2 + .05, "whoosh")
 
 
-def _ballot_row(ctx: Ctx, it: dict, k: int, y: float, start: float) -> str:
+BAL_X, BAL_W = SAFE_LEFT, SAFE_RIGHT - SAFE_LEFT          # 60-900: beside the rail
+BAL_TOP, BAL_BOTTOM = 572, SAFE_BOTTOM - 12
+BOX, BOX_GAP, BOX_R = 58, 16, 18                          # the two tick boxes, from the row's right
+
+
+def _box_x(j: int) -> float:
+    """Left edge (in the row) of tick box j: 0 = COP, 1 = DROP."""
+    return BAL_W - BOX_R - BOX - (1 - j) * (BOX + BOX_GAP)
+
+
+def _ballot_row(ctx: Ctx, it: dict, k: int, y: float, h: float, start: float) -> str:
     """One ballot line: numbered cosmetic on its tile colours, name, type and
-    price, and two empty tick boxes -- the vote is the viewer's to fill in."""
-    x, w, h = 60, 880, 118
+    price, and two empty tick boxes under the COP and DROP column heads -- the
+    vote is the viewer's to fill in."""
     col = RARITY.get(it.get("rarity", ""), "#777")
     tc = it.get("tile_colors") or []
     c1 = hexcol(tc[0] if tc else "", col)
     c2 = hexcol(tc[1] if len(tc) > 1 else "", "#101014")
-    thumb = 100
-    fig = character(ctx.art(it), thumb / 2, thumb / 2 + 2, thumb - 8, start + .15, "pop", .5, "sway",
-                    it["rarity"], it["name"])
-    name_w = 430
-    nsize = _fit(it["name"], name_w, 48)
+    thumb = h - 14
+    uri = ctx.art(it)
+    fig = (character(uri, thumb / 2, thumb / 2 + 2, thumb - 8, start + .15, "pop", .5, "sway",
+                     it["rarity"], it["name"], maxw=thumb - 6, trim=True) if uri else "")
+    tx = 12 + thumb + 18
+    name_w = _box_x(0) - 22 - tx
+    lines, nsize = _row_lines(it["name"], name_w, h)
+    meta_size = 30
+    block = len(lines) * nsize * .9 + 8 + meta_size * 1.1
+    ny = (h - block) / 2
 
-    def box(label, bc):
-        return (f'<div style="display:flex;align-items:center;gap:10px;height:54px;padding:0 16px 0 12px;'
-                f'border:3px solid {bc};border-radius:14px;background:rgba(10,10,11,.5)">'
-                f'<i style="display:block;width:24px;height:24px;border:3px solid {bc};border-radius:6px"></i>'
-                f'<span class="d" style="font-size:32px;line-height:1;padding-top:3px;color:{bc}">{label}</span></div>')
+    def box(bc):
+        return (f'<i style="display:block;width:{BOX}px;height:{BOX}px;border:4px solid {bc};border-radius:12px;'
+                f'background:rgba(10,10,11,.45);box-shadow:inset 0 0 0 3px rgba(0,0,0,.25)"></i>')
 
     meta = f'{(it.get("type") or "").upper()} · {it["price"]:,} V-BUCKS'
-    return (f'<div class="abs" style="left:{x}px;top:{y:.0f}px;width:{w}px;height:{h}px">'
-            f'<div class="full" style="background:rgba(10,10,11,.76);border-radius:22px;'
+    boxes = "".join(f'<div class="abs" style="left:{_box_x(j):.0f}px;top:{(h - BOX) / 2:.0f}px">{box(bc)}</div>'
+                    for j, bc in enumerate((COP_COL, DROP_COL)))
+    return (f'<div class="abs" style="left:{BAL_X}px;top:{y:.0f}px;width:{BAL_W}px;height:{h:.0f}px">'
+            f'<div class="full" style="background:rgba(10,10,11,.78);border-radius:22px;'
             f'border-left:8px solid {col};{style_anim(an("fromL", start, .55))}">'
-            f'<div class="abs" style="left:12px;top:{(h - thumb) / 2:.0f}px;width:{thumb}px;height:{thumb}px;'
+            f'<div class="abs" style="left:12px;top:{(h - thumb) / 2:.0f}px;width:{thumb:.0f}px;height:{thumb:.0f}px;'
             f'border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 38%,{c1},{c2})">'
             f'{fig}</div>'
-            f'<div class="abs d" style="left:2px;top:2px;width:40px;height:40px;border-radius:50%;'
-            f'background:{ACCENT};color:{INK};font-size:26px;line-height:40px;text-align:center">{k}</div>'
-            f'<div class="abs d" style="left:132px;top:{h / 2 - nsize * .8:.0f}px;width:{name_w}px;'
-            f'font-size:{nsize:.0f}px;white-space:nowrap">{esc(it["name"])}</div>'
-            f'<div class="abs" style="left:134px;top:{h / 2 + 12:.0f}px;font-size:20px;font-weight:700;'
-            f'letter-spacing:.12em;color:rgba(255,255,255,.66);white-space:nowrap">{esc(meta)}</div>'
-            f'<div class="abs" style="right:20px;top:{(h - 60) / 2:.0f}px;display:flex;gap:12px">'
-            f'{box("COP", COP_COL)}{box("DROP", DROP_COL)}</div>'
-            f'</div></div>')
+            f'<div class="abs d" style="left:4px;top:4px;width:44px;height:44px;border-radius:50%;'
+            f'background:{ACCENT};color:{INK};font-size:30px;line-height:46px;text-align:center;'
+            f'box-shadow:0 3px 0 rgba(0,0,0,.35)">{k}</div>'
+            f'<div class="abs d" style="left:{tx:.0f}px;top:{ny:.0f}px;width:{name_w:.0f}px;'
+            f'font-size:{nsize:.0f}px;line-height:.9;white-space:nowrap">{"<br>".join(esc(ln) for ln in lines)}</div>'
+            f'<div class="abs" style="left:{tx + 2:.0f}px;top:{ny + len(lines) * nsize * .9 + 8:.0f}px;'
+            f'font-size:{meta_size}px;'
+            f'font-weight:700;line-height:1.1;letter-spacing:.03em;color:rgba(255,255,255,.74);white-space:nowrap">'
+            f'{esc(meta)}</div>'
+            f'{boxes}</div></div>')
 
 
 def _ballot(comp: Comp, ctx: Ctx, items: list, t0: float):
     inner = tile_bg(["#262a36", "#0b0b0e"], "", t0)
-    inner += words("YOUR BALLOT", 60, 322, 120, t0 + .1, "#fff", .1, "slam", "left", 900)
-    inner += sticker(f"VOTE 1 TO {len(items)} IN THE COMMENTS", 64, 444, 34, t0 + .45, ACCENT, INK, -3)
-    step = 130 if len(items) >= 7 else 146
-    y0 = 530
+    inner += words("YOUR BALLOT", SAFE_LEFT, 366, 110, t0 + .1, "#fff", .1, "slam", "left", 900)
+    inner += sticker(f"VOTE 1 TO {len(items)} IN THE COMMENTS", SAFE_LEFT + 6, 490, 34, t0 + .45,
+                     ACCENT, INK, -3)
+    n = len(items)
+    step = min(162, (BAL_BOTTOM - BAL_TOP + 10) / n)
+    h = step - 10
+    # Column heads over the tick boxes: a ballot, not a verdict.
+    for j, (txt, bc) in enumerate((("COP", COP_COL), ("DROP", DROP_COL))):
+        cx = BAL_X + _box_x(j) + BOX / 2
+        inner += (f'<div class="abs d" style="left:{cx - 60:.0f}px;width:120px;top:{BAL_TOP - 44}px;'
+                  f'text-align:center;font-size:32px;color:{bc};text-shadow:0 3px 0 rgba(0,0,0,.5);'
+                  f'{style_anim(an("rise", t0 + .5 + j * .08, .4))}">{txt}</div>')
     for i, it in enumerate(items):
-        inner += _ballot_row(ctx, it, i + 1, y0 + i * step, t0 + .55 + i * .14)
+        inner += _ballot_row(ctx, it, i + 1, BAL_TOP + i * step, h, t0 + .55 + i * .14)
         comp.cue(t0 + .55 + i * .14 + .3, "tick")
     comp.scene(t0, t0 + BALLOT + .05, inner, fade_in=.05, fade_out=.05)
     comp.cue(t0 + .1, "slam")

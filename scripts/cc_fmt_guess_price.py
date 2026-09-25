@@ -19,9 +19,9 @@ Nothing else is claimed: no "most people guessed", no rating, no "back"/"rare".
 import math
 from datetime import date
 
-from cc_motion import (ACCENT, INK, RARITY, EASE_BACK, EASE_OUT, Comp, an, burst, character,
-                       code_badge, countdown, disclosure, esc, hexcol, price_roll, progress, sticker,
-                       style_anim, tile_bg, words)
+from cc_motion import (ACCENT, INK, RARITY, EASE_BACK, EASE_OUT, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT,
+                       SAFE_RIGHT_TOP, W, Comp, an, burst, character, code_badge, countdown, disclosure, esc,
+                       hexcol, price_roll, progress, sticker, style_anim, tile_bg, words)
 from cc_formats import (Ctx, Video, num, _caption, _hashtags, _hook_scene, _outro_scene, _pad, rng,
                         singles)
 
@@ -43,13 +43,27 @@ T_LAND = T_ROLL + ROLL           # exact price lands: burst, flash, shake
 T_GOT = T_LAND + .35             # "GOT IT?"
 T_FACT = T_LAND + .55            # introduction card / leaving sticker
 
-# Layout (px). Everything important sits in y 190..1480; below y=880 it stays left
-# of x=960 (TikTok's like/comment rail).
-NAME_X, NAME_Y, NAME_W = 60, 384, 880
-CHAR_CX, CHAR_BOTTOM = 380, 1172
-RING_CX, RING_CY, RING = 835, 640, 200          # upper right, clear of the face, above the rail
-TAG_X, TAG_Y, TAG_W, TAG_H, TAG_ROT = 72, 1210, 600, 214, -3
+# Layout (px). Everything a viewer reads stays in the apps' safe box (cc_safe):
+# x 60-1020 above y 740, x 60-900 (left of the button rail) below it, y 230-1420.
+# The code badge and #EpicPartner own the top-left corner down to y ~350, the
+# round counter the top-right down to y ~292.
+#
+#   y 366-640   type chip + name (left column)   | guessing ring + GUESS!, then the
+#                                                  INTRODUCED card and the leaves sticker
+#   y 560-1172  the cosmetic, centred on the band beside the rail
+#   y 1196-1400 the hanging price tag, GOT IT? on its corner
+KICK_Y = 366
+NAME_X, NAME_Y = SAFE_LEFT, 424
+RING = 196
+RING_CX, RING_CY = SAFE_RIGHT_TOP - 14 - RING / 2, 470        # x 808-1008, y 372-568
+CARD_W = 216                                                  # INTRODUCED card, in the ring's place
+CARD_CX = SAFE_RIGHT_TOP - 16 - CARD_W / 2                    # x 788-1004, tilted 4 degrees
+NAME_W = min(RING_CX - RING / 2, CARD_CX - CARD_W / 2) - 24 - NAME_X   # name column: clear of both
+LEAVE_XR, LEAVE_SIZE = SAFE_RIGHT_TOP - 10, 32                # the leaves sticker, under the card
+CHAR_CX, CHAR_BOTTOM, CHAR_MAXW = 470, 1168, 640
+TAG_X, TAG_Y, TAG_W, TAG_H, TAG_ROT = SAFE_LEFT + 14, 1196, 600, 196, -3
 TAG_NOTCH = 64
+PRICE_SIZE = 112
 
 # Anton advance widths in em, measured in the render browser. Used to size names
 # so they never wrap awkwardly or run off the frame.
@@ -73,10 +87,6 @@ CSS = f"""
    Same motion, but invisible until launch. This document only. */
 @keyframes burst{{0%{{transform:translate(0,0) rotate(0) scale(1);opacity:0}}3%{{opacity:1}}
   100%{{transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(.35);opacity:0}}}}
-/* The shared hook sets its title at 170px, which puts "GUESS THE PRICE" edge to
-   edge (and a word-gap off centre). Scoped to the hook scene of this video only. */
-body>.scene:first-child>.abs.d[style*="font-size:170px"]{{font-size:154px!important}}
-body>.scene:first-child>.abs.d[style*="font-size:170px"]>span:last-child{{margin-right:0!important}}
 """
 
 
@@ -91,6 +101,44 @@ def _em(text: str) -> float:
 
 def _fit(text: str, width: float, cap: float) -> float:
     return min(cap, width / max(_em(text), .1))
+
+
+# Inter 800 advance widths in em (caps, digits, punctuation), measured in the
+# render browser, for sizing the type chip to its column.
+_INTER800 = {
+    'A': .75, 'B': .647, 'C': .728, 'D': .706, 'E': .619, 'F': .593, 'G': .738, 'H': .722, 'I': .27,
+    'J': .573, 'K': .706, 'L': .565, 'M': .909, 'N': .731, 'O': .747, 'P': .639, 'Q': .747, 'R': .658,
+    'S': .668, 'T': .645, 'U': .705, 'V': .742, 'W': 1.033, 'X': .718, 'Y': .709, 'Z': .643, ' ': .2,
+    '·': .254, ',': .254, '.': .254, '-': .45, "'": .25, '0': .665, '1': .665, '2': .665, '3': .665,
+    '4': .665, '5': .665, '6': .665, '7': .665, '8': .665, '9': .665,
+}
+
+
+def _row_lines(name: str, width: float, h: float, cap: float = 52, min1: float = 40) -> tuple:
+    """(lines, size) for a name in a recap row: one line down to `min1` px, else
+    the two-line break that allows the biggest type (as tall as the row allows)."""
+    one = _fit(name, width, cap)
+    ws = name.split()
+    if one >= min1 or len(ws) < 2:
+        return [name], one
+    cap2 = min(min1, (h - 30 * 1.1 - 26) / 1.8)
+    best = max((min(cap2, width / max(_em(" ".join(ws[:i])), _em(" ".join(ws[i:])))), i)
+               for i in range(1, len(ws)))
+    return [" ".join(ws[:best[1]]), " ".join(ws[best[1]:])], best[0]
+
+
+def _inter_w(text: str, size: float, spacing: float = 0) -> float:
+    """Width in px of `text` in Inter 800 caps with `spacing` em of letter-spacing."""
+    return sum(_INTER800.get(ch, .7) + spacing for ch in text.upper()) * size
+
+
+def _two_lines(text: str) -> list:
+    """Break a sticker's words into the two most even lines."""
+    ws = text.split()
+    if len(ws) < 3:
+        return [text]
+    best = min(range(1, len(ws)), key=lambda i: abs(_em(" ".join(ws[:i])) - _em(" ".join(ws[i:]))))
+    return [" ".join(ws[:best]), " ".join(ws[best:])]
 
 
 def _name_lines(name: str, width: float = NAME_W) -> tuple:
@@ -169,6 +217,14 @@ def _pick(ctx: Ctx) -> list:
     return picked
 
 
+def _scrim() -> str:
+    """Darkens the bands the words sit on, so white type and the lime code badge
+    hold on pale tile colours (some are acid yellow-green themselves)."""
+    return ('<div class="full" style="background:linear-gradient(180deg,rgba(0,0,0,.5) 0,'
+            'rgba(0,0,0,.36) 20%,rgba(0,0,0,.2) 30%,rgba(0,0,0,0) 42%,rgba(0,0,0,0) 58%,'
+            'rgba(0,0,0,.3) 70%,rgba(0,0,0,.55) 100%)"></div>')
+
+
 def _leaves_today(ctx: Ctx, it: dict) -> bool:
     try:
         return date.fromisoformat(it.get("out_day") or "") == ctx.day
@@ -178,21 +234,29 @@ def _leaves_today(ctx: Ctx, it: dict) -> bool:
 
 # --------------------------------------------------------------- components
 
-def _kicker(it: dict, x: float, y: float, start: float) -> str:
+def _kicker(it: dict, x: float, y: float, start: float, width: float = NAME_W) -> str:
     """TYPE chip with a rarity-coloured dot, straight from the row. A series label
-    ("ICON SERIES") is added; plain rarity tiers are not, so the word "RARE" never
-    appears on screen where it could read as a scarcity claim."""
+    ("ICON SERIES") is added when the chip still fits its column ("GAMING LEGENDS"
+    without the word SERIES if that's what fits); plain rarity tiers are not, so
+    the word "RARE" never appears on screen where it could read as a scarcity claim."""
     col = RARITY.get(it.get("rarity", ""), "#9AA0A6")
-    kind = esc((it.get("type") or "").upper())
+    kind = (it.get("type") or "").upper()
     series = (it.get("rarity_label") or "").strip()
-    rest = (f'<span style="color:rgba(255,255,255,.72)">·&nbsp;{esc(series.upper())}</span>'
-            if series.lower().endswith("series") else "")
+    size, sp = 30, .1
+    room = width - 16 - 12 - 32 - 8                # dot, gap, padding, the tilt
+    rest = ""
+    if series.lower().endswith("series"):
+        for s in (series.upper(), series.upper()[:-len(" SERIES")].strip()):
+            if s and _inter_w(f"{kind} · {s}", size, sp) <= room:
+                rest = s
+                break
+    extra = (f'<span style="color:rgba(255,255,255,.74)">·&nbsp;{esc(rest)}</span>' if rest else "")
     return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;transform:rotate(-1.5deg)">'
-            f'<div style="display:inline-flex;align-items:center;gap:12px;background:rgba(10,10,11,.8);'
-            f'border-radius:12px;padding:9px 18px 9px 14px;font-size:24px;font-weight:800;'
-            f'letter-spacing:.16em;white-space:nowrap;{style_anim(an("rise", start, .45))}">'
+            f'<div style="display:inline-flex;align-items:center;gap:12px;background:rgba(10,10,11,.82);'
+            f'border-radius:12px;padding:6px 16px 6px 14px;font-size:{size}px;font-weight:800;line-height:1.2;'
+            f'letter-spacing:{sp}em;white-space:nowrap;{style_anim(an("rise", start, .45))}">'
             f'<i style="width:16px;height:16px;border-radius:50%;background:{col};'
-            f'box-shadow:0 0 14px {col}"></i><span>{kind}</span>{rest}</div></div>')
+            f'box-shadow:0 0 14px {col}"></i><span>{esc(kind)}</span>{extra}</div></div>')
 
 
 def _price_tag(price: int, t0: float) -> str:
@@ -223,17 +287,23 @@ def _price_tag(price: int, t0: float) -> str:
             f'<div class="abs" style="left:{hx - 15:.0f}px;top:{hy - 15:.0f}px;width:30px;height:30px;'
             f'border-radius:50%;background:#050507;border:5px solid {ACCENT};'
             f'box-shadow:inset 0 3px 6px rgba(0,0,0,.8)"></div>')
-    qs = (f'<div class="abs d" style="left:{cx - 300:.0f}px;width:600px;top:14px;text-align:center;'
-          f'font-size:128px;color:#fff;text-shadow:0 8px 0 rgba(0,0,0,.35);'
+    unit_size = 30
+    gap = 16                                     # Anton's comma hangs below the line box
+    num_top = (h - (PRICE_SIZE * .9 + gap + unit_size * .9)) / 2
+    qs = (f'<div class="abs d" style="left:{cx - 300:.0f}px;width:600px;top:{num_top:.0f}px;text-align:center;'
+          f'font-size:{PRICE_SIZE}px;color:#fff;text-shadow:0 8px 0 rgba(0,0,0,.35);'
           f'{style_anim(an("fadeout", t_rev, .15))}">'
           f'<span style="display:inline-block;'
           f'{style_anim(an("wobble", t_in + .3, .42, "ease-in-out", "infinite", "alternate"))}">'
           f'? ? ?</span></div>')
     # price_roll's counter shows "0" before it starts, so it only appears on cue.
+    size = min(PRICE_SIZE, (w - n - 60) / max(_em(f"{price:,}"), .1))
     roll = (f'<div class="full" style="{style_anim(an("fadein", t_roll, .06))}">'
-            f'{price_roll(price, cx, 14, 128, t_roll, ROLL, ACCENT, "center", "")}</div>')
-    unit = (f'<div class="abs" style="left:{cx - 200:.0f}px;width:400px;top:{h - 54}px;text-align:center;'
-            f'font-size:22px;font-weight:800;letter-spacing:.34em;color:rgba(255,255,255,.72)">V-BUCKS</div>')
+            f'{price_roll(price, cx, num_top + (PRICE_SIZE - size) * .45, size, t_roll, ROLL, ACCENT, "center", "")}'
+            f'</div>')
+    unit = (f'<div class="abs d" style="left:{cx - 200:.0f}px;width:400px;top:{num_top + PRICE_SIZE * .9 + gap:.0f}px;'
+            f'text-align:center;font-size:{unit_size}px;letter-spacing:.16em;text-indent:.16em;'
+            f'color:rgba(255,255,255,.8)">V-BUCKS</div>')
 
     return (f'<div class="abs" style="left:{TAG_X}px;top:{TAG_Y}px;width:{w}px;height:{h}px;'
             f'transform:rotate({TAG_ROT}deg)">'
@@ -246,7 +316,8 @@ def _price_tag(price: int, t0: float) -> str:
 
 
 def _intro_card(it: dict, start: float) -> str:
-    """'INTRODUCED / CHAPTER 2 / SEASON 1' from the row's own introduction field."""
+    """'INTRODUCED / CHAPTER 2 / SEASON 1' from the row's own introduction field,
+    in the ring's place once the price is out."""
     intro = it.get("introduction") or {}
     ch, se = str(intro.get("chapter") or "").strip(), str(intro.get("season") or "").strip()
     if not ch or not se:
@@ -254,41 +325,51 @@ def _intro_card(it: dict, start: float) -> str:
     col = RARITY.get(it.get("rarity", ""), "#9AA0A6")
     a = style_anim(an("pop", start, .55, EASE_BACK))
     lines = [f"CHAPTER {ch}", f"SEASON {se}"]
-    size = min(46, 190 / max(_em(s) for s in lines))
-    return (f'<div class="abs" style="left:{RING_CX - 118}px;top:{RING_CY - 96}px;width:236px;'
-            f'transform:rotate(4deg)"><div style="background:rgba(10,10,11,.86);border:3px solid {col};'
-            f'border-radius:18px;padding:14px 10px 16px;text-align:center;'
+    size = min(52, (CARD_W - 40) / max(_em(s) for s in lines))
+    return (f'<div class="abs" style="left:{CARD_CX - CARD_W / 2:.0f}px;top:{RING_CY - RING / 2:.0f}px;'
+            f'width:{CARD_W}px;transform:rotate(4deg)"><div style="background:rgba(10,10,11,.88);'
+            f'border:3px solid {col};border-radius:18px;padding:12px 8px 14px;text-align:center;'
             f'box-shadow:0 10px 0 rgba(0,0,0,.35);{a}">'
-            f'<div style="font-size:18px;font-weight:800;letter-spacing:.24em;color:#9AA0A6;'
+            f'<div class="d" style="font-size:30px;letter-spacing:.1em;text-indent:.1em;color:#B4B9C2;'
             f'margin-bottom:8px">INTRODUCED</div>'
             f'<div class="d" style="font-size:{size:.0f}px;line-height:1">{esc(lines[0])}</div>'
             f'<div class="d" style="font-size:{size:.0f}px;line-height:1;color:{ACCENT}">{esc(lines[1])}</div>'
             f'</div></div>')
 
 
+def _leaves(y: float, start: float) -> str:
+    """LEAVES AT THE NEXT RESET, on two lines, right-aligned under the card."""
+    a = style_anim(an("pop", start, .55, EASE_BACK))
+    body = "<br>".join(esc(s) for s in _two_lines("LEAVES AT THE NEXT RESET"))
+    return (f'<div class="abs" style="right:{W - LEAVE_XR:.0f}px;top:{y:.0f}px;transform:rotate(-3deg)">'
+            f'<div class="d" style="background:{ACCENT};color:{INK};font-size:{LEAVE_SIZE}px;line-height:.98;'
+            f'padding:.18em .42em .1em;border-radius:10px;white-space:nowrap;text-align:center;'
+            f'box-shadow:0 8px 0 rgba(0,0,0,.35);{a}">{body}</div></div>')
+
+
 def _round(comp: Comp, ctx: Ctx, it: dict, k: int, n: int, t0: float):
     art = ctx.art(it)
     lines, size = _name_lines(it["name"])
     name_bottom = NAME_Y + len(lines) * size * .92
-    top = name_bottom + 26
-    h = min(720 if it["type"] == "Outfit" else 620, CHAR_BOTTOM - top)
+    top = name_bottom + 22
+    h = min(720 if it["type"] == "Outfit" else 600, CHAR_BOTTOM - top)
     cy = CHAR_BOTTOM - h / 2 if it["type"] == "Outfit" else (top + CHAR_BOTTOM) / 2
 
     land = t0 + T_LAND
-    inner = tile_bg(it.get("tile_colors") or [], it["rarity"], t0)
+    inner = tile_bg(it.get("tile_colors") or [], it["rarity"], t0) + _scrim()
     # Everything but the backdrop shakes on the landing, so no frame edge shows.
     inner += f'<div class="full" style="{style_anim(an("shake", land, .35, "linear"))}">'
     inner += character(art, CHAR_CX, cy, h, t0 + T_CHAR, "pop", .8,
-                       "float" if k % 2 else "sway", it["rarity"], it["name"])
-    inner += _kicker(it, NAME_X, 322, t0 + T_KICK)
+                       "float" if k % 2 else "sway", it["rarity"], it["name"], maxw=CHAR_MAXW, trim=True)
+    inner += _kicker(it, NAME_X, KICK_Y, t0 + T_KICK)
     for i, line in enumerate(lines):
         inner += words(line, NAME_X, NAME_Y + i * size * .92, size, t0 + T_NAME + i * .12,
                        "#fff", .07, "slam", "left", NAME_W + 40)
 
-    # The guessing ring, upper right: clear of the face, above the rail. It pops
-    # in as it starts (countdown() alone shows its disc from the scene's start)
-    # and shrinks away when the time is up.
-    origin = f"transform-origin:{RING_CX}px {RING_CY}px;"
+    # The guessing ring, top right beside the name: clear of the face, in the wide
+    # band above the rail. It pops in as it starts (countdown() alone shows its
+    # disc from the scene's start) and shrinks away when the time is up.
+    origin = f"transform-origin:{RING_CX:.0f}px {RING_CY}px;"
     inner += (f'<div class="full" style="{origin}'
               f'{style_anim(an("gpOut", t0 + T_REV, .3, "cubic-bezier(.5,0,.8,.3)"))}">'
               f'<div class="full" style="{origin}{style_anim(an("pop", t0 + T_CD, .5, EASE_BACK))}">'
@@ -296,17 +377,19 @@ def _round(comp: Comp, ctx: Ctx, it: dict, k: int, n: int, t0: float):
 
     inner += _price_tag(it["price"], t0)
     inner += burst(TAG_X + TAG_W / 2, TAG_Y + TAG_H / 2, land, ctx.seed + k * 17)
-    inner += sticker("GOT IT?", TAG_X + TAG_W - 70, TAG_Y - 44, 42, t0 + T_GOT, "#ffffff", INK, 7)
+    inner += sticker("GOT IT?", TAG_X + TAG_W - 96, TAG_Y - 46, 44, t0 + T_GOT, "#ffffff", INK, 7)
 
     inner += _intro_card(it, t0 + T_FACT)
     if _leaves_today(ctx, it):
-        inner += sticker("LEAVES AT THE NEXT RESET", RING_CX - 210, RING_CY + 118, 28,
-                         t0 + T_FACT + .25, ACCENT, INK, -3)
+        card_bottom = RING_CY - RING / 2 + 196 if _intro_card(it, 0) else RING_CY - RING / 2
+        inner += _leaves(card_bottom + 18, t0 + T_FACT + .25)
     inner += "</div>"
     inner += (f'<div class="full" style="background:#fff;opacity:0;pointer-events:none;'
               f'{style_anim(an("gpFlash", land, .45, "ease-out"))}"></div>')
     inner += progress(t0, t0 + R, k, n)
-    comp.scene(t0, t0 + R + .25, inner, fade_in=.25, fade_out=.25)
+    # The next scene fades in on top while this one holds, then this one drops
+    # out: a clean crossfade, no dip to black between rounds.
+    comp.scene(t0, t0 + R + .3, inner, fade_in=.25, fade_out=.05)
 
     comp.cue(t0 + T_CHAR, "whoosh")
     comp.cue(t0 + T_NAME, "slam")
@@ -318,52 +401,65 @@ def _round(comp: Comp, ctx: Ctx, it: dict, k: int, n: int, t0: float):
     comp.cue(t0 + T_GOT, "pop")
 
 
-def _key_row(ctx: Ctx, it: dict, k: int, y: float, start: float) -> str:
+KEY_X, KEY_W = SAFE_LEFT, SAFE_RIGHT - SAFE_LEFT           # 60-900: beside the rail
+KEY_TOP, KEY_BOTTOM = 566, SAFE_BOTTOM - 12
+
+
+def _key_row(ctx: Ctx, it: dict, k: int, y: float, h: float, start: float) -> str:
     """One answer-key line: numbered thumbnail on the item's tile colours, name,
     type, and the price."""
-    x, w, h = 60, 880, 128
+    w = KEY_W
     col = RARITY.get(it.get("rarity", ""), "#777")
     tc = it.get("tile_colors") or []
     c1 = hexcol(tc[0] if tc else "", col)
     c2 = hexcol(tc[1] if len(tc) > 1 else "", "#101014")
     uri = ctx.art(it)
-    img = (f'<img src="{uri}" style="width:100%;height:100%;object-fit:contain;display:block">'
-           if uri else "")
+    th = h - 16
+    img = (f'<img data-trim src="{uri}" data-name="{esc(it["name"])}" '
+           f'style="width:100%;height:100%;object-fit:contain;display:block">' if uri else "")
     price = f'{it["price"]:,}'
-    name_w = w - 150 - 190
-    nsize = _fit(it["name"], name_w, 50)
+    psize = min(64, 170 / max(_em(price), .1))
+    tx = 14 + th + 20
+    name_w = w - tx - 240
+    lines, nsize = _row_lines(it["name"], name_w, h)
+    block = len(lines) * nsize * .9 + 8 + 30 * 1.1
+    ny = (h - block) / 2
     a_row = style_anim(an("fromL", start, .55, EASE_OUT))
     a_price = style_anim(an("slam", start + .3, .4))
-    return (f'<div class="abs" style="left:{x}px;top:{y:.0f}px;width:{w}px;height:{h}px">'
-            f'<div class="full" style="background:rgba(10,10,11,.74);border-radius:22px;'
+    pblock = psize * .9 + 12 + 30 * .9
+    return (f'<div class="abs" style="left:{KEY_X}px;top:{y:.0f}px;width:{w}px;height:{h:.0f}px">'
+            f'<div class="full" style="background:rgba(10,10,11,.78);border-radius:22px;'
             f'border-left:8px solid {col};{a_row}">'
-            f'<div class="abs" style="left:14px;top:{(h - 106) / 2:.0f}px;width:106px;height:106px;'
+            f'<div class="abs" style="left:14px;top:{(h - th) / 2:.0f}px;width:{th:.0f}px;height:{th:.0f}px;'
             f'border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 38%,{c1},{c2})">'
             f'{img}</div>'
-            f'<div class="abs d" style="left:4px;top:4px;width:40px;height:40px;border-radius:50%;'
-            f'background:{ACCENT};color:{INK};font-size:26px;line-height:40px;text-align:center">{k}</div>'
-            f'<div class="abs d" style="left:146px;top:{h / 2 - nsize * .78:.0f}px;width:{name_w}px;'
-            f'font-size:{nsize:.0f}px;white-space:nowrap">{esc(it["name"])}</div>'
-            f'<div class="abs" style="left:148px;top:{h / 2 + 12:.0f}px;font-size:21px;font-weight:700;'
-            f'letter-spacing:.14em;color:rgba(255,255,255,.62);white-space:nowrap">'
-            f'{esc((it.get("type") or "").upper())}</div>'
-            f'<div class="abs" style="right:26px;top:{h / 2 - 46:.0f}px;text-align:right">'
-            f'<div class="d" style="font-size:58px;color:{ACCENT};white-space:nowrap;{a_price}">{price}</div>'
-            f'<div style="font-size:15px;font-weight:800;letter-spacing:.3em;color:rgba(255,255,255,.7);'
-            f'margin-top:14px;margin-right:-.3em">V-BUCKS</div></div>'
+            f'<div class="abs d" style="left:4px;top:4px;width:44px;height:44px;border-radius:50%;'
+            f'background:{ACCENT};color:{INK};font-size:30px;line-height:46px;text-align:center;'
+            f'box-shadow:0 3px 0 rgba(0,0,0,.35)">{k}</div>'
+            f'<div class="abs d" style="left:{tx:.0f}px;top:{ny:.0f}px;width:{name_w:.0f}px;'
+            f'font-size:{nsize:.0f}px;line-height:.9;white-space:nowrap">{"<br>".join(esc(ln) for ln in lines)}</div>'
+            f'<div class="abs" style="left:{tx + 2:.0f}px;top:{ny + len(lines) * nsize * .9 + 8:.0f}px;font-size:30px;'
+            f'font-weight:700;line-height:1.1;letter-spacing:.04em;color:rgba(255,255,255,.72);'
+            f'white-space:nowrap">{esc((it.get("type") or "").upper())}</div>'
+            # 44 px in from the right: the row's entrance overshoots 4% (34 px) to the right.
+            f'<div class="abs" style="right:44px;top:{(h - pblock) / 2:.0f}px;text-align:right">'
+            f'<div class="d" style="font-size:{psize:.0f}px;line-height:.9;color:{ACCENT};white-space:nowrap;'
+            f'{a_price}">{price}</div>'
+            f'<div class="d" style="font-size:30px;line-height:.9;letter-spacing:.12em;margin:12px -.12em 0 0;'
+            f'color:rgba(255,255,255,.78)">V-BUCKS</div></div>'
             f'</div></div>')
 
 
 def _answer_key(comp: Comp, ctx: Ctx, items: list, t0: float):
     inner = tile_bg(["#262a36", "#0b0b0e"], "", t0)
-    inner += words("ANSWER KEY", 60, 330, 124, t0 + .1, "#fff", .1, "slam", "left", 900)
-    inner += sticker("COUNT YOUR SCORE", 64, 458, 34, t0 + .45, ACCENT, INK, -3)
-    step = 146
-    y0 = 548
+    inner += words("ANSWER KEY", SAFE_LEFT, 366, 116, t0 + .1, "#fff", .1, "slam", "left", 900)
+    inner += sticker("COUNT YOUR SCORE", SAFE_LEFT + 6, 494, 36, t0 + .45, ACCENT, INK, -3)
+    n = len(items)
+    step = min(162, (KEY_BOTTOM - KEY_TOP + 10) / n)
     for i, it in enumerate(items):
-        inner += _key_row(ctx, it, i + 1, y0 + i * step, t0 + .55 + i * .16)
+        inner += _key_row(ctx, it, i + 1, KEY_TOP + i * step, step - 10, t0 + .55 + i * .16)
         comp.cue(t0 + .55 + i * .16 + .3, "tick")
-    comp.scene(t0, t0 + KEY + .25, inner, fade_in=.25, fade_out=.25)
+    comp.scene(t0, t0 + KEY + .3, inner, fade_in=.25, fade_out=.05)
     comp.cue(t0 + .05, "whoosh")
     comp.cue(t0 + .1, "slam")
 

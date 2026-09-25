@@ -21,14 +21,27 @@ It never uses Epic's "regular price", never says "discount", never rates a bundl
 import cc_looks as LK
 from cc_fmt_last_chance import _em, _fit, _from
 from cc_formats import Ctx, Video, _pad, _hook_scene, _outro_scene, _hashtags, _caption, num
-from cc_motion import (ACCENT, INK, RARITY, Comp, an, burst, character, code_badge, disclosure, esc,
-                       label, price_roll, progress, sticker, style_anim, tile_bg, words)
+from cc_motion import (ACCENT, INK, RARITY, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, Comp, an, burst, character,
+                       code_badge, disclosure, esc, label, price_roll, progress, sticker, style_anim, tile_bg,
+                       words)
 
 FORMAT = "bundle_math"
 HOOK = 3.0
 MIN_BUNDLES, MAX_BUNDLES = 3, 5
 CONTENT = 52.0
 SHOW_LINES = 6            # receipt lines; the rest share one "+N more" line
+
+# Classic layout (px), inside the apps' safe box (cc_safe): x 60-1020 above y 740,
+# x 60-900 (left of the button rail) below it, y 230-1420. The code badge and
+# #EpicPartner own the top-left corner down to y ~350.
+#
+#   y 366-500   the bundle's name, then what the receipt proves (later: SAVES ...)
+#   y 560-...   the bundle's art, its feet tucked behind the receipt
+#   ...-1404    the receipt, bottom-aligned, beside the rail
+TITLE_Y = 366
+RECEIPT_X, RECEIPT_W = SAFE_LEFT + 10, SAFE_RIGHT - SAFE_LEFT - 20      # 70-890
+RECEIPT_BOTTOM = SAFE_BOTTOM - 16
+ROW_H = 44
 
 
 def _eligible(ctx: Ctx) -> list:
@@ -64,50 +77,66 @@ def _eligible(ctx: Ctx) -> list:
     return out[:MAX_BUNDLES] if len(out) >= MIN_BUNDLES else []
 
 
+def _scrim() -> str:
+    """Darkens the bands the words sit on, so white type and the lime code badge
+    hold on pale tile colours (some are acid yellow-green themselves)."""
+    return ('<div class="full" style="background:linear-gradient(180deg,rgba(0,0,0,.5) 0,'
+            'rgba(0,0,0,.36) 20%,rgba(0,0,0,.2) 30%,rgba(0,0,0,0) 42%,rgba(0,0,0,0) 58%,'
+            'rgba(0,0,0,.3) 70%,rgba(0,0,0,.55) 100%)"></div>')
+
+
 def _title(b: dict) -> str:
     """Epic's own bundle name ('PAC-MAN Bundle'), else the shop section's."""
     return b.get("bundle_name") or b["name"].split(" (")[0]
 
 
+def _receipt_h(parts: list) -> float:
+    """The receipt card's height for these parts."""
+    rows = min(len(parts), SHOW_LINES + 1)
+    return 108 + ROW_H * rows + 146
+
+
 def _receipt(parts: list, total: int, price: int, t0: float, beat: float) -> tuple:
     """The receipt card: one line per item with its price today, then the total,
-    then the bundle's price. Returns (html, when the bundle price lands)."""
+    then the bundle's price, bottom-aligned above the caption zone. Returns
+    (html, when the total lands, when the bundle price lands)."""
     lines = parts[:SHOW_LINES]
     rest = parts[SHOW_LINES:]
     rows = [(p["name"], int(p["price"])) for p in lines]
     if rest:
         rows.append((f"+{len(rest)} more items", sum(int(p["price"]) for p in rest)))
-    x, y, w = 70, 850, 820
-    row_h = 46
+    x, w = RECEIPT_X, RECEIPT_W
+    y = RECEIPT_BOTTOM - _receipt_h(parts)
+    row_h = ROW_H
     t_lines = t0 + 1.4 * beat
     step = min(.55, 2.6 * beat / max(len(rows), 1))
-    html = [f'<div class="abs" style="left:{x}px;top:{y}px;width:{w}px;height:{110 + row_h * len(rows) + 150}px;'
+    html = [f'<div class="abs" style="left:{x}px;top:{y:.0f}px;width:{w}px;height:{_receipt_h(parts):.0f}px;'
             f'border-radius:18px;background:#f4f1e8;box-shadow:0 18px 0 rgba(0,0,0,.35);'
             f'{style_anim(an("rise", t0 + 1.0 * beat, .45))}"></div>',
-            f'<div class="abs" style="left:{x + 30}px;top:{y + 22}px;font-size:26px;font-weight:900;color:#4a4a52;'
-            f'letter-spacing:.14em;{style_anim(an("rise", t0 + 1.0 * beat, .45))}">BOUGHT ONE BY ONE TODAY</div>']
+            f'<div class="abs" style="left:{x + 30}px;top:{y + 20:.0f}px;font-size:30px;font-weight:900;color:#4a4a52;'
+            f'letter-spacing:.08em;{style_anim(an("rise", t0 + 1.0 * beat, .45))}">BOUGHT ONE BY ONE TODAY</div>']
     for j, (name, cost) in enumerate(rows):
-        ty = y + 70 + j * row_h
+        ty = y + 68 + j * row_h
         a = style_anim(an("rise", t_lines + j * step, .3))
-        html.append(f'<div class="abs" style="left:{x + 30}px;top:{ty}px;width:{w - 60}px;display:flex;'
+        html.append(f'<div class="abs" style="left:{x + 30}px;top:{ty:.0f}px;width:{w - 60}px;display:flex;'
                     f'justify-content:space-between;font-size:30px;font-weight:700;color:{INK};{a}">'
-                    f'<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px">'
+                    f'<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:{w - 230}px">'
                     f'{esc(name)}</span><span>{cost:,}</span></div>')
     t_total = t_lines + len(rows) * step + .3 * beat
-    ty = y + 70 + len(rows) * row_h + 6
-    html.append(f'<div class="abs" style="left:{x + 30}px;top:{ty}px;width:{w - 60}px;border-top:4px dashed #9a9aa2;'
+    ty = y + 68 + len(rows) * row_h + 6
+    html.append(f'<div class="abs" style="left:{x + 30}px;top:{ty:.0f}px;width:{w - 60}px;border-top:4px dashed #9a9aa2;'
                 f'{style_anim(an("fadein", t_total - .1, .2))}"></div>')
-    html.append(f'<div class="abs" style="left:{x + 30}px;top:{ty + 14}px;font-size:34px;font-weight:900;color:{INK};'
+    html.append(f'<div class="abs" style="left:{x + 30}px;top:{ty + 12:.0f}px;font-size:34px;font-weight:900;color:{INK};'
                 f'{style_anim(an("rise", t_total, .3))}">TOTAL</div>')
     # Right-aligned with the prices above it.
-    html.append(_from(t_total, price_roll(total, x + w - 30 - _em(f"{total:,}") * 48, ty + 8, 48, t_total, .8,
+    html.append(_from(t_total, price_roll(total, x + w - 30 - _em(f"{total:,}") * 48, ty + 6, 48, t_total, .8,
                                           color=INK, suffix="")))
     t_bundle = t_total + 1.3 * beat
-    html.append(f'<div class="abs" style="left:{x - 10}px;top:{ty + 74}px;width:{w + 20}px;height:84px;'
+    html.append(f'<div class="abs" style="left:{x - 6}px;top:{ty + 70:.0f}px;width:{w + 12}px;height:80px;'
                 f'border-radius:16px;background:{INK};display:flex;align-items:center;justify-content:space-between;'
-                f'padding:0 36px;{style_anim(an("slam", t_bundle, .5))}">'
+                f'padding:0 32px;{style_anim(an("slam", t_bundle, .5))}">'
                 f'<span class="d" style="font-size:52px;color:#fff">BUNDLE</span>'
-                f'<span class="d" style="font-size:60px;color:{ACCENT}">{price:,} V-BUCKS</span></div>')
+                f'<span class="d" style="font-size:58px;color:{ACCENT}">{price:,} V-BUCKS</span></div>')
     return "".join(html), t_total, t_bundle
 
 
@@ -131,21 +160,33 @@ def build(ctx: Ctx):
             t0 = HOOK + (k - 1) * R
             price = int(b["price"])
             cols = b.get("tile_colors") or [RARITY.get(b["rarity"], "#3a3a44")]
-            inner = tile_bg(cols, b["rarity"], t0)
+            inner = tile_bg(cols, b["rarity"], t0) + _scrim()
             title = _title(b)
             size, lines = _fit(title, 940, big=92, one_min=66, two_max=72, small=52)
-            inner += words(title, 60, 300, size, t0 + .2, "#fff", .06, "slam", "left", 940)
-            top = 300 + size * .92 * lines + 10
-            inner += label(f"{len(parts)} ITEMS · EVERY ONE ALSO SOLD ON ITS OWN TODAY", 64, top, 28, t0 + .45,
-                           ACCENT, 800)
-            inner += character(ctx.art(b), 540, 660, 380, t0 + .1, "pop", .6, "float", b["rarity"], title)
+            inner += words(title, SAFE_LEFT, TITLE_Y, size, t0 + .2, "#fff", .06, "slam", "left", 940)
+            top = TITLE_Y + size * .92 * lines + (22 if lines > 1 else 16)
             receipt, t_total, t_bundle = _receipt(parts, total, price, t0, beat)
-            inner += receipt
             t_save = t_bundle + 1.1 * beat
-            inner += sticker(f"SAVES {total - price:,} V-BUCKS", 250, 760, 64, t_save, rot=-6)
-            inner += _from(t_save, burst(560, 800, t_save, ctx.seed + k))
+            # What the receipt proves, until the verdict takes its place: SAVES ...
+            proof = label(f"{len(parts)} ITEMS · EVERY ONE ALSO SOLD ON ITS OWN TODAY", SAFE_LEFT + 4, top, 30,
+                          t0 + .45, ACCENT, 800)
+            inner += f'<div class="full" style="{style_anim(an("fadeout", t_save - .05, .15))}">{proof}</div>'
+            # The bundle's art between the words and the receipt, its feet tucked
+            # behind the receipt's top edge.
+            r_top = RECEIPT_BOTTOM - _receipt_h(parts)
+            art_top = top + 68
+            art_h = max(260, min(440, r_top + 56 - art_top))
+            inner += character(ctx.art(b), (SAFE_LEFT + SAFE_RIGHT) / 2, r_top + 56 - art_h / 2, art_h, t0 + .1,
+                               "pop", .6, "float", b["rarity"], title, maxw=720, trim=True)
+            inner += receipt
+            save = f"SAVES {total - price:,} V-BUCKS"
+            ssize = min(64, 900 / (_em(save) + .84))
+            # The confetti flies out from under the verdict, so the words stay clear.
+            inner += _from(t_save, burst(SAFE_LEFT + (_em(save) + .84) * ssize / 2, top + 30, t_save, ctx.seed + k))
+            inner += sticker(save, SAFE_LEFT + 6, top - 6, ssize, t_save, rot=-3)
             inner += progress(t0, t0 + R, k, n).replace(f"ROUND {k}/{n}", f"BUNDLE {k}/{n}")
-            comp.scene(t0, t0 + R, inner, fade_in=.25, fade_out=.25)
+            # The next bundle fades in on top while this one holds: a crossfade, no dip to black.
+            comp.scene(t0, t0 + R + .3, inner, fade_in=.25, fade_out=.05)
             comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .2, "slam")
             for j in range(min(len(parts), 7)):
                 comp.cue(t0 + 1.4 * beat + j * min(.55, 2.6 * beat / max(min(len(parts), 7), 1)), "tick")

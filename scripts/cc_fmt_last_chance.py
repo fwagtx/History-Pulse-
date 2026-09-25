@@ -31,10 +31,10 @@ Nothing about popularity, ratings, rarity-as-scarcity, "back" or "first time".
 from datetime import date
 
 import cc_looks as LK
-from cc_formats import (Ctx, Video, BRAND_TAGS, rng, _pad, _hook_scene, _outro_scene,
+from cc_formats import (MIN_SECONDS, Ctx, Video, BRAND_TAGS, rng, _pad, _hook_scene, _outro_scene,
                         _hashtags, _caption)
-from cc_motion import (ACCENT, INK, RARITY, W, SAFE_RIGHT, RAIL_TOP, Comp, an, burst,
-                       character, code_badge, disclosure, esc, hexcol, label, price_roll,
+from cc_motion import (ACCENT, INK, RARITY, W, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, Comp, an,
+                       burst, character, code_badge, disclosure, esc, hexcol, label, price_roll,
                        progress, sticker, style_anim, tile_bg, words, EASE_BACK, EASE_OUT)
 
 FORMAT = "last_chance"
@@ -64,16 +64,18 @@ T_ROLL = 1.5            # price counts up
 ROLL = 1.0
 T_END = T_CD + CD       # the last tick: red flash, cosmetic greys out
 
-# Layout (px). Important content stays in y 190..1480; below y=880 it stays left of
-# x=960 (TikTok's like/comment rail). Code badge + disclosure own the top-left
-# y 190..300, the pips the top-right.
-TEXT_X = 60
-PILL_Y = 322
-NAME_Y = 382
+# Layout (px). Everything a viewer reads stays in the apps' safe box (cc_safe):
+# x 60-1020 above y 740, x 60-900 (left of the button rail) below it, y 230-1420.
+# The code badge and #EpicPartner own the top-left corner down to y ~350, the
+# offer counter the top-right down to y ~292.
+TEXT_X = SAFE_LEFT
+PILL_Y = 366            # under #EpicPartner
+NAME_Y = 424
 NAME_W = 960
-CX = 470                # cosmetic + clock centre x
-ART_BOTTOM = 1238       # the cosmetic's feet, clear of the price card
-CARD_X, CARD_BOTTOM = 46, 1458
+CX = 470                # cosmetic + clock centre x: the band beside the rail is 60-900
+ART_BOTTOM = 1188       # the cosmetic's feet, clear of the price card
+CARD_X, CARD_BOTTOM = SAFE_LEFT, SAFE_BOTTOM - 16
+SAVE_SIZE = 54          # the SAVE sticker beside the price card
 
 # Anton advance widths (em) at letter-spacing 0, measured in headless Chromium.
 _ANTON = {
@@ -237,14 +239,15 @@ def _ring_mask(th: float) -> str:
     return f"-webkit-mask:{g};mask:{g};"
 
 
-def _css() -> list:
-    """Keyframes for this format. Offsets are relative, so every offer shares them."""
-    span = CD + .5
+def _css(cd: int = CD) -> list:
+    """Keyframes for this format. Offsets are relative, so every offer shares them.
+    `cd` is how many ticks the clock makes (more on a day with few offers)."""
+    span = cd + .5
     pct = lambda s: f"{max(0.0, min(100.0, s / span * 100)):.3f}%"
     arc, hand = ["0%{--p:1}"], ["0%{transform:rotate(0deg)}"]
-    for k in range(1, CD + 1):
-        a0, a1 = 360 * (k - 1) / CD, 360 * k / CD
-        arc += [f"{pct(k - .001)}{{--p:{1 - (k - 1) / CD:.3f}}}", f"{pct(k + .14)}{{--p:{1 - k / CD:.3f}}}"]
+    for k in range(1, cd + 1):
+        a0, a1 = 360 * (k - 1) / cd, 360 * k / cd
+        arc += [f"{pct(k - .001)}{{--p:{1 - (k - 1) / cd:.3f}}}", f"{pct(k + .14)}{{--p:{1 - k / cd:.3f}}}"]
         hand += [f"{pct(k - .001)}{{transform:rotate({a0:.1f}deg)}}",
                  f"{pct(k + .08)}{{transform:rotate({a1 + 7:.1f}deg)}}",
                  f"{pct(k + .22)}{{transform:rotate({a1:.1f}deg)}}"]
@@ -253,7 +256,7 @@ def _css() -> list:
     return [
         "@keyframes lcarc{" + "".join(arc) + "}",
         "@keyframes lchand{" + "".join(hand) + "}",
-        "@keyframes lcnum{from{--n:%d}to{--n:0}}" % CD,
+        "@keyframes lcnum{from{--n:%d}to{--n:0}}" % cd,
         "@keyframes lcclockin{0%{transform:scale(.55) rotate(-40deg);opacity:0}"
         "70%{transform:scale(1.03) rotate(3deg);opacity:1}100%{transform:none;opacity:1}}",
         "@keyframes lcbeat{0%{transform:scale(1.16)}35%{transform:scale(.98)}60%,100%{transform:scale(1)}}",
@@ -282,19 +285,19 @@ def _scrim() -> str:
             'rgba(0,0,0,.62) 100%)"></div>')
 
 
-def _heat(t0: float) -> str:
+def _heat(t0: float, cd: int = CD) -> str:
     """Red creeps in from the edges while the clock runs, then flashes on the
     last tick."""
     edge = ('radial-gradient(ellipse 80% 70% at 50% 45%,transparent 45%,'
             'rgba(255,40,40,.34) 88%,rgba(255,40,40,.5) 100%)')
     return (f'<div class="full" style="background:{edge};'
-            f'{style_anim(an("lcheat", t0 + T_CD, CD, "cubic-bezier(.5,0,.9,.6)"))}"></div>'
+            f'{style_anim(an("lcheat", t0 + T_CD, cd, "cubic-bezier(.5,0,.9,.6)"))}"></div>'
             f'<div class="full" style="background:radial-gradient(ellipse 90% 80% at 50% 45%,'
             f'rgba(255,59,59,.12) 30%,rgba(255,40,40,.6) 100%);'
-            f'{style_anim(an("lcflash", t0 + T_END, .55, "ease-out"))}"></div>')
+            f'{style_anim(an("lcflash", t0 + T_CD + cd, .55, "ease-out"))}"></div>')
 
 
-def _clock(cx: float, cy: float, d: float, t0: float) -> str:
+def _clock(cx: float, cy: float, d: float, t0: float, cd: int = CD) -> str:
     """A clock face behind the cosmetic: hour and minute ticks, a red-to-amber arc
     that steps down once a second, and a second hand that snaps round with it.
     Decoration and pacing only -- it says nothing about the shop."""
@@ -309,7 +312,7 @@ def _clock(cx: float, cy: float, d: float, t0: float) -> str:
         # track + arc
         f'<div class="abs" style="inset:0;border-radius:50%;background:rgba(255,255,255,.16);{_ring_mask(22)}"></div>',
         f'<div class="abs" style="inset:0;border-radius:50%;background:{arc_bg};{_ring_mask(22)}'
-        f'{style_anim(an("lcarc", t_cd, CD + .5, EASE_OUT))}"></div>',
+        f'{style_anim(an("lcarc", t_cd, cd + .5, EASE_OUT))}"></div>',
         # minute and hour ticks
         f'<div class="abs" style="inset:40px;border-radius:50%;background:repeating-conic-gradient(from -.4deg,'
         f'rgba(255,255,255,.5) 0 .8deg,transparent .8deg 6deg);{_ring_mask(14)}"></div>',
@@ -317,7 +320,7 @@ def _clock(cx: float, cy: float, d: float, t0: float) -> str:
         f'#fff 0 2.6deg,transparent 2.6deg 30deg);{_ring_mask(32)}"></div>',
         # second hand, pivoting on the centre
         f'<div class="abs" style="left:{r - 5:.0f}px;top:{r - (r - 30):.0f}px;width:10px;height:{r - 30 + 60:.0f}px;'
-        f'transform-origin:5px {r - 30:.0f}px;{style_anim(an("lchand", t_cd, CD + .5, "linear"))}">'
+        f'transform-origin:5px {r - 30:.0f}px;{style_anim(an("lchand", t_cd, cd + .5, "linear"))}">'
         f'<div style="position:absolute;left:0;top:0;width:10px;height:100%;border-radius:5px;'
         f'background:linear-gradient(180deg,{RED},{RED} 60%,#b81f1f);box-shadow:0 0 18px rgba(255,59,59,.7)"></div>'
         f'<div style="position:absolute;left:-9px;top:{r - 30 - 14:.0f}px;width:28px;height:28px;border-radius:50%;'
@@ -328,7 +331,7 @@ def _clock(cx: float, cy: float, d: float, t0: float) -> str:
             + "".join(parts) + "</div></div>")
 
 
-def _bubble(cx: float, cy: float, size: float, t0: float) -> str:
+def _bubble(cx: float, cy: float, size: float, t0: float, cd: int = CD) -> str:
     """A stopwatch bubble on the clock's rim counting 5..0 with the ticks: a
     crown on top, a thump on every second."""
     t_cd = t0 + T_CD
@@ -339,8 +342,8 @@ def _bubble(cx: float, cy: float, size: float, t0: float) -> str:
             f'border:{size * .075:.0f}px solid {RED};box-shadow:0 10px 0 rgba(0,0,0,.35),0 0 40px rgba(255,59,59,.45);'
             f'display:flex;align-items:center;justify-content:center">'
             f'<span class="d count" style="font-size:{size * .6:.0f}px;line-height:1;color:#fff;padding-top:.06em;'
-            f'{style_anim(an("lcnum", t_cd, CD, f"steps({CD},end)"))}"></span></div>')
-    beat = style_anim(an("lcbeat", t_cd, 1.0, EASE_OUT, str(CD + 1)))
+            f'{style_anim(an("lcnum", t_cd, cd, f"steps({cd},end)"))}"></span></div>')
+    beat = style_anim(an("lcbeat", t_cd, 1.0, EASE_OUT, str(cd + 1)))
     pop = style_anim(an("pop", t0 + T_BUBBLE, .5, EASE_BACK))
     return (f'<div class="abs" style="left:{cx - size / 2:.0f}px;top:{cy - size / 2:.0f}px;width:{size:.0f}px;'
             f'height:{size:.0f}px;transform:rotate(8deg)"><div class="abs" style="inset:0;{pop}">'
@@ -405,8 +408,8 @@ def _includes(it: dict, x: float, y: float, width: float, start: float) -> tuple
     names = _members(it)
     if not names:
         return "", 0
-    size = 28
-    per_line = width / (size * .56)          # Inter 600, generous average advance
+    size = 30
+    per_line = width / (size * .6)           # Inter 600, a safe average advance (caps run wide)
     budget = per_line * 2 - 12 - 10
     shown, used = [], 0
     for n in names:
@@ -433,21 +436,21 @@ def _price_card(comp: Comp, ctx: Ctx, it: dict, t0: float) -> str:
     size = 118
     t_card, t_roll = t0 + T_CARD, t0 + T_ROLL
     if reg:
-        top = (f'<div class="abs" style="left:34px;top:24px;white-space:nowrap;font-size:22px;font-weight:800;'
-               f'letter-spacing:.16em;color:#9AA0A6;{style_anim(an("rise", t_card + .1, .45))}">REGULAR PRICE '
-               f'<span class="d" style="position:relative;display:inline-block;font-size:40px;letter-spacing:.01em;'
-               f'color:rgba(255,255,255,.85);margin-left:.3em;vertical-align:-4px">{reg:,}'
+        top = (f'<div class="abs" style="left:34px;top:22px;white-space:nowrap;font-size:30px;font-weight:800;'
+               f'letter-spacing:.1em;color:#B4B9C2;{style_anim(an("rise", t_card + .1, .45))}">REGULAR PRICE '
+               f'<span class="d" style="position:relative;display:inline-block;font-size:46px;letter-spacing:.01em;'
+               f'color:rgba(255,255,255,.88);margin-left:.2em;vertical-align:-4px">{reg:,}'
                f'<span style="position:absolute;left:-6px;right:-6px;top:46%;height:6px;border-radius:4px;'
                f'background:{RED};transform:rotate(-5deg);transform-origin:0 50%;'
                f'{style_anim(an("lcgrow", t_roll + ROLL + .05, .25, "cubic-bezier(.6,0,.3,1)"))}"></span></span></div>')
-        top_w = (13 * 22 * .78) + _em(f"{reg:,}") * 40 + 30
+        top_w = 13 * 30 * .8 + _em(f"{reg:,}") * 46 + 40
         comp.cue(t_roll + ROLL + .05, "slam")
     elif since:
-        top = label(since, 34, 24, 22, t_card + .1, "#9AA0A6", 800, spacing=".16em")
-        top_w = len(since) * 22 * .78
+        top = label(since, 34, 22, 30, t_card + .1, "#B4B9C2", 800, spacing=".1em")
+        top_w = len(since) * 30 * .8
     else:
         top, top_w = "", 0
-    py = 64 if top else 18
+    py = 70 if top else 18
     card_w = max(_price_w(price, size) + 70, top_w + 70)
     card_h = py + size + 16
     shine = (f'<div class="abs" style="left:0;top:-20%;width:200px;height:140%;background:linear-gradient(90deg,'
@@ -466,11 +469,24 @@ def _price_card(comp: Comp, ctx: Ctx, it: dict, t0: float) -> str:
     if reg:
         t_save = t_roll + ROLL + .35
         text = f"SAVE {reg - price:,}"
-        sw = (_em(text) + .84) * 58
-        sx, sy = CARD_X + card_w + 22, y + 34                 # beside the card...
+        sw = (_em(text) + .84) * SAVE_SIZE
+        sx, sy = CARD_X + card_w + 22, y + 40                 # beside the card...
+        stacked = sx + sw > SAFE_RIGHT - 16
+        if stacked:                                           # ...on two lines...
+            sw = (max(_em("SAVE"), _em(f"{reg - price:,}")) + .84) * SAVE_SIZE
+            sy = y + card_h / 2 - SAVE_SIZE * 1.1
         if sx + sw > SAFE_RIGHT - 16:                         # ...or on its top corner
-            sx, sy = min(CARD_X + card_w - 90, SAFE_RIGHT - 16 - sw), y - 62
-        out += sticker(text, sx, sy, 58, t_save, rot=6)
+            stacked = False
+            sw = (_em(text) + .84) * SAVE_SIZE
+            sx, sy = min(CARD_X + card_w - 90, SAFE_RIGHT - 16 - sw), y - 58
+        if stacked:
+            out += (f'<div class="abs" style="left:{sx:.0f}px;top:{sy:.0f}px;transform:rotate(6deg)">'
+                    f'<div class="d" style="background:{ACCENT};color:{INK};font-size:{SAVE_SIZE}px;'
+                    f'line-height:.95;text-align:center;padding:.16em .42em .1em;border-radius:10px;'
+                    f'box-shadow:0 10px 0 rgba(0,0,0,.35);{style_anim(an("pop", t_save, .55, EASE_BACK))}">'
+                    f'SAVE<br>{reg - price:,}</div></div>')
+        else:
+            out += sticker(text, sx, sy, SAVE_SIZE, t_save, rot=6)
         out += _from(t_save, burst(sx + sw / 2, sy + 40, t_save, ctx.seed + int(t0 * 10), n=20))
         comp.cue(t_save, "pop")
     return out
@@ -479,44 +495,53 @@ def _price_card(comp: Comp, ctx: Ctx, it: dict, t0: float) -> str:
 ENTRIES = ("drop", "fromL", "pop", "fromR")
 
 
-def _offer(comp: Comp, ctx: Ctx, it: dict, k: int, n: int, t0: float, t1: float, enter: str):
+def _offer(comp: Comp, ctx: Ctx, it: dict, k: int, n: int, t0: float, t1: float, enter: str,
+           cd: int = CD):
     name = _shown_name(it)
-    size, nl = _fit(name, NAME_W)
-    name_bottom = NAME_Y + nl * size * .92
     col = RARITY.get(it["rarity"], "#777")
+    t_end = T_CD + cd
+    # The name as big as it fits, stepping down when a long (two-line) name and a
+    # bundle's contents would leave the cosmetic too little room under the ribbon.
+    for big in (136, 116, 100, 88):
+        size, nl = _fit(name, NAME_W, big=big, one_min=min(96, big), two_max=min(108, big - 12), small=60)
+        name_bottom = NAME_Y + nl * size * .92
+        y = name_bottom + 18
+        incl = ""
+        if it.get("is_bundle"):
+            incl, ih = _includes(it, TEXT_X, y, 900, t0 + T_INCL)
+            y += ih + (14 if ih else 0)
+        rib_y = y + 6
+        # 6 px in: the ribbon unfurls from its left edge, and that edge stays in the box.
+        rib, rib_h, _ = _ribbon(TEXT_X + 6, rib_y, t0 + T_RIB, ctx.reset_et)
+        # The cosmetic fills the space under the ribbon and its reset-time tag,
+        # down to the price card; the clock is centred on it and a little bigger,
+        # so the art reads as framed.
+        art_top = max(rib_y + rib_h + 44, 640)
+        if ART_BOTTOM - art_top >= 380:
+            break
+    art_h = max(360, min(600, ART_BOTTOM - art_top))
+    cy = ART_BOTTOM - art_h / 2
 
     inner = tile_bg(it.get("tile_colors") or [], it["rarity"], t0) + _scrim()
-
-    y = name_bottom + 18
-    incl = ""
-    if it.get("is_bundle"):
-        incl, ih = _includes(it, TEXT_X, y, 900, t0 + T_INCL)
-        y += ih + (14 if ih else 0)
-    rib_y = y + 4
-    rib, rib_h, _ = _ribbon(TEXT_X - 22, rib_y, t0 + T_RIB, ctx.reset_et)
-
-    # The cosmetic fills the space between the ribbon and the price card; the
-    # clock is centred on it and a little bigger, so the art reads as framed.
-    art_top = max(rib_y + rib_h + 34, 640)
-    art_h = max(470, min(640, ART_BOTTOM - art_top))
-    cy = ART_BOTTOM - art_h / 2
-    d = min(760, art_h + 150)
-    inner += _clock(CX, cy, d, t0)
+    d = min(740, art_h + 150)
+    inner += _clock(CX, cy, d, t0, cd)
     rim = d / 2 - 10
-    bx, by = CX + rim * .87, cy - rim * .5          # two o'clock on the rim
-    by = min(by, RAIL_TOP - 90)                     # right of x=960 would be rail: stay above it
+    # The stopwatch sits on the clock's rim at about two o'clock, low enough to
+    # clear the reset-time tag hanging off the ribbon, left of the rail.
+    by = max(cy - rim * .5, rib_y + rib_h + 128)
+    bx = min(CX + (max(rim * rim - (cy - by) ** 2, 0)) ** .5, SAFE_RIGHT - 16 - 138 / 2)
     char = character(ctx.art(it), CX, cy, art_h, t0 + T_CHAR, enter, .7,
-                     "float" if k % 2 else "sway", it["rarity"], name)
+                     "float" if k % 2 else "sway", it["rarity"], name, maxw=660, trim=True)
     inner += (f'<div class="full" style="transform-origin:{CX}px {cy:.0f}px;'
-              f'{style_anim(an("lcgone", t0 + T_END, .4, "ease-in"))}">{char}</div>')
-    inner += _bubble(bx, by, 138, t0)
+              f'{style_anim(an("lcgone", t0 + t_end, .4, "ease-in"))}">{char}</div>')
+    inner += _bubble(bx, by, 138, t0, cd)
 
-    inner += label(_meta(it), TEXT_X, PILL_Y, 26, t0 + T_PILL, _ink_on(col), 800, bg=col,
-                   pad="8px 16px 7px", rot=-2, spacing=".14em")
+    inner += label(_meta(it), TEXT_X + 4, PILL_Y, 30, t0 + T_PILL, _ink_on(col), 800, bg=col,
+                   pad="6px 16px 5px", rot=-2, spacing=".1em")
     inner += words(name, TEXT_X, NAME_Y, size, t0 + T_NAME, "#fff", .08, "slam", "left", NAME_W)
     inner += incl + rib
     inner += _price_card(comp, ctx, it, t0)
-    inner += _heat(t0)
+    inner += _heat(t0, cd)
     inner += progress(t0, t1, k, n).replace(">ROUND ", ">OFFER ", 1)
 
     if enter == "drop":
@@ -526,9 +551,9 @@ def _offer(comp: Comp, ctx: Ctx, it: dict, k: int, n: int, t0: float, t1: float,
     comp.cue(t0 + T_NAME, "slam")
     comp.cue(t0 + T_BUBBLE, "pop")
     comp.cue(t0 + T_RIB, "whoosh")
-    for s in range(CD):
+    for s in range(cd):
         comp.cue(t0 + T_CD + s, "tick")
-    comp.cue(t0 + T_END, "slam")
+    comp.cue(t0 + t_end, "slam")
     comp.scene(t0, t1, inner, fade_in=.2, fade_out=.2)
 
 
@@ -546,9 +571,14 @@ def build(ctx: Ctx):
     look = LK.get(FORMAT)
     comp = LK.draw(look, "last_chance", ctx, picked)
     if comp is None:
-        content_end = HOOK + n * R
+        # Eight offers make a 62 s video. Fewer stretch (up to twice as long, the
+        # clock ticking a second more for each extra second) rather than leave an
+        # end card longer than 10 s.
+        rlen = max(R, min(2 * R, (MIN_SECONDS - 10 - HOOK) / n))
+        cd = min(10, CD + int(rlen - R))
+        content_end = HOOK + n * rlen
         comp = Comp(content_end + _pad(content_end))
-        for rule in _css():
+        for rule in _css(cd):
             comp.css(rule)
 
         a_item = show[0]
@@ -560,9 +590,9 @@ def build(ctx: Ctx):
 
         off = rng(ctx, 42).randrange(len(ENTRIES))
         for k, it in enumerate(picked, 1):
-            t0 = HOOK + (k - 1) * R
+            t0 = HOOK + (k - 1) * rlen
             _wipe(comp, t0)
-            _offer(comp, ctx, it, k, n, t0, t0 + R, ENTRIES[(k + off) % len(ENTRIES)])
+            _offer(comp, ctx, it, k, n, t0, t0 + rlen, ENTRIES[(k + off) % len(ENTRIES)], cd)
 
         _wipe(comp, content_end)
         comp.cue(content_end + .25, "slam"); comp.cue(content_end + .5, "reveal")
