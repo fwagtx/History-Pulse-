@@ -38,11 +38,15 @@ RARITY = {
     "starwars": "#C7A008", "gaminglegends": "#8E2CF5",
 }
 
-# TikTok draws its UI over the edges: tabs across the top, the caption and handle
-# across the bottom, and the like/comment/share rail down the right from about
-# y=880. Anything that matters stays inside y 190..1480, and right of x=960 is off
-# limits below y=880.
-SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP = 190, 1480, 960, 880
+# TikTok, Instagram, YouTube and Facebook all draw their UI over the edges: a
+# header across the top, the like/comment/share rail down the right, the handle,
+# caption and audio line across the bottom. Anything that matters stays inside
+# the safe box that none of them covers -- x 60..1020 above y 740, x 60..900 from
+# y 740 down, y 230..1420 -- see cc_safe.py for the numbers, their sources and the
+# check every video goes through.
+from cc_safe import (LEFT as SAFE_LEFT, TOP as SAFE_TOP, RIGHT_TOP as SAFE_RIGHT_TOP,  # noqa: E402
+                     RAIL_TOP, RIGHT as SAFE_RIGHT, BOTTOM as SAFE_BOTTOM)
+SAFE_BOX = (SAFE_LEFT, SAFE_TOP, SAFE_RIGHT_TOP, RAIL_TOP, SAFE_RIGHT, SAFE_BOTTOM)
 
 esc = _html.escape
 
@@ -257,15 +261,20 @@ IN_PLACE = {"hop", "thump", "punch", "none"}      # entrances that start already
 
 def character(uri: str, cx: float, cy: float, h: float, start: float,
               enter: str = "pop", enter_dur: float = .8, idle: str = "float",
-              rarity: str = "rare", label: str = "") -> str:
+              rarity: str = "rare", label: str = "", maxw: float = 0) -> str:
     """A cosmetic render that ENTERS (pop/drop/fromL/fromR) and then idles
     (float or sway) with a breathing floor shadow, so it reads as alive rather
-    than pasted in. Three nested wrappers keep the transforms independent."""
+    than pasted in. Three nested wrappers keep the transforms independent.
+
+    `maxw` caps the width, so a wide item (a glider, a bundle's group shot)
+    gets shorter instead of spreading into the apps' button rail."""
     if uri:
-        art = f'<img class="art" src="{uri}" style="height:{h:.0f}px;max-width:{W*.86:.0f}px">'
+        mw = maxw or W * .86
+        art = (f'<img class="art" data-name="{esc(label)}" src="{uri}" '
+               f'style="height:{h:.0f}px;max-width:{mw:.0f}px">')
     else:
         col = RARITY.get(rarity, "#777")
-        art = (f'<div class="d" style="height:{h:.0f}px;width:{h*.62:.0f}px;display:flex;'
+        art = (f'<div class="d" style="height:{h:.0f}px;width:{min(h*.62, maxw or h):.0f}px;display:flex;'
                f'align-items:center;justify-content:center;font-size:{h*.09:.0f}px;color:{col};'
                f'border:4px dashed {col}66;border-radius:28px">{esc(label or "ITEM")}</div>')
     idle_dur = 2.2 if idle == "float" else 1.6
@@ -382,28 +391,32 @@ def burst(cx: float, cy: float, start: float, seed: int, n: int = 26,
     return "".join(out)
 
 
+BADGE_W, BADGE_H = 258, 86          # code_badge's size, measured in the render browser
+BADGE_X, BADGE_Y = SAFE_LEFT, SAFE_TOP
+
+
 def code_badge(start: float = 0) -> str:
     # On screen and at rest from frame 0 whatever `start` says: the code is the
     # whole point. The hook scene (cc_formats._hook_scene) overrides this through
     # the .codebadge class: while its big USE CODE: BAD stamp is on screen, this
     # corner badge waits, then appears as the stamp shrinks into its spot.
     # USE CODE: BAD on the channel's lime, big enough to read at a glance (the
-    # owner asked for the code to be noticeable in every video), and kept in the
-    # band above the scenes' kicker lines (y 190-280).
+    # owner asked for the code to be noticeable in every video), in the top-left
+    # corner of the safe box (y 230-316), above the scenes' kicker lines.
     a = style_anim(an("thump", .2, .4))
-    return (f'<div class="abs codebadge" style="left:48px;top:{SAFE_TOP}px;z-index:50;{a}">'
+    return (f'<div class="abs codebadge" data-safe="key" data-name="code badge" '
+            f'style="left:{BADGE_X}px;top:{BADGE_Y}px;z-index:50;{a}">'
             f'<div style="display:flex;align-items:center;gap:12px;background:{ACCENT};color:{INK};'
             f'border-radius:16px;padding:8px 20px 6px 18px;box-shadow:0 8px 0 rgba(0,0,0,.38)">'
             f'<div style="font-size:23px;font-weight:900;line-height:1.02;letter-spacing:.12em">USE<br>CODE:</div>'
             f'<div class="d" style="font-size:80px;line-height:.9;letter-spacing:.02em">BAD</div></div></div>')
 
 
-BADGE_W, BADGE_H = 258, 86          # code_badge's size, measured in the render browser
 
 
 def disclosure() -> str:
     """Under the code badge: always on screen, never under TikTok's caption."""
-    return (f'<div class="abs" style="left:52px;top:{SAFE_TOP + BADGE_H + 4}px;z-index:50;'
+    return (f'<div class="abs codetag" style="left:{BADGE_X + 4}px;top:{BADGE_Y + BADGE_H + 4}px;z-index:50;'
             f'font-size:23px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.9);'
             f'text-shadow:0 2px 6px rgba(0,0,0,.9)">#EpicPartner</div>')
 
@@ -413,7 +426,7 @@ def progress(start: float, end: float, index: int, total: int) -> str:
     pips = "".join(
         f'<i style="display:inline-block;width:46px;height:10px;border-radius:6px;margin:0 5px;'
         f'background:{ACCENT if j <= index else "rgba(255,255,255,.25)"}"></i>' for j in range(1, total + 1))
-    return (f'<div class="abs" style="right:{W-SAFE_RIGHT}px;top:{SAFE_TOP+14}px;text-align:right;z-index:40">'
+    return (f'<div class="abs" style="right:{W-SAFE_RIGHT_TOP}px;top:{SAFE_TOP+14}px;text-align:right;z-index:40">'
             f'<div style="font-size:20px;font-weight:800;letter-spacing:.22em;color:#fff;margin-bottom:10px">'
             f"ROUND {index}/{total}</div>{pips}</div>")
 

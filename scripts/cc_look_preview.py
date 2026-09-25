@@ -14,8 +14,10 @@ Render one video with the new looks switched on, locally, for checking.
 --no-video   stills only (fast).
 
 Writes creator-code/out/preview/<format>-<day>/: the mp4 (with its soundtrack), a
-still every few seconds, TikTok-zone copies of them, a contact sheet, and prints
-a QA summary: length, post checks and how much of the lime code is on screen in
+still every few seconds, copies of them with the apps' UI zones shaded (see
+cc_safe.py), a contact sheet, an apps.jpg sheet showing key stills under the
+TikTok / Instagram / YouTube / Facebook UI, and prints a QA summary: length,
+post checks, the safe-zone check and how much of the lime code is on screen in
 each still.
 """
 
@@ -57,33 +59,62 @@ def stand_in_art(art_dir: str):
 
 
 def lime_pixels(png: Path) -> int:
-    """Pixels close to the code's lime inside TikTok's safe area."""
+    """Pixels close to the code's lime inside the apps' safe box (cc_safe)."""
     try:
         from PIL import Image
         import numpy as np
     except ImportError:
         return -1
+    import cc_safe as S
     a = np.asarray(Image.open(png).convert("RGB")).astype(int)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     lime = (r > 190) & (g > 215) & (b < 140) & (r - b > 110)
-    lime[:190] = False
-    lime[1480:] = False
-    lime[880:, 960:] = False
+    lime[:S.TOP] = False
+    lime[S.BOTTOM:] = False
+    lime[:, :S.LEFT] = False
+    lime[:, S.RIGHT_TOP:] = False
+    lime[S.RAIL_TOP:, S.RIGHT:] = False
     return int(lime.sum())
 
 
 def zones(png: Path, out: Path):
     try:
-        from PIL import Image, ImageDraw
+        from PIL import Image
     except ImportError:
         return
-    im = Image.open(png).convert("RGBA")
-    ov = Image.new("RGBA", im.size, (0, 0, 0, 0))
-    d = ImageDraw.Draw(ov)
-    d.rectangle((0, 0, 1080, 190), fill=(255, 0, 0, 70))
-    d.rectangle((0, 1480, 1080, 1920), fill=(255, 0, 0, 70))
-    d.rectangle((960, 880, 1080, 1480), fill=(255, 0, 0, 70))
-    Image.alpha_composite(im, ov).convert("RGB").save(out, quality=85)
+    import cc_safe as S
+    S.shaded(Image.open(png)).save(out, quality=85)
+
+
+def build_video(fmt: str, day_s: str | None, series: str, shop_path: str | None, art_dir: str,
+                looks: str = ""):
+    """The Video for one format: a quiz-plan entry (day_s, series) or a shop
+    format from a saved shop.json. `looks` sets CC_LOOKS when given."""
+    if looks:
+        os.environ["CC_LOOKS"] = looks
+    from cc_formats import Ctx
+    art = stand_in_art(art_dir)
+    if shop_path:
+        from cc_build import builder
+        shop = json.loads(Path(shop_path).read_text())
+        day = date.fromisoformat(shop["shop_day"])
+        ctx = Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
+        fn = builder(fmt)
+        v = fn(ctx) if fn else None
+    else:
+        import cc_quiz as Q
+        plan = json.loads(PLAN.read_text())
+        day = date.fromisoformat(day_s)
+        spec = next((s for s in plan["videos"] if s["date"] == day_s and s["format"] == fmt
+                     and s.get("series", "") == series), None)
+        if not spec:
+            raise SystemExit(f"No {fmt} {series} on {day_s} in the plan.")
+        ctx = Ctx(shop={"items": []}, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
+        v = Q.build(spec, plan["items"], ctx)
+    if v is None:
+        raise SystemExit("The format returned nothing for this data (it would fall back).")
+    v.day = day
+    return v
 
 
 def main():
@@ -98,31 +129,12 @@ def main():
     ap.add_argument("--no-video", action="store_true")
     ap.add_argument("--out", help="output folder (default creator-code/out/preview/...)")
     args = ap.parse_args()
-    os.environ["CC_LOOKS"] = args.looks
 
-    from cc_formats import Ctx
     from cc_build import post_problems
     import cc_looks as LK
-    art = stand_in_art(args.art)
-    if args.shop:
-        from cc_build import builder
-        shop = json.loads(Path(args.shop).read_text())
-        day = date.fromisoformat(shop["shop_day"])
-        ctx = Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
-        fn = builder(args.format)
-        v = fn(ctx) if fn else None
-    else:
-        import cc_quiz as Q
-        plan = json.loads(PLAN.read_text())
-        day = date.fromisoformat(args.date)
-        spec = next((s for s in plan["videos"] if s["date"] == args.date and s["format"] == args.format
-                     and s.get("series", "") == args.series), None)
-        if not spec:
-            raise SystemExit(f"No {args.format} {args.series} on {args.date} in the plan.")
-        ctx = Ctx(shop={"items": []}, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
-        v = Q.build(spec, plan["items"], ctx)
-    if v is None:
-        raise SystemExit("The format returned nothing for this data (it would fall back).")
+    import cc_safe as S
+    v = build_video(args.format, args.date, args.series, args.shop, args.art, args.looks)
+    day = v.day
 
     tag = f"{args.format}{'-' + args.series if args.series else ''}-{day.isoformat()}"
     if args.looks == "none":
@@ -146,15 +158,21 @@ def main():
     try:
         from cc_build import contact_sheet
         contact_sheet(sorted((out / "stills").glob("t*.png")), out / "sheet.jpg")
+        pick = [stills[0]] + [stills[i] for i in (len(stills) // 3, 2 * len(stills) // 3)] + [stills[-1]]
+        S.app_sheet(pick, out / "apps.jpg")
     except Exception as e:  # noqa: BLE001 - QA extra
         print("contact sheet skipped:", e)
 
+    safe = S.check(v.comp)
+    (out / "safe.json").write_text(json.dumps(safe, indent=1))
+    print(S.summary(safe, 40))
     probs = post_problems(v)
     lime = {p.stem: lime_pixels(p) for p in stills}
     print(json.dumps({
         "format": v.format, "look": LK.draw.last or "classic",
         "duration": round(dur, 2), "length_ok": 62 - .01 <= dur <= 90,
         "post_problems": probs, "title": v.title, "yt_title": v.yt_title,
+        "safe_ok": safe["ok"], "safe_violations": len(safe["violations"]), "cover_problems": len(safe["cover"]),
         "lime_code_pixels_min": min(lime.values()) if lime else None,
         "lime_code_pixels": lime, "out": str(out),
     }, indent=1))

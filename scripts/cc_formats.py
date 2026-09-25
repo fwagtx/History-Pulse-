@@ -26,7 +26,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, BADGE_H, Comp, an, burst,
+from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, BADGE_H, BADGE_X, BADGE_Y,
+                       SAFE_LEFT, SAFE_RIGHT_TOP, Comp, an, burst,
                        anton_em, character, code_badge, countdown, disclosure, esc, label, price_roll,
                        progress, sticker, style_anim, tile_bg, words, EASE_BACK)
 
@@ -202,8 +203,19 @@ HOOK_WHOOSH_A, HOOK_SLAM, HOOK_WHOOSH_B, HOOK_POP, HOOK_SUB = .15, .2, .3, .9, 1
 # The USE CODE: BAD stamp: the corner badge (cc_motion.code_badge) at 1.4x, so it
 # shrinks into the badge exactly. Measured in the render browser with the
 # embedded fonts: the stamp is 358x120 px, the badge 257x86.
-STAMP_X, STAMP_Y, STAMP_ROT = 60, 590, 3
+STAMP_X, STAMP_Y, STAMP_ROT = SAFE_LEFT + 10, 560, 3
+
+# The hook's two cosmetics: side by side in the band beside the apps' button
+# rail (x 60-900, so centred on x 480), feet above the caption zone (y 1420).
+HOOK_MID = (SAFE_LEFT + SAFE_RIGHT) / 2
+HOOK_AX, HOOK_BX, HOOK_CY, HOOK_H, HOOK_MAXW = HOOK_MID - 205, HOOK_MID + 205, 1052, 600, 400
 STAMP_TO_BADGE = BADGE_H / 120
+
+
+def _dock_times(end: float) -> tuple:
+    """When the hook's USE CODE: BAD stamp flies into the corner badge."""
+    dock_end = min(2.6, end - .7)          # clear of the first scene's wipe at 2.7s
+    return dock_end - .5, dock_end
 
 
 def _code_stamp(comp: Comp, end: float) -> str:
@@ -213,19 +225,18 @@ def _code_stamp(comp: Comp, end: float) -> str:
     gets real size: BAD at 112px on a lime block. Near the end of the hook it
     shrinks and flies into the top-left corner, and the small corner badge that
     stays up for the rest of the video takes over as it lands."""
-    dock_end = min(2.6, end - .7)          # clear of the first scene's wipe at 2.7s
-    dock_start = dock_end - .5
+    dock_start, dock_end = _dock_times(end)
     dock = comp.uid("dock")
     # The stamp stays fully opaque all the way into the corner, and the badge
     # takes its place the moment it lands: the code is readable in every frame.
     comp.css(f"@keyframes {dock}{{0%{{transform:rotate({STAMP_ROT}deg);opacity:1}}"
-             f"99.9%{{transform:translate({48 - STAMP_X}px,{SAFE_TOP - STAMP_Y}px) "
+             f"99.9%{{transform:translate({BADGE_X - STAMP_X}px,{BADGE_Y - STAMP_Y}px) "
              f"scale({STAMP_TO_BADGE:.3f}) rotate(0deg);opacity:1}}"
-             f"100%{{transform:translate({48 - STAMP_X}px,{SAFE_TOP - STAMP_Y}px) "
+             f"100%{{transform:translate({BADGE_X - STAMP_X}px,{BADGE_Y - STAMP_Y}px) "
              f"scale({STAMP_TO_BADGE:.3f}) rotate(0deg);opacity:0}}}}")
-    # The corner badge waits until the stamp gets there.
+    # The corner badge and its #EpicPartner wait until the stamp gets there.
     # ("paused" like every animation: the renderer moves them, real time never does)
-    comp.css(f".codebadge{{animation:fadein .01s linear {dock_end - .01:.3f}s both paused !important}}")
+    comp.css(f".codebadge,.codetag{{animation:fadein .01s linear {dock_end - .01:.3f}s both paused !important}}")
     comp.cue(dock_start, "whoosh")
     beats = style_anim(an("thump", HOOK_SLAM, .4, fill="none"),
                        an("pulse", 1.5, .5, "ease-in-out", fill="none"))
@@ -238,7 +249,12 @@ def _code_stamp(comp: Comp, end: float) -> str:
             f'<div style="font-size:32px;font-weight:900;line-height:1.02;letter-spacing:.12em">'
             f'USE<br>CODE:</div>'
             f'<div class="d" style="font-size:112px;line-height:.9;letter-spacing:.02em">BAD</div>'
-            f'</div></div></div>')
+            f'</div>'
+            # #EpicPartner under it, where the corner tag sits under the badge (x1.4),
+            # so the pair shrinks into the corner together.
+            f'<div style="margin:{4 * 1.4:.1f}px 0 0 {4 * 1.4:.1f}px;font-size:{23 * 1.4:.0f}px;font-weight:700;'
+            f'line-height:1.3;color:rgba(255,255,255,.92);text-shadow:0 2px 8px rgba(0,0,0,.9)">#EpicPartner</div>'
+            f'</div></div>')
 
 
 # A cosmetic as a solid shape with a thin light rim, for quizzes that ask who it is.
@@ -263,46 +279,61 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     gives an answer away. `extra` is drawn over the background, under the
     cosmetics (a series' decorations)."""
     inner = tile_bg(colors or ["#232329", "#0d0d10"], "", 0) + extra
+    # Everything sits in the apps' safe box (cc_safe): the words in the wide top
+    # band, the cosmetics side by side in the band beside the button rail
+    # (x 60-900), centred on it, and nothing below y 1420.
     chars = ""
     if a_item:
-        chars += character(ctx.art(a_item), 270, 1150, 760, HOOK_WHOOSH_A, "hop", .45, "float",
-                           a_item["rarity"], a_item["name"])
+        chars += character(ctx.art(a_item), HOOK_AX, HOOK_CY, HOOK_H, HOOK_WHOOSH_A, "hop", .45, "float",
+                           a_item["rarity"], a_item["name"], maxw=HOOK_MAXW)
     if b_item:
-        chars += character(ctx.art(b_item), 810, 1150, 760, HOOK_WHOOSH_B, "hop", .45, "sway",
-                           b_item["rarity"], b_item["name"])
+        chars += character(ctx.art(b_item), HOOK_BX, HOOK_CY, HOOK_H, HOOK_WHOOSH_B, "hop", .45, "sway",
+                           b_item["rarity"], b_item["name"], maxw=HOOK_MAXW)
     inner += f'<div class="full" style="filter:{SILHOUETTE}">{chars}</div>' if silhouette else chars
     inner += _code_stamp(comp, end)
-    inner += label(kicker or f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 330, 30, 0,
-                   kicker_color, 800, anim="none", align="center", spacing=".17em")
+    # The kicker (the date line) is for the thumbnail; it steps aside as the stamp
+    # flies up to the corner badge, which lands where it was.
+    kick_out = style_anim(an("fadeout", _dock_times(end)[0], .3))
+    inner += (f'<div class="full" style="{kick_out}">'
+              + label(kicker or f"FORTNITE ITEM SHOP · {ctx.day_label.upper()}", W / 2, 300, 30, 0,
+                      kicker_color, 800, anim="none", align="center", spacing=".17em") + "</div>")
     # Sized to fit on one line with room for the thump, so a long title
     # ("GUESS THE PRICE") never runs off the sides.
-    size = min(170, 960 / anton_em(title))
-    inner += (f'<div class="full" style="transform-origin:50% 480px;'
+    size = min(170, 940 / anton_em(title))
+    inner += (f'<div class="full" style="transform-origin:50% 430px;'
               f'{style_anim(an("thump", HOOK_SLAM, .4))}">'
-              + words(title, W / 2, 400 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center", 1000)
+              + words(title, W / 2, 350 + (170 - size) * .45, size, 0, "#fff", 0, "none", "center", 1000)
               + "</div>")
-    # Long stickers ("GONE AT 8 PM ET") shift left so they never touch the edge.
-    # White, so the lime of the USE CODE: BAD stamp is the one brand colour block.
-    stick_w = (anton_em(stick) + .84) * 56
-    inner += sticker(stick, min(640, W - 56 - stick_w), 700, 56, HOOK_POP, bg="#ffffff",
+    # Long stickers ("GONE AT 8 PM ET") shift left so they never pass the safe
+    # box's edge. White, so the lime of the USE CODE: BAD stamp is the one brand
+    # colour block.
+    stick_size = min(56, 360 / (anton_em(stick) + .84))
+    stick_w = (anton_em(stick) + .84) * stick_size
+    inner += sticker(stick, min(620, SAFE_RIGHT_TOP - 24 - stick_w), 598, stick_size, HOOK_POP, bg="#ffffff",
                      rot=-5, anim="boing")
-    inner += label(sub, W / 2, 1330, 36, HOOK_SUB, "#fff", 700, align="center",
-                   bg="rgba(10,10,11,.78)", pad="14px 26px")
+    inner += label(sub, HOOK_MID, 1318, 34, HOOK_SUB, "#fff", 700, align="center",
+                   bg="rgba(10,10,11,.78)", pad="13px 24px")
     comp.scene(0, end, inner, fade_in=.01)
 
 
 def _outro_scene(comp: Comp, ctx: Ctx, start: float, end: float, ask: str, items: list):
+    """USE CREATOR CODE BAD, big, with three of the video's cosmetics and the ask.
+    All of it in the apps' safe box: the code in the wide top band, the line-up
+    beside the button rail, the ask above the caption zone."""
     inner = tile_bg(["#2b3200", "#0b0c05"], "", start)
-    xs = [(210, 1050, 520, "float"), (870, 1080, 520, "sway"), (540, 1180, 600, "float")]
+    mid = HOOK_MID
+    xs = [(mid - 265, 1010, 470, "float"), (mid + 265, 1010, 470, "sway"), (mid, 1040, 560, "float")]
     for (x, y, h, idle), it in zip(xs, items[:3]):
-        inner += character(ctx.art(it), x, y, h, start + .2, "drop", .8, idle, it["rarity"], it["name"])
-    inner += label("USE CREATOR CODE", W / 2, 360, 44, start + .1, "#fff", 800, align="center",
+        inner += character(ctx.art(it), x, y, h, start + .2, "drop", .8, idle, it["rarity"], it["name"],
+                           maxw=300)
+    inner += label("USE CREATOR CODE", W / 2, 372, 44, start + .1, "#fff", 800, align="center",
                    spacing=".26em")
-    inner += (f'<div class="abs d" style="left:0;right:0;top:420px;text-align:center;font-size:330px;'
+    inner += (f'<div class="abs d" style="left:0;right:0;top:428px;text-align:center;font-size:290px;'
               f'color:{ACCENT};text-shadow:0 0 90px rgba(232,255,58,.45),0 14px 0 rgba(0,0,0,.35);'
               f'{style_anim(an("slam", start + .25, .6))}">BAD</div>')
-    inner += sticker(ask, 110, 1300, 50, start + 1.1, rot=-3)
-    inner += burst(W / 2, 560, start + .5, ctx.seed)
+    ask_size = min(50, 800 / (anton_em(ask) + .84))
+    inner += sticker(ask, SAFE_LEFT + 30, 1318, ask_size, start + 1.1, rot=-3)
+    inner += burst(W / 2, 540, start + .5, ctx.seed)
     comp.scene(start, end, inner, fade_out=.01, z=2)
 
 
