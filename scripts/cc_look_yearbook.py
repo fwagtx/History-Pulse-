@@ -2,7 +2,12 @@
 YEARBOOK -- Guess the Season and Season Throwback as pages of a school
 yearbook ("Locker High"): class photos on the mottled blue school backdrop,
 names in serif, notes in blue ballpoint, and a lime USE CODE: BAD sticky note
-on every frame (it stays put while the pages turn under it).
+on every frame, in the page's bottom right corner (it stays put while the
+pages turn under it).
+
+The paper runs to the frame's edges; the page's type, photos, pen and the note
+sit inside the apps' safe box (cc_safe), so no app's header, buttons or
+caption ever covers them. Only the page number sits below it, as decoration.
 
 Guess the Season
     0:00  hook      the class page: every round's photo with "SEASON ?" under
@@ -37,8 +42,11 @@ flash shadow, a light film grade and grain, and swaps it in as the <img>.
 Missing or broken art gets the yearbook's "photo not available" silhouette.
 """
 
+import math
+
 from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, rough_arrow, rough_check, stroke_static, stroke_svg, tex, write_on
-from cc_motion import RARITY, Comp, esc
+from cc_motion import RARITY, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP, SAFE_TOP, W, Comp, esc
+from cc_safe import COVER_TOP
 
 # ------------------------------------------------------------------ photo lab
 
@@ -354,16 +362,48 @@ R3 = 6.5            # Season Throwback: one item's turn, as cc_quiz.R3
 FLIP = .6           # a page turn
 INK, PEN = "#1f2430", "#1d3fa8"
 FONTS = ("Old Standard TT", "Oswald", "Caveat", "Permanent Marker")
-NOTE_X, NOTE_Y = 646, 1256      # the lime sticky note (below y 880, so all of it left of x 950)
-BIG_X, BIG_Y = 578, 1238        # the outro's bigger one, over it
+
+# The paper, the spine's shadow and the folio run to the frame's edges. The
+# page's type, photos, pen and the code note stay inside the apps' safe box
+# (cc_safe): x 60-1020 above y 740, x 60-900 below it, y 230-1420 -- and on
+# frame 0, the cover, text starts at y 285.
+X0 = SAFE_LEFT + 10              # 70: the page's left margin
+X1 = SAFE_RIGHT - 4              # 896: the body's right edge, beside the apps' buttons
+XH = SAFE_RIGHT_TOP - 10         # 1010: the head's right edge, above them
+BODY_W = X1 - X0                 # 826
+TOP = SAFE_TOP + 14              # 244: a page's first line
+TOP0 = COVER_TOP + 7             # 292: the same on frame 0
+FOOT = SAFE_BOTTOM - 6           # 1414: the lowest thing on the page ends here
+
+
+def _outline(w: float, h: float, rot: float) -> tuple:
+    """Width and height of a w x h box turned rot degrees."""
+    c, s = math.cos(math.radians(rot)), abs(math.sin(math.radians(rot)))
+    return w * c + h * s, w * s + h * c
+
+
+def _at(w: float, h: float, rot: float, right: float, bottom: float) -> tuple:
+    """left, top of a w x h box turned rot degrees whose outline ends at right, bottom."""
+    bw, bh = _outline(w, h, rot)
+    return right - (bw + w) / 2, bottom - (bh + h) / 2
+
+
+# The lime sticky note (w, h, tilt), in the page's bottom right corner on every
+# frame, and the bigger one the outro slaps on over it. Everything else on the
+# pages stays above NOTE_TOP where it could meet them (left of NOTE_LEFT it can
+# go lower).
+NOTE, BIG = (300, 196, 3), (336, 204, 3)
+NOTE_LEFT = X1 - 2 - _outline(*NOTE)[0]          # 584
+NOTE_TOP = FOOT - _outline(*BIG)[1]              # 1193: the big one's top
 
 CSS = """
 .yb-page{position:absolute;inset:0;overflow:hidden;background:#eeeae1 url(%(paper)s) center/cover}
 .yb-serif{font-family:'Old Standard TT',Georgia,serif;color:#1f2430}
-.yb-sc{font-family:Oswald,sans-serif;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#5b6272;
+.yb-sc{font-family:Oswald,sans-serif;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#555c6b;
   line-height:1;white-space:nowrap}
-.yb-it{font-family:'Old Standard TT',Georgia,serif;font-style:italic;color:#4b5261;white-space:nowrap}
+.yb-it{font-family:'Old Standard TT',Georgia,serif;font-style:italic;color:#474e5c;white-space:nowrap;line-height:1.1}
 .yb-pen{font-family:Caveat,cursive;font-weight:700;color:#1d3fa8;line-height:1;white-space:nowrap}
+.yb-blank{color:#6f7480}
 .yb-photo{position:absolute;box-shadow:0 1px 1px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.08)}
 .yb-turn{position:absolute;inset:0;transform-origin:0 50%%;backface-visibility:hidden}
 .yb-cam{position:absolute;inset:0;perspective:3400px;perspective-origin:540px 820px}
@@ -387,29 +427,34 @@ def _setup(comp: Comp):
 
 
 def _paper(page_no: int = 0) -> str:
-    """The page itself: paper, the shadow of the book's spine, the page number."""
+    """The page itself: paper, the shadow of the book's spine, and the page
+    number at the foot (decoration, down where the apps put their captions)."""
     return ('<div class="abs" style="left:0;top:0;width:120px;height:1920px;background:linear-gradient(90deg,'
             'rgba(58,44,28,.24),rgba(58,44,28,.08) 38%,rgba(58,44,28,0))"></div>'
             '<div class="abs" style="right:0;top:0;width:26px;height:1920px;background:linear-gradient(270deg,'
             'rgba(0,0,0,.07),rgba(0,0,0,0))"></div>'
-            + (f'<div class="abs yb-serif" style="left:0;width:1080px;top:1596px;text-align:center;font-size:30px;'
-               f'color:#9aa0aa">{page_no}</div>' if page_no else ""))
+            + (f'<div class="abs yb-serif" data-safe="ignore" style="left:0;width:1080px;top:1596px;'
+               f'text-align:center;font-size:30px;color:#9aa0aa">{page_no}</div>' if page_no else ""))
 
 
 def _code_note(big: bool = False, t: float = 0) -> str:
-    """USE CODE: BAD on a lime sticky note stuck to the page, #EpicPartner on it,
-    small. big=True: the outro's bigger note, slapped on over it at t."""
-    x, y, w, h, uc, bad, ep = ((BIG_X, BIG_Y, 360, 220, 52, 158, 21) if big else (NOTE_X, NOTE_Y, 292, 186, 42, 124, 19))
-    anim = _a("lkslap", t, .5, extra="--r:3deg;") if big else ""
-    return (f'<div class="abs" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px;transform:rotate(3deg);'
+    """USE CODE: BAD on a lime sticky note stuck to the page, #EpicPartner on it.
+    big=True: the outro's bigger note, slapped on over it at t. Either way the
+    whole note sits inside the safe box, in the page's bottom right corner."""
+    w, h, rot = BIG if big else NOTE
+    x, y = _at(w, h, rot, X1 - 2, FOOT)
+    uc, bad, ep = (48, 132, 25) if big else (44, 124, 24)
+    anim = _a("lkslap", t, .5, extra=f"--r:{rot}deg;") if big else ""
+    return (f'<div class="abs" data-safe="key" data-name="code" style="left:{x:.1f}px;top:{y:.1f}px;width:{w}px;'
+            f'height:{h}px;transform:rotate({rot}deg);'
             f'background:linear-gradient(180deg,#e2f63a 0%,{LIME} 22%,#e6fd3c 70%,#d9ef33 100%);'
             f'box-shadow:0 2px 2px rgba(0,0,0,.18),0 14px 16px -8px rgba(0,0,0,.35);display:flex;'
-            f'flex-direction:column;align-items:center;justify-content:center;padding-top:4px;{anim}">'
+            f'flex-direction:column;align-items:center;justify-content:center;padding-top:2px;{anim}">'
             f'<div style="font-family:\'Permanent Marker\';font-size:{uc}px;line-height:1;color:#111">USE CODE:</div>'
             f'<div style="font-family:\'Permanent Marker\';font-size:{bad}px;line-height:.84;color:#111;'
             f'margin-top:2px">BAD</div>'
-            f'<div style="font-family:Oswald,sans-serif;font-weight:500;font-size:{ep}px;letter-spacing:.08em;'
-            f'color:#3a4010;margin-top:6px">#EpicPartner</div></div>')
+            f'<div style="font-family:Oswald,sans-serif;font-weight:500;font-size:{ep}px;line-height:1.2;'
+            f'letter-spacing:.06em;color:#353b0c;margin-top:5px">#EpicPartner</div></div>')
 
 
 def _code(comp: Comp, t_big: float):
@@ -419,30 +464,31 @@ def _code(comp: Comp, t_big: float):
     comp.cue(t_big, "paper")
 
 
-def _header(title: str, right: str = "", sub: str = "", size: int = 92, over: str = "") -> tuple:
-    """Kicker, serif title (an italic line over it or under it), double rule.
+def _header(top: float, title: str, right: str = "", size: int = 88, over: str = "", sub: str = "") -> tuple:
+    """The page's head: the yearbook's name (and `right`) in small caps, an
+    italic line over the title or under it, the serif title, a double rule.
     Returns (html, the y under the rule)."""
-    top = 206
-    out = [f'<div class="abs yb-sc" style="left:70px;top:{top}px;font-size:26px;letter-spacing:.34em">'
+    out = [f'<div class="abs yb-sc" style="left:{X0}px;top:{top:.0f}px;font-size:30px;letter-spacing:.3em">'
            f'Locker High Yearbook</div>']
     if right:
-        out.append(f'<div class="abs yb-sc" style="right:70px;top:{top}px;font-size:26px;letter-spacing:.2em">'
-                   f'{esc(right)}</div>')
-    y = top + 40
+        out.append(f'<div class="abs yb-sc" style="right:{W - XH}px;top:{top:.0f}px;font-size:30px;'
+                   f'letter-spacing:.16em">{esc(right)}</div>')
+    y = top + 38
     if over:
-        out.append(f'<div class="abs yb-it" style="left:70px;top:{y}px;font-size:44px">{esc(over)}</div>')
-        y += 52
-    out.append(f'<div class="abs yb-serif" data-fit="940" style="left:66px;top:{y}px;font-size:{size}px;'
-               f'font-weight:700;line-height:1;white-space:nowrap">{esc(title)}</div>')
-    y += size * 1.04
+        out.append(f'<div class="abs yb-it" style="left:{X0}px;top:{y:.0f}px;font-size:40px">{esc(over)}</div>')
+        y += 44
+    out.append(f'<div class="abs yb-serif" data-fit="{XH - X0 + 4}" style="left:{X0 - 4}px;top:{y:.0f}px;'
+               f'font-size:{size}px;font-weight:700;line-height:1;white-space:nowrap">{esc(title)}</div>')
+    y += size + 6
     if sub:
-        out.append(f'<div class="abs yb-it" data-fit="560" style="left:70px;top:{y + 8:.0f}px;font-size:32px">'
+        out.append(f'<div class="abs yb-it" data-fit="520" style="left:{X0}px;top:{y:.0f}px;font-size:36px">'
                    f'{esc(sub)}</div>')
-        y += 50
-    y += 16
-    out.append(f'<div class="abs" style="left:70px;top:{y:.0f}px;width:940px;height:3px;background:{INK}"></div>'
-               f'<div class="abs" style="left:70px;top:{y + 7:.0f}px;width:940px;height:1px;background:{INK}"></div>')
-    return "".join(out), y + 30
+        y += 40
+    y += 10
+    out.append(f'<div class="abs" style="left:{X0}px;top:{y:.0f}px;width:{XH - X0}px;height:3px;background:{INK}">'
+               f'</div><div class="abs" style="left:{X0}px;top:{y + 7:.0f}px;width:{XH - X0}px;height:1px;'
+               f'background:{INK}"></div>')
+    return "".join(out), y + 8
 
 
 def _turn(inner: str, t_end: float) -> str:
@@ -495,32 +541,39 @@ def _noun(items: list) -> str:
 
 def _caption(x: float, y: float, w: float, name: str, name_px: int, lines: str, gap: int = 6,
              style: str = "") -> str:
-    """Name in serif (two lines at most) with whatever goes under it."""
+    """Name in serif (two lines at most, shrinking to fit) with whatever goes under it."""
     return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;width:{w:.0f}px;display:flex;'
             f'flex-direction:column;gap:{gap}px;{style}">'
             f'<div class="yb-serif" data-fit="{w:.0f}" data-lines="2" style="width:{w:.0f}px;font-size:{name_px}px;'
             f'font-weight:700;line-height:1.04">{esc(name)}</div>{lines}</div>')
 
 
-def _cell(art: str, x: float, y: float, pw: float, ph: float, it: dict, seed: int, crop: str,
-          label: str, answer: str = "", t_answer: float = 0) -> str:
-    """A class photo with the name under it and a small grey line; with an
-    answer, the pen writes it over that line at t_answer."""
-    line = f'<div class="yb-sc" style="font-size:22px;color:#80858f">{esc(label)}</div>'
-    if answer:
-        line = (f'<div style="position:relative;height:22px">'
-                f'<div class="yb-sc" style="font-size:22px;color:#80858f;{_a("ybgone", t_answer, .2, "linear")}">'
-                f'{esc(label)}</div>'
-                f'<div class="yb-pen" data-fit="{pw + 10:.0f}" style="position:absolute;left:-3px;top:-12px;'
-                f'font-size:42px;transform:rotate(-2deg);{write_on(t_answer + .05, .5, 14)}">{esc(answer)}</div>'
-                f'</div>')
-    return (f'<div class="yb-photo" style="left:{x:.0f}px;top:{y:.0f}px">{photo(art, pw, ph, crop, seed)}</div>'
-            + _caption(x, y + ph + 10, pw, it["name"], 34, line))
-
-
 # ------------------------------------------------------------------ Guess the Season
 
-GRID_X, GRID_Y, CELL, PITCH_X, PITCH_Y = 60, 430, 280, 306, 406
+# The class page: three photos a row, two rows, under the head; room under each
+# for a two-line name and the season line, and the bottom of the page free for
+# the pen and the note.
+CELL_W, CELL_H, CELL_NAME = 250, 210, 40
+CELL_GAP = (BODY_W - 3 * CELL_W) / 2                               # 38
+GRID_Y = 496
+ROW = CELL_H + 8 + round(CELL_NAME * 1.04 * 2) + 4 + 34 + 13       # 351
+
+
+def _cell(art: str, x: float, y: float, it: dict, seed: int, crop: str, answer: str = "",
+          t_answer: float = 0) -> str:
+    """A class photo with the name under it and "SEASON ?"; with an answer,
+    the pen writes it over that line at t_answer."""
+    line = '<div class="yb-sc yb-blank" style="font-size:30px;height:34px">Season ?</div>'
+    if answer:
+        line = (f'<div style="position:relative;height:34px">'
+                f'<div class="yb-sc yb-blank" style="font-size:30px;{_a("ybgone", t_answer, .2, "linear")}">'
+                f'Season ?</div>'
+                f'<div class="yb-pen" data-fit="{CELL_W - 6}" style="position:absolute;left:0;top:-8px;'
+                f'font-size:42px;transform:rotate(-2deg);transform-origin:0 50%;'
+                f'{write_on(t_answer + .05, .5, 14)}">{esc(answer)}</div></div>')
+    return (f'<div class="yb-photo" style="left:{x:.0f}px;top:{y:.0f}px">'
+            f'{photo(art, CELL_W, CELL_H, crop, seed)}</div>'
+            + _caption(x, y + CELL_H + 8, CELL_W, it["name"], CELL_NAME, line, 4))
 
 
 def _class_grid(ctx, items: list, crop: str, answers: list = None, t_answer: float = 0,
@@ -528,8 +581,8 @@ def _class_grid(ctx, items: list, crop: str, answers: list = None, t_answer: flo
     out = []
     for i, it in enumerate(items):
         r, c = divmod(i, 3)
-        out.append(_cell(ctx.art(it), GRID_X + c * PITCH_X, GRID_Y + r * PITCH_Y, CELL, CELL, it, 11 + i, crop,
-                         "Season ?", answers[i] if answers else "", t_answer + i * step))
+        out.append(_cell(ctx.art(it), X0 + c * (CELL_W + CELL_GAP), GRID_Y + r * ROW, it, 11 + i, crop,
+                         answers[i] if answers else "", t_answer + i * step))
     return "".join(out)
 
 
@@ -543,51 +596,54 @@ def _gs_class_page(ctx, spec, items: list, crop: str, answers: list = None, cont
     the time the pen is done)."""
     n = len(items)
     final = bool(answers)
-    head, _ = _header("Guess the Season", _quiz_no(spec), "When did each one come out?", 92)
+    head, _ = _header(TOP0, "Guess the Season", _quiz_no(spec), 88, sub="When did each one come out?")
     sounds, done = [], .45 + .6
     t = content_end + .3
     html = [_paper(40), head, _class_grid(ctx, items, crop, answers, t)]
-    # the pen: a question and an arrow at the top right, and a note in the free space
+    # The pen: a word at the head's right, and a note in the free space -- the
+    # empty sixth photo's place when there are five rounds, else the page's
+    # bottom left, beside the code note.
+    spare = n % 3
+    fx, fy = X0 + spare * (CELL_W + CELL_GAP) + 6, GRID_Y + ROW + 24      # the empty place
+    word = lambda anim, text: (f'<div class="abs yb-pen" style="right:{W - XH + 6}px;top:402px;font-size:60px;'
+                               f'transform:rotate(-4deg);transform-origin:100% 50%;{anim}">{text}</div>')
     if final:
-        html.append(f'<div class="abs yb-pen" style="left:600px;top:322px;font-size:60px;transform:rotate(-4deg);'
-                    f'{write_on(content_end + .05, .45, 12)}">answer key!</div>')
+        html.append(word(write_on(content_end + .05, .45, 12), "answer key!"))
         sounds.append((content_end + .05, "pen"))
         sounds += [(t + i * .45, "pen") for i in range(n)]
         t_q = t + n * .45 + .25
         q = f"how many did you get out of {n}?"
-        if n % 3:
-            html.append(f'<div class="abs yb-pen" data-fit="270" data-lines="4" style="left:{GRID_X + (n % 3) * PITCH_X + 6}px;'
-                        f'top:{GRID_Y + PITCH_Y + 30}px;width:270px;font-size:58px;line-height:1.05;white-space:normal;'
+        if spare:
+            html.append(f'<div class="abs yb-pen" data-fit="{CELL_W}" data-lines="4" style="left:{fx}px;top:{fy}px;'
+                        f'width:{CELL_W}px;font-size:56px;line-height:1.05;white-space:normal;'
                         f'transform:rotate(-3deg);{write_on(t_q, 1.1, 22)}">{esc(q)}</div>')
         else:
-            html.append(f'<div class="abs yb-pen" data-fit="470" data-lines="2" style="left:70px;top:1262px;'
-                        f'width:470px;font-size:64px;line-height:1.05;white-space:normal;transform:rotate(-3deg);'
-                        f'{write_on(t_q, 1.1, 22)}">{esc(q)}</div>')
+            html.append(f'<div class="abs yb-pen" data-fit="440" data-lines="2" style="left:{X0 + 4}px;'
+                        f'top:{NOTE_TOP + 30}px;width:440px;font-size:60px;line-height:1.05;white-space:normal;'
+                        f'transform:rotate(-3deg);{write_on(t_q, 1.1, 22)}">{esc(q)}</div>')
         sounds.append((t_q, "pen"))
         done = t_q + 1.1
     else:
-        html.append('<div class="abs yb-pen" style="left:600px;top:322px;font-size:60px;transform:rotate(-4deg)">'
-                    'which season??</div>')
-        html.append(stroke_static(rough_arrow(870, 392, GRID_X + 2 * PITCH_X + CELL * .55, GRID_Y - 4, seed=8,
-                                              head=22, curve=.32), PEN, 5))
+        html.append(word("", "which season??"))
+        html.append(stroke_static(rough_arrow(XH - 40, 474, X1 - CELL_W * .3, GRID_Y + 22, seed=8,
+                                              head=20, curve=.3), PEN, 5))
         # "6 rounds." is on the page from frame 0; "no peeking!" gets written as it starts
-        if n % 3:
-            x, y, px = GRID_X + (n % 3) * PITCH_X + 10, GRID_Y + PITCH_Y + 50, 70
-            html.append(f'<div class="abs yb-pen" style="left:{x}px;top:{y}px;font-size:{px}px;transform:rotate(-3deg)">'
-                        f'{n} rounds.</div><div class="abs yb-pen" style="left:{x + 4}px;top:{y + 84}px;font-size:{px}px;'
-                        f'transform:rotate(-4deg);{write_on(.45, .6, 12)}">no peeking!</div>')
-        else:
-            html.append(f'<div class="abs yb-pen" style="left:70px;top:1290px;font-size:64px;transform:rotate(-3deg)">'
-                        f'{n} rounds. <span style="display:inline-block;{write_on(.45, .6, 12)}">no peeking!</span>'
-                        f'</div>')
+        x, y = (fx, fy) if spare else (X0 + 6, NOTE_TOP + 24)
+        fit = CELL_W - 10 if spare else 440
+        html.append(f'<div class="abs yb-pen" data-fit="{fit}" style="left:{x}px;top:{y}px;font-size:70px;'
+                    f'transform:rotate(-3deg)">{n} rounds.</div>'
+                    f'<div class="abs yb-pen" data-fit="{fit}" style="left:{x + 4}px;top:{y + 86}px;font-size:70px;'
+                    f'transform:rotate(-4deg);{write_on(.45, .6, 12)}">no peeking!</div>')
         sounds.append((.45, "pen"))
     return "".join(html), sounds, done
 
 
-# the round page
-PH_X, PH_Y, PH_W, PH_H = 60, 378, 560, 720
-BAL_X, BAL_Y, BAL_PITCH, BAL_W = 648, 470, 132, 300     # all of it left of x 950
-COUNT_Y = 1016
+# the round page: the photo on the left, the ballot beside it, the name, its
+# rarity and type and the season line under the photo
+PH_X, PH_Y, PH_W, PH_H = X0, 400, 470, 670
+BAL_X = PH_X + PH_W + 40                                   # 580
+BAL_Y, BAL_PITCH, BAL_W = 490, 120, X1 - BAL_X             # four boxes, all left of the buttons
+COUNT_Y = 962
 
 
 def _gs_round(ctx, spec, it: dict, opts: list, answer: int, k: int, n: int, t0: float, crop: str) -> tuple:
@@ -595,44 +651,44 @@ def _gs_round(ctx, spec, it: dict, opts: list, answer: int, k: int, n: int, t0: 
     round number as the page opens, the countdown, the tick in the right box
     and the season under the name."""
     rev = t0 + T_REV
-    head, _ = _header("Guess the Season", _quiz_no(spec), "", 80)
+    head, _ = _header(TOP, "Guess the Season", _quiz_no(spec), 80)
     html = [_paper(40 + k), head,
-            f'<div class="abs yb-pen" style="left:742px;top:258px;font-size:66px;transform:rotate(-5deg);'
-            f'{write_on(t0 + .2, .5, 12)}">round {k}/{n}</div>',
+            f'<div class="abs yb-pen" style="right:{W - XH + 4}px;top:292px;font-size:64px;transform:rotate(-5deg);'
+            f'transform-origin:100% 50%;{write_on(t0 + .2, .5, 12)}">round {k}/{n}</div>',
             f'<div class="yb-photo" style="left:{PH_X}px;top:{PH_Y}px">'
             f'{photo(ctx.art(it), PH_W, PH_H, "close" if crop == "head" else crop, 20 + k)}'
             f'</div>']
-    answer_line = (f'<div style="position:relative;height:62px;margin-top:10px">'
-                   f'<div class="yb-sc" style="position:absolute;left:0;top:18px;font-size:24px;color:#80858f;'
+    answer_line = (f'<div style="position:relative;height:60px;margin-top:6px">'
+                   f'<div class="yb-sc yb-blank" style="position:absolute;left:0;top:12px;font-size:30px;'
                    f'{_a("ybgone", rev + .3, .2, "linear")}">Introduced in: ?</div>'
-                   f'<div class="yb-pen" data-fit="{PH_W}" style="position:absolute;left:-2px;top:0;font-size:72px;'
-                   f'transform:rotate(-2deg);transform-origin:0 50%;{write_on(rev + .35, .8, 20)}">'
-                   f'{esc(_season(opts[answer]))}!</div></div>')
-    html.append(_caption(PH_X, PH_Y + PH_H + 16, PH_W, it["name"], 54,
-                         f'<div class="yb-sc" style="font-size:24px;margin-top:4px">{esc(_kind(it))}</div>'
-                         + answer_line))
+                   f'<div class="yb-pen" data-fit="{NOTE_LEFT - PH_X - 14:.0f}" style="position:absolute;left:-2px;'
+                   f'top:-6px;font-size:70px;transform:rotate(-2deg);transform-origin:0 50%;'
+                   f'{write_on(rev + .35, .8, 20)}">{esc(_season(opts[answer]))}!</div></div>')
+    html.append(_caption(PH_X, PH_Y + PH_H + 14, PH_W, it["name"], 54,
+                         f'<div class="yb-sc" data-fit="{PH_W}" style="font-size:30px;margin-top:2px">'
+                         f'{esc(_kind(it))}</div>' + answer_line))
     # the ballot
-    html.append(f'<div class="abs yb-sc" style="left:{BAL_X}px;top:{PH_Y + 6}px;font-size:25px;color:{INK}">'
+    html.append(f'<div class="abs yb-sc" style="left:{BAL_X}px;top:{PH_Y + 2}px;font-size:30px;color:{INK}">'
                 f'Introduced in</div>'
-                f'<div class="abs yb-it" style="left:{BAL_X}px;top:{PH_Y + 40}px;font-size:28px">tick one:</div>')
+                f'<div class="abs yb-it" style="left:{BAL_X}px;top:{PH_Y + 40}px;font-size:32px">tick one:</div>')
     for i, o in enumerate(opts):
         y = BAL_Y + i * BAL_PITCH
         chap, _, seas = o.partition(" · ")
         if not seas:                    # a label without a chapter part: one big line
             chap, seas = "", o
         fade = "" if i == answer else _a("ybfade", rev + .1, .35, "ease-out")
-        html.append(f'<div class="abs" style="left:{BAL_X}px;top:{y}px;width:{BAL_W}px;height:100px;{fade}">'
-                    f'<div class="abs" style="left:0;top:16px;width:46px;height:46px;border:3px solid {INK};'
+        html.append(f'<div class="abs" style="left:{BAL_X}px;top:{y}px;width:{BAL_W}px;height:96px;{fade}">'
+                    f'<div class="abs" style="left:0;top:16px;width:48px;height:48px;border:3px solid {INK};'
                     f'background:rgba(255,255,255,.35)"></div>'
-                    f'<div class="abs yb-sc" data-fit="{BAL_W - 66}" style="left:66px;top:2px;font-size:26px;'
+                    f'<div class="abs yb-sc" data-fit="{BAL_W - 66}" style="left:66px;top:0;font-size:30px;'
                     f'color:#4b5261">{esc(chap)}</div>'
-                    f'<div class="abs yb-serif" data-fit="{BAL_W - 66}" style="left:64px;top:34px;font-size:48px;'
+                    f'<div class="abs yb-serif" data-fit="{BAL_W - 66}" style="left:64px;top:34px;font-size:52px;'
                     f'font-weight:700;line-height:1;white-space:nowrap">{esc(seas or chap)}</div></div>')
     by = BAL_Y + answer * BAL_PITCH
-    html.append(stroke_svg(rough_check(BAL_X + 4, by + 58, 64, seed=k), PEN, 8, rev, .24))
+    html.append(stroke_svg(rough_check(BAL_X + 4, by + 60, 66, seed=k), PEN, 8, rev, .24))
     # the pen counts down under the ballot
     for j, d in enumerate("321"):
-        html.append(f'<div class="abs yb-pen" style="left:{BAL_X + 12 + j * 100}px;top:{COUNT_Y}px;font-size:120px;'
+        html.append(f'<div class="abs yb-pen" style="left:{BAL_X + 20 + j * 100}px;top:{COUNT_Y}px;font-size:120px;'
                     f'transform:rotate({(-4, 2, -2)[j]}deg);{write_on(rev - 3 + j, .28, 8)}">{d}</div>')
     sounds = ([(t0 + .2, "pen")] + [(rev - 3 + j, "tick") for j in range(3)]
               + [(rev, "ding"), (rev, "pen"), (rev + .35, "pen")])
@@ -679,35 +735,42 @@ def guess_season(ctx, spec: dict, rounds: list) -> Comp:
 
 # ------------------------------------------------------------------ Season Throwback
 
-def _slots(n: int) -> tuple:
-    """The class page's photo grid: (photo w, photo h, name px, [(x, y)]). It
-    stays left of x 950 and clear of the code note, and the photos have the
-    print's shape, so a print laid into its slot lands exactly on it."""
-    if n <= 6:
-        pw, cols, name_px, pitch = 244, 3, 36, 376
-    else:
-        pw, cols, name_px, pitch = 202, 4, 30, 340
-    ph = round(pw * PR_PH / PR_PW)
-    gap = (886 - cols * pw) / (cols - 1)
-    return pw, ph, name_px, [(64 + (i % cols) * (pw + gap), 470 + (i // cols) * pitch) for i in range(n)]
-
-
-# the print of the photo whose turn it is: laid over the page, big
-PR_X, PR_Y, PR_B, PR_PW, PR_PH, PR_CAP = 184, 446, 24, 512, 580, 172
+# the print of the photo whose turn it is: laid over the page, big, centred on
+# the page's body and clear of the code note
+PR_B, PR_PW, PR_PH, PR_CAP = 22, 500, 560, 168
 PR_W, PR_H = PR_PW + 2 * PR_B, PR_B + PR_PH + PR_CAP
-T_IN, T_OUT, T_PLACE = .05, 5.8, .55        # in each turn: lands, starts for its slot, takes this long
+PR_X, PR_Y = round(X0 + (BODY_W - PR_W) / 2), 444
+T_IN, T_HOLD, T_PLACE = .05, .7, .55        # in each turn: lands; leaves for its slot this long before
+                                             # the turn ends; takes this long to get there
+SLOT_Y, SLOT_W, SLOT_NAME, SLOT_KIND = 446, 190, 34, 30
 
 
-def _print(comp: Comp, ctx, it: dict, i: int, t0: float, slot: tuple, pw: float, crop: str, kind: str,
+def _slots(n: int) -> tuple:
+    """The class page's photo grid: (photo w, photo h, [(x, y)]). Four a row
+    (three when there are six), inside the page's body and above the code note,
+    with room under each photo for a two-line name and a two-line rarity and
+    type. The photos have the print's shape, so a print laid into its slot
+    lands exactly on it."""
+    cols = 3 if n <= 6 else 4
+    pw = SLOT_W
+    ph = round(pw * PR_PH / PR_PW)
+    gap = 60 if cols == 3 else (BODY_W - cols * pw) / (cols - 1)
+    x0 = X0 + (BODY_W - cols * pw - (cols - 1) * gap) / 2
+    pitch = ph + 8 + round(SLOT_NAME * 1.04 * 2) + 4 + round(SLOT_KIND * 1.12 * 2) + 12
+    return pw, ph, [(x0 + (i % cols) * (pw + gap), SLOT_Y + (i // cols) * pitch) for i in range(n)]
+
+
+def _print(comp: Comp, ctx, it: dict, i: int, t0: float, r: float, slot: tuple, pw: float, crop: str, kind: str,
            col: str) -> str:
     """The portrait as a print: slid in over the page, held, then laid into its
-    slot on the page (where the page's own copy of the photo takes over)."""
+    slot on the page (where the page's own copy of the photo takes over). Its
+    turn starts at t0 and lasts r seconds."""
     x, y = slot
     rot = (-2.2, 1.6, -1.4, 2.0)[i % 4]
     k = pw / PR_PW
     dx, dy = x - (PR_X + PR_B), y - (PR_Y + PR_B)
     name = comp.uid("ybprint")
-    t1, t2, t3 = t0 + T_IN, t0 + T_OUT, t0 + T_OUT + T_PLACE
+    t1, t2, t3 = t0 + T_IN, t0 + r - T_HOLD, t0 + r - T_HOLD + T_PLACE
     d = comp.duration
     pct = lambda t: f"{t / d * 100:.4f}%"
     comp.css(f"@keyframes {name}{{0%{{transform:translate(640px,40px) rotate(9deg);opacity:0}}"
@@ -728,7 +791,7 @@ def _print(comp: Comp, ctx, it: dict, i: int, t0: float, slot: tuple, pw: float,
             f'background:#fbfaf6;box-shadow:0 2px 3px rgba(0,0,0,.2),0 18px 30px -6px rgba(0,0,0,.38)">'
             f'<div class="abs" style="left:{PR_B}px;top:{PR_B}px">{photo(ctx.art(it), PR_PW, PR_PH, crop, 31 + i)}</div>'
             + _caption(PR_B, PR_B + PR_PH + 14, PR_PW, it["name"], 52,
-                       f'<div class="yb-sc" data-fit="{PR_PW}" style="font-size:25px;display:flex;align-items:center">'
+                       f'<div class="yb-sc" data-fit="{PR_PW}" style="font-size:30px;display:flex;align-items:center">'
                        f'<i style="display:inline-block;width:.6em;height:.6em;background:{col};margin-right:.45em;'
                        f'flex:none"></i>{esc(kind)}</div>', 4)
             + '</div>')
@@ -741,54 +804,63 @@ def throwback(ctx, spec: dict, group: list, theme: dict = None) -> Comp:
     crop = "fit" if gear else "head"
     season = _season(theme["title"] if theme else spec.get("season", ""))
     noun = _noun(group)
-    content_end = HOOK + n * R3
+    # Eight get R3 each, as the classic. Six or seven get a little longer each,
+    # so the video doesn't end on a long still page (it runs at least 62 s).
+    r3 = max(R3, (62.0 - 7.5 - HOOK) / n)
+    content_end = HOOK + n * r3
     comp = Comp(pad_to(content_end))
     _setup(comp)
 
     # ---- the class page: "not pictured" until each print is laid into its slot
-    pw, ph, name_px, slots = _slots(n)
-    head, _ = _header(season, "Throwback", "", 84, over="Class of")
+    pw, ph, slots = _slots(n)
+    head, _ = _header(TOP, season, "Throwback", 84, over="Class of")
     page, prints = [_paper(12), head], []
     for i, (it, (x, y)) in enumerate(zip(group, slots)):
-        t0 = HOOK + i * R3
-        placed = t0 + T_OUT + T_PLACE
+        t0 = HOOK + i * r3
+        placed = t0 + r3 - T_HOLD + T_PLACE
         kind = _kind(it) + (f" · {theme['debut'](it)}" if theme and theme.get("debut") else "")
         col = RARITY.get(it.get("rarity", ""), "#9aa0a6")
         page.append(f'<div class="yb-photo" style="left:{x:.0f}px;top:{y:.0f}px">'
                     f'{photo("", pw, ph, crop, 61 + i, none="-" if gear else "")}</div>'
                     f'<div class="yb-photo" style="left:{x:.0f}px;top:{y:.0f}px;{_a("lkin", placed - .07, .05, "linear")}">'
                     f'{photo(ctx.art(it), pw, ph, crop, 31 + i)}</div>'
-                    + _caption(x, y + ph + 10, pw, it["name"], name_px,
+                    + _caption(x, y + ph + 8, pw, it["name"], SLOT_NAME,
                                f'<div class="yb-sc" data-fit="{pw}" data-lines="2" style="width:{pw}px;'
-                               f'font-size:{name_px * .56:.0f}px;line-height:1.15;letter-spacing:.08em;'
+                               f'font-size:{SLOT_KIND}px;line-height:1.12;letter-spacing:.06em;'
                                f'white-space:normal"><i style="display:inline-block;width:.62em;height:.62em;'
                                f'background:{col};margin-right:.4em"></i>{esc(kind)}</div>', 4,
                                _a("ybwipe", placed, .4, "cubic-bezier(.3,.6,.4,1)")))
-        prints.append(_print(comp, ctx, it, i, t0, (x, y), pw, crop, kind, col))
+        prints.append(_print(comp, ctx, it, i, t0, r3, (x, y), pw, crop, kind, col))
     t_out = content_end + .35
-    page.append(f'<div class="abs yb-pen" style="left:70px;top:1250px;font-size:70px;line-height:1.02;'
-                f'transform:rotate(-3deg);{write_on(t_out, 1.0, 20)}">which one<br>did you own?</div>'
-                f'<div class="abs yb-pen" style="left:92px;top:1404px;font-size:44px;color:#2a4bb0;'
-                f'transform:rotate(-4deg);{write_on(t_out + 1.5, .8, 18)}">stay legendary :) &ndash; BAD</div>')
+    page.append(f'<div class="abs yb-pen" style="left:{X0 + 6}px;top:{NOTE_TOP + 12}px;font-size:68px;'
+                f'line-height:1.02;transform:rotate(-3deg);{write_on(t_out, 1.0, 20)}">which one<br>did you own?</div>'
+                f'<div class="abs yb-pen" style="left:{X0 + 26}px;top:{NOTE_TOP + 156}px;font-size:44px;'
+                f'color:#2a4bb0;transform:rotate(-4deg);{write_on(t_out + 1.5, .8, 18)}">'
+                f'stay legendary :) &ndash; BAD</div>')
     comp.cue(t_out, "pen")
     comp.cue(t_out + 1.5, "pen")
-    comp.add(f'<div class="yb-page" style="z-index:1">{"".join(page)}{"".join(prints)}{_landing(HOOK - FLIP)}</div>')
+    # (It's under the cover until the cover turns, so it only shows from then:
+    # on frame 0 nothing of it is there, not even hidden.)
+    comp.add(f'<div class="yb-page" style="z-index:1;{_a("lkin", HOOK - FLIP - .02, .01, "linear")}">'
+             f'{"".join(page)}{"".join(prints)}{_landing(HOOK - FLIP)}</div>')
 
     # ---- frame 0: the cover -- two of the class, big, and the question
-    head, y = _header(season, "Throwback", "", 88, over="Class of")
+    head, y = _header(TOP0, season, "Throwback", 88, over="Class of")
     cover = [_paper(11), head]
+    cw, chh = (BODY_W - 26) / 2, 452
     for j, it in enumerate(group[:2]):
-        x = 64 + j * 448
-        cover.append(f'<div class="yb-photo" style="left:{x}px;top:{y + 6:.0f}px">'
-                     f'{photo(ctx.art(it), 424, 500, crop, 51 + j)}</div>'
-                     + _caption(x, y + 522, 424, it["name"], 42,
-                                f'<div class="yb-sc" data-fit="424" style="font-size:22px">{esc(_kind(it))}</div>'))
+        x = X0 + j * (cw + 26)
+        cover.append(f'<div class="yb-photo" style="left:{x:.0f}px;top:{y + 4:.0f}px">'
+                     f'{photo(ctx.art(it), cw, chh, crop, 51 + j)}</div>'
+                     + _caption(x, y + chh + 16, cw, it["name"], 48,
+                                f'<div class="yb-sc" data-fit="{cw:.0f}" style="font-size:30px">'
+                                f'{esc(_kind(it))}</div>'))
     # "8 skins." is there on frame 0; the question gets written as the video starts
-    cover.append(f'<div class="abs" style="left:70px;top:{y + 690:.0f}px;width:560px;display:flex;'
+    cover.append(f'<div class="abs" style="left:{X0 + 2}px;top:{y + chh + 150:.0f}px;width:480px;display:flex;'
                  f'flex-direction:column;gap:4px;transform:rotate(-3deg);transform-origin:0 0">'
-                 f'<div class="yb-pen" data-fit="560" data-lines="2" style="width:560px;font-size:72px;'
+                 f'<div class="yb-pen" data-fit="480" data-lines="2" style="width:480px;font-size:76px;'
                  f'line-height:1.02;white-space:normal">{n} {esc(noun)}.</div>'
-                 f'<div class="yb-pen" data-fit="560" data-lines="2" style="width:560px;font-size:60px;'
+                 f'<div class="yb-pen" data-fit="480" data-lines="2" style="width:480px;font-size:62px;'
                  f'line-height:1.04;white-space:normal;{write_on(.4, 1.0, 20)}">how many do you remember?</div></div>')
     comp.cue(.4, "pen")
     comp.scene(0, HOOK, _turn(f'<div class="yb-page">{"".join(cover)}</div>', HOOK), fade_in=.01, fade_out=.01, z=40)

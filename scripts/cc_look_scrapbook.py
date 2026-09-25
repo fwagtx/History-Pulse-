@@ -8,18 +8,25 @@ SCRAPBOOK -- On This Day, drawn as a page someone glued together by hand.
                     sticker, a strip of tape, the year is written and circled,
                     a typed label with its name, a handwritten note (and a red
                     NEW THAT DAY stamp when it was its first day in the shop),
-                    an arrow; the year's tag lights up along the bottom. The
+                    an arrow; the year's tag lights up in the row of years. The
                     next page's sticker lands while the last one slides away.
     0:55  outro     "which year had the best shop?" and a big code sticker
 
 Facts on screen are the classic format's: the year, the date, the name, the
 rarity and type, and "first day in the shop" only when the plan says so.
 The lime code sticker is on screen in every frame.
+
+Everything a viewer reads -- the header, the stickers, the year, the label, the
+notes, the row of years and the code -- sits inside the apps' safe box
+(cc_safe): x 60-1020 above y 740, x 60-900 below it, y 230-1420, and on frame 0
+text from y 285. The paper, the kraft strip and a ticket stub glued at the
+foot of the page run to the edges.
 """
 
 from cc_looks import (KIT_CSS, LIME, PREP_JS, diecut_filter, pad_to, rough_arrow, rough_ellipse,
                       stroke_static, stroke_svg, tex, write_on)
-from cc_motion import Comp, esc
+from cc_motion import SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP, Comp, esc
+from cc_safe import COVER_TOP
 
 HOOK = 3.0
 R = 6.5
@@ -29,12 +36,21 @@ MARK_RED = "#d9262c"
 FONTS = ("Permanent Marker", "Caveat", "Special Elite", "Oswald")
 BAKE = "url(#sbcut) drop-shadow(0 3px 2px rgba(0,0,0,.28)) drop-shadow(0 14px 16px rgba(0,0,0,.14))"
 
-# Where things sit (TikTok's safe area is y 190-1480, nothing below y 880 right of x 960).
-STICK_X, STICK_Y, STICK_H, STICK_WMAX = 96, 548, 770, 470
-COL_X, COL_W = 596, 356            # the right-hand column
-CODE_X, CODE_Y, CODE_D = 676, 1118, 252
-OUTRO_CODE_D = 312                 # the outro's code: covers the small one, still left of x 950
-TAG_Y = 1392
+# Where things sit: the safe box, with a little air inside it.
+X0 = SAFE_LEFT + 10                # 70: the page's left margin
+X1 = SAFE_RIGHT - 4                # 896: the right edge below y 740, beside the apps' buttons
+XH = SAFE_RIGHT_TOP - 10           # 1010: the right edge above it
+HEAD_Y = COVER_TOP + 7             # 292: "on this day" (frame 0 is the cover: text from y 285)
+# the year's sticker: centred in the left-hand column (its baked border and shadow need the margin)
+STICK_X, STICK_Y, STICK_H, STICK_WMAX, STICK_BOX = 96, 566, 720, 360, 440
+COL_X = 540                        # the right-hand column, to X1
+COL_W = X1 - COL_X
+YEAR_Y, LABEL_Y = 556, 738          # the year; the label, with the note stacked under it
+CODE_D = 236                       # the round code sticker, bottom of the right-hand column
+CODE_X, CODE_Y = X1 - CODE_D, 1090
+OUTRO_CODE_D = 292                 # the outro's: covers the small one, still inside the box
+TAG_Y, TAG_H = 1338, 58            # the row of years, along the foot of the box
+TAG_W = X1 + 8 - X0                # the row's width (each tag is 8 px narrower than its step)
 
 CSS = """
 .sb-marker{font-family:'Permanent Marker',cursive;color:#161514;line-height:1}
@@ -56,22 +72,51 @@ CSS = """
 """
 
 
+# PREP_JS bakes each sticker's border and shadow into its image with margins that
+# keep its left and top edges in place but leave its layout box two paddings
+# narrower and shorter than before, so a sticker centred in a column would sit
+# off-centre by one padding. For the centred stickers this gives the box its
+# size back, and lifts a wide one (letterboxed by the column's width) to the top
+# of its box, under its strip of tape. It runs after PREP_JS, before frame 0.
+CENTRE_JS = """<script>(() => {
+  const prev = window.__ready;
+  window.__ready = (async () => {
+    if (prev) { await prev; }
+    for (const img of document.querySelectorAll('[data-sb-centre] img[data-bake]')) {
+      try {
+        const st = img.style, ml = parseFloat(st.marginLeft) || 0, mt = parseFloat(st.marginTop) || 0;
+        if (!ml && !mt || !img.naturalHeight) continue;             // not baked
+        const ps = (+(img.dataset.pad || 60)) * parseFloat(st.height) / img.naturalHeight;
+        const oy = Math.max(0, mt + ps);                            // letterbox space above it
+        st.marginRight = ((parseFloat(st.marginRight) || 0) - 2 * ml) + 'px';
+        st.marginTop = (mt - oy) + 'px';
+        st.marginBottom = ((parseFloat(st.marginBottom) || 0) - 2 * mt + oy) + 'px';
+      } catch (e) {}
+    }
+  })();
+})();</script>"""
+
+
 def _a(name: str, t: float, dur: float, ease: str = "cubic-bezier(.2,.9,.25,1)", extra: str = "") -> str:
     return f"animation:{name} {dur:.2f}s {ease} {t:.3f}s 1 normal both;{extra}"
 
 
 def _sticker(art: str, x: float, y: float, h: float, rot: float, t=None, label: str = "",
-             wmax: float = STICK_WMAX) -> str:
-    """A cosmetic as a die-cut sticker. t=None: already on the page."""
+             wmax: float = STICK_WMAX, box_w: float = 0) -> str:
+    """A cosmetic as a die-cut sticker. t=None: already on the page. box_w:
+    centred in a column this wide from x (else it starts at x)."""
     anim = _a("lkslap", t, .55) if t is not None else ""
+    centre = (f'data-sb-centre style="width:{box_w:.0f}px;display:flex;justify-content:center;' if box_w
+              else 'style="')
     if art:
         img = (f'<img data-trim data-bake="{BAKE}" data-pad="64" src="{art}" style="display:block;height:{h:.0f}px;'
                f'max-width:{wmax:.0f}px;object-fit:contain;filter:{BAKE}">')
     else:
         img = (f'<div class="sb-type" style="height:{h * .8:.0f}px;width:{wmax * .8:.0f}px;display:flex;'
                f'align-items:center;justify-content:center;text-align:center;font-size:40px;padding:20px;'
-               f'border:5px dashed #9a8f7a;border-radius:30px;background:#fffdf6">{esc(label)}</div>')
-    return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;--r:{rot}deg;transform:rotate({rot}deg);'
+               f'border:5px dashed #9a8f7a;border-radius:30px;background:#fffdf6;overflow-wrap:anywhere">'
+               f'{esc(label)}</div>')
+    return (f'<div class="abs" {centre}left:{x:.0f}px;top:{y:.0f}px;--r:{rot}deg;transform:rotate({rot}deg);'
             f'transform-origin:50% 40%;{anim}">{img}</div>')
 
 
@@ -90,102 +135,127 @@ def _stamp(text: str, sub: str, x: float, y: float, w: int, h: int, rot: float, 
             f'-webkit-mask:url({mask}) center/cover;mask:url({mask}) center/cover">'
             f'<div style="font-family:Oswald,sans-serif;font-weight:700;font-size:{size}px;line-height:.9;'
             f'letter-spacing:.04em;white-space:nowrap">{esc(text)}</div>'
-            + (f'<div style="font-family:Oswald,sans-serif;font-weight:500;font-size:{size * .33:.0f}px;'
-               f'letter-spacing:.3em;white-space:nowrap">{esc(sub)}</div>' if sub else "")
+            + (f'<div style="font-family:Oswald,sans-serif;font-weight:500;font-size:{max(30, size * .4):.0f}px;'
+               f'line-height:1.1;letter-spacing:.24em;white-space:nowrap">{esc(sub)}</div>' if sub else "")
             + '</div>')
 
 
 def _code(x: float = CODE_X, y: float = CODE_Y, d: float = CODE_D, rot: float = -8, anim: str = "") -> str:
-    """USE CODE: BAD as a big round lime price sticker."""
+    """USE CODE: BAD as a big round lime price sticker. The outer box is the
+    circle's own square (unturned), so the safe-zone check measures the sticker
+    itself; the turn and the slap happen inside it."""
     k = d / CODE_D
-    return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;width:{d:.0f}px;height:{d:.0f}px;'
-            f'border-radius:50%;background:{LIME};transform:rotate({rot}deg);display:flex;flex-direction:column;'
-            f'align-items:center;justify-content:center;box-shadow:0 3px 3px rgba(0,0,0,.28),'
-            f'0 12px 20px rgba(0,0,0,.14);--r:{rot}deg;{anim}">'
+    return (f'<div class="abs" data-safe="key" data-name="code" style="left:{x:.0f}px;top:{y:.0f}px;'
+            f'width:{d:.0f}px;height:{d:.0f}px">'
+            f'<div style="width:100%;height:100%;border-radius:50%;background:{LIME};transform:rotate({rot}deg);'
+            f'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+            f'box-shadow:0 3px 3px rgba(0,0,0,.28),0 12px 20px rgba(0,0,0,.14);--r:{rot}deg;{anim}">'
             f'<div style="font-family:Oswald,sans-serif;font-weight:700;font-size:{38 * k:.0f}px;letter-spacing:.06em;'
             f'color:#111;line-height:1">USE CODE:</div>'
             f'<div style="font-family:Anton,Impact,sans-serif;font-size:{124 * k:.0f}px;line-height:.92;'
             f'color:#111">BAD</div>'
-            f'<div class="sb-type" style="font-size:{19 * k:.0f}px;color:#2a2a1a;margin-top:2px">#EpicPartner</div>'
-            f'</div>')
+            f'<div class="sb-type" style="font-size:{24 * k:.0f}px;line-height:1.1;color:#2a2a1a;margin-top:2px">'
+            f'#EpicPartner</div></div></div>')
 
 
 def _tag_geom(n: int):
-    step = min(112, 886 / max(n, 1))
+    step = min(112, TAG_W / max(n, 1))
     return step, step - 8
 
 
 def _tag(i: int, yr: int, n: int, on: bool) -> str:
     step, w = _tag_geom(n)
     rot = [-3, 2, -1, 3, -2, 1, -3, 2, -1][i % 9]
-    return (f'<div class="abs sb-type" style="left:{52 + i * step:.0f}px;top:{TAG_Y}px;width:{w:.0f}px;height:62px;'
-            f'background:{"#fffdf6" if on else "#efe6d2"};transform:rotate({rot}deg);display:flex;'
-            f'align-items:center;justify-content:center;font-size:{min(30, w * .29):.0f}px;'
-            f'box-shadow:0 2px 3px rgba(0,0,0,.18);color:{"#161514" if on else "#8a8373"}">{yr}</div>')
+    return (f'<div class="abs sb-type" style="left:{X0 + i * step:.0f}px;top:{TAG_Y}px;width:{w:.0f}px;'
+            f'height:{TAG_H}px;background:{"#fffdf6" if on else "#efe6d2"};transform:rotate({rot}deg);display:flex;'
+            f'align-items:center;justify-content:center;font-size:{min(30, (w - 10) / 2.45):.0f}px;'
+            f'box-shadow:0 2px 3px rgba(0,0,0,.18);color:{"#161514" if on else "#6f6858"}">{yr}</div>')
 
 
 def _tag_on(years: list, i: int, t: float) -> str:
     """The active year's tag, white, circled in red marker as the page lands."""
     step, w = _tag_geom(len(years))
-    ring = rough_ellipse(52 + i * step + w / 2, TAG_Y + 31, w * .68, 44, seed=i + 3)
+    ring = rough_ellipse(X0 + i * step + w / 2, TAG_Y + TAG_H / 2, w * .66, 42, seed=i + 3)
     return _tag(i, years[i], len(years), True) + stroke_svg([ring], MARK_RED, 7, t, .35)
 
 
-def _name_strip(name: str, kind: str, x: float, y: float, rot: float, t) -> str:
-    """The cosmetic's name typed on a strip of paper, its rarity and type under it."""
-    return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;width:{COL_W}px;--r:{rot}deg;'
-            f'transform:rotate({rot}deg);{_a("sbin", t, .4, "cubic-bezier(.2,.8,.2,1)")}">'
-            f'<div style="background:#fffdf6;padding:14px 18px 12px;box-shadow:0 2px 3px rgba(0,0,0,.2),'
+def _name_strip(name: str, kind: str, rot: float, t) -> str:
+    """The cosmetic's name typed on a strip of paper, its rarity and type under
+    it (each up to two lines; the strip grows to hold them)."""
+    return (f'<div style="width:{COL_W}px;--r:{rot}deg;transform:rotate({rot}deg);'
+            f'{_a("sbin", t, .4, "cubic-bezier(.2,.8,.2,1)")}">'
+            f'<div style="background:#fffdf6;padding:12px 18px 12px;box-shadow:0 2px 3px rgba(0,0,0,.2),'
             f'0 8px 14px rgba(0,0,0,.08)">'
             f'<div class="sb-type" data-fit="{COL_W - 36}" data-lines="2" style="width:{COL_W - 36}px;'
-            f'font-size:46px;line-height:1.05;color:#161514">{esc(name)}</div>'
-            f'<div class="sb-type" data-fit="{COL_W - 36}" style="width:{COL_W - 36}px;white-space:nowrap;'
-            f'font-size:22px;letter-spacing:.08em;color:#6d675c;margin-top:6px">{esc(kind.upper())}</div>'
+            f'font-size:50px;line-height:1.04;color:#161514">{esc(name)}</div>'
+            f'<div class="sb-type" data-fit="{COL_W - 36}" data-lines="2" style="width:{COL_W - 36}px;'
+            f'font-size:30px;line-height:1.1;letter-spacing:.04em;color:#5f594e;margin-top:6px">'
+            f'{esc(kind.upper())}</div>'
             f'</div></div>')
 
 
 def _header(when_short: str) -> str:
+    """The kraft strip across the top (paper: it may run to the edges), the
+    title and the date stamp on it (inside the box)."""
     kraft = tex("kraft-strip.jpg")
-    return (f'<div class="abs" style="left:-20px;top:170px;width:1120px;height:330px;'
+    return (f'<div class="abs" style="left:-20px;top:226px;width:1120px;height:312px;'
             f'background:url({kraft}) center/cover;clip-path:polygon(0 6%,5% 2%,11% 7%,17% 1%,24% 6%,31% 2%,'
             f'38% 8%,45% 3%,52% 7%,60% 1%,67% 6%,74% 2%,81% 8%,88% 3%,94% 7%,100% 2%,100% 93%,94% 99%,88% 94%,'
             f'81% 100%,74% 95%,67% 99%,60% 93%,52% 98%,45% 94%,38% 100%,31% 95%,24% 99%,17% 93%,11% 98%,5% 94%,'
             f'0 99%);filter:drop-shadow(0 4px 4px rgba(0,0,0,.2));transform:rotate(-1.2deg)"></div>'
-            f'<div class="abs sb-marker" style="left:66px;top:232px;font-size:104px;transform:rotate(-2deg);'
+            f'<div class="abs sb-marker" style="left:{X0}px;top:{HEAD_Y + 4}px;font-size:100px;transform:rotate(-2deg);'
             f'color:#111">on this day</div>'
-            f'<div class="abs sb-hand" style="left:76px;top:368px;font-size:54px;font-weight:600;'
+            f'<div class="abs sb-hand" style="left:{X0 + 10}px;top:{HEAD_Y + 124}px;font-size:52px;font-weight:600;'
             f'transform:rotate(-2deg)">...in the Fortnite Item Shop</div>'
-            f'<div class="abs" style="left:0;top:0;transform-origin:870px 320px;{_a("sbthump", .2, .35, "ease-out")}">'
-            + _stamp(when_short.upper(), "EVERY YEAR", 724, 250, 290, 146, 8) + '</div>')
+            f'<div class="abs" style="left:0;top:0;transform-origin:866px 364px;{_a("sbthump", .2, .35, "ease-out")}">'
+            + _stamp(when_short.upper(), "EVERY YEAR", 730, HEAD_Y + 6, 270, 150, 7) + '</div>')
+
+
+def _ticket() -> str:
+    """A ticket stub glued at the foot of the page: decoration, down where the
+    apps put their captions, so it says nothing anyone needs."""
+    return ('<div class="abs" data-safe="ignore" style="left:80px;top:1560px;width:400px;height:150px;'
+            'background:#f3e7c9;transform:rotate(-5deg);box-shadow:0 3px 4px rgba(0,0,0,.18);'
+            'border-left:3px dashed #b9a57a">'
+            '<div class="sb-type" style="position:absolute;left:34px;top:26px;font-size:30px;letter-spacing:.22em;'
+            'color:#9b3b2e">ADMIT ONE</div>'
+            '<div style="position:absolute;left:34px;top:74px;width:320px;height:3px;background:#d8c79f"></div>'
+            '<div class="sb-type" style="position:absolute;left:34px;top:92px;font-size:24px;letter-spacing:.3em;'
+            'color:#b09a72">ADMIT ONE</div></div>')
 
 
 def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list, r: float = R) -> tuple:
     """One year's page; t0 is when it has the frame to itself, for r seconds. Returns (html, sounds)."""
-    rot = [-3, 2.5, -2, 3, -2.5, 2, -3.5, 2.5, -2][idx % 9]
+    rot = [-2.5, 2, -1.5, 2.5, -2, 1.5, -2.5, 2, -1.5][idx % 9]
     y = rd["year"]
-    yx, yy = COL_X + 44, 604
-    circle = rough_ellipse(yx + 150, yy + 74, 196, 100, seed=y, overshoot=.2)
+    yx, yy = COL_X + 36, YEAR_Y
+    circle = rough_ellipse(yx + 156, yy + 66, 196, 94, seed=y, overshoot=.2)
     note = "its very first day in the shop!" if debut else "in the Item Shop that day"
-    note_y = 996
-    arrow = rough_arrow(COL_X - 8, note_y + 44, STICK_X + 330, note_y - 30, seed=y + 1, head=28, curve=.3)
+    # the arrow, from the note's left to the sticker, drawn in the note's own
+    # coordinates (the note sits wherever the label above it ends)
+    arrow = rough_arrow(-8, 58, STICK_X + STICK_BOX - 100 - COL_X, -40, seed=y + 1, head=28, curve=.3)
     kind = " ".join(x for x in (it.get("rarity_label") or "", it.get("type") or "") if x).strip()
     s = t0 - .25                    # the sticker lands while the last page slides away
     html = [f'<div class="abs" style="inset:0;{_a("sbout", t0 + r - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">',
-            _sticker(ctx.art(it), STICK_X, STICK_Y, STICK_H, rot, s, it["name"]),
-            _tape(STICK_X + 150, STICK_Y - 20, rot - 8, s + .45),
-            f'<div class="abs sb-marker" style="left:{yx}px;top:{yy}px;font-size:132px;white-space:nowrap;'
+            # the tape goes under the sticker: its ends show either side of the top, never over a face
+            _tape(STICK_X + STICK_BOX / 2 - 120, STICK_Y - 4, rot - 8, s + .45, w=240),
+            _sticker(ctx.art(it), STICK_X, STICK_Y, STICK_H, rot, s, it["name"], box_w=STICK_BOX),
+            f'<div class="abs sb-marker" style="left:{yx}px;top:{yy}px;font-size:124px;white-space:nowrap;'
             f'{write_on(t0 + .35, .45)}">{y}</div>',
             stroke_svg([circle], MARK_RED, 10, t0 + .8, .45),
-            _name_strip(it["name"], kind, COL_X, 800, -1.5, t0 + .6),
-            f'<div class="abs sb-hand" data-fit="{COL_W}" data-lines="2" style="left:{COL_X}px;top:{note_y}px;'
-            f'width:{COL_W}px;font-size:58px;{write_on(t0 + 1.25, .9)}">{esc(note)}</div>',
-            stroke_svg(arrow, "#161514", 6, t0 + 2.1, .3, gap=.02)]
+            f'<div class="abs" style="left:{COL_X}px;top:{LABEL_Y}px;width:{COL_W}px;display:flex;'
+            f'flex-direction:column;gap:14px">',
+            _name_strip(it["name"], kind, -1.5, t0 + .6),
+            f'<div style="position:relative"><div class="sb-hand" data-fit="{COL_W}" data-lines="2" '
+            f'style="width:{COL_W}px;font-size:56px;{write_on(t0 + 1.25, .9)}">{esc(note)}</div>',
+            stroke_svg(arrow, "#161514", 6, t0 + 2.1, .3, gap=.02),
+            '</div></div>']
     sounds = [(s, "paper"), (s + .45, "paper"), (t0 + .35, "pen"), (t0 + .8, "pen"), (t0 + 1.25, "pen"),
               (t0 + r - .5, "whoosh")]
     if debut:
         html.append(f'<div class="abs" style="left:0;top:0;'
                     f'{_a("lkstamp", t0 + 1.9, .28, "cubic-bezier(.3,1.6,.5,1)", "--r:0deg;")}">'
-                    + _stamp("NEW THAT DAY", "", STICK_X - 24, STICK_Y + STICK_H - 190, 330, 96, -9, 44) + '</div>')
+                    + _stamp("NEW THAT DAY", "", X0 + 16, STICK_Y + STICK_H - 150, 320, 96, -9, 46) + '</div>')
         sounds.append((t0 + 1.9, "stamp"))
     html.append('</div>')
     html.append(_tag_on(years, idx, t0 + .2))
@@ -194,15 +264,16 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list, r: float = 
 
 def _page_birthday(bday: dict, t0: float, years: list, when: str, r: float = R) -> tuple:
     html = (f'<div class="abs" style="inset:0;{_a("sbout", t0 + r - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">'
-            f'<div class="abs sb-marker" data-fit="900" data-lines="2" style="left:80px;top:560px;width:900px;'
-            f'font-size:100px;line-height:1.08;{write_on(t0 - .1, 1.1, 24)}">Fortnite Battle Royale comes out!</div>'
-            f'<div class="abs sb-hand" style="left:84px;top:800px;font-size:66px;{write_on(t0 + 1.1, .8)}">'
+            f'<div class="abs sb-marker" data-fit="{X1 - X0 - 20}" data-lines="2" style="left:{X0 + 10}px;top:572px;'
+            f'width:{X1 - X0 - 20}px;font-size:98px;line-height:1.08;{write_on(t0 - .1, 1.1, 24)}">'
+            f'Fortnite Battle Royale comes out!</div>'
+            f'<div class="abs sb-hand" style="left:{X0 + 14}px;top:810px;font-size:66px;{write_on(t0 + 1.1, .8)}">'
             f'{esc(when)}, {bday["year"]}</div>'
-            f'<div class="abs sb-hand" style="left:84px;top:880px;font-size:54px;color:#4a4540;'
-            f'{write_on(t0 + 1.8, .8)}">PC · PlayStation 4 · Xbox One</div>'
+            f'<div class="abs sb-hand" data-fit="{X1 - X0 - 20}" style="left:{X0 + 14}px;top:892px;font-size:54px;'
+            f'color:#4a4540;{write_on(t0 + 1.8, .8)}">PC · PlayStation 4 · Xbox One</div>'
             f'<div class="abs" style="left:0;top:0;'
             f'{_a("lkstamp", t0 + 2.6, .28, "cubic-bezier(.3,1.6,.5,1)", "--r:0deg;")}">'
-            + _stamp("HAPPY BIRTHDAY", f"{bday['age']} YEARS TODAY", 110, 1000, 520, 150, -7, 62) + '</div>'
+            + _stamp("HAPPY BIRTHDAY", f"{bday['age']} YEARS TODAY", X0 + 30, 1010, 500, 160, -7, 62) + '</div>'
             '</div>')
     html += _tag_on(years, 0, t0 + .2)
     sounds = [(t0 - .1, "pen"), (t0 + 1.1, "pen"), (t0 + 1.8, "pen"), (t0 + 2.6, "stamp"), (t0 + 2.8, "clap"),
@@ -229,38 +300,34 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
     comp.add(diecut_filter("sbcut", 15))
     comp.add(f'<div class="full" style="z-index:5">{_header(when_short)}</div>')
     comp.add(f'<div class="full" style="z-index:6">{"".join(_tag(i, y, n, False) for i, y in enumerate(years))}</div>')
-    comp.add(f'<div class="full" style="z-index:4">'
-             f'<div class="abs" style="left:60px;top:1540px;width:430px;height:170px;background:#f3e7c9;'
-             f'transform:rotate(-5deg);box-shadow:0 3px 4px rgba(0,0,0,.18);border-left:3px dashed #b9a57a">'
-             f'<div class="sb-type" style="position:absolute;left:34px;top:22px;font-size:26px;letter-spacing:.2em;'
-             f'color:#9b3b2e">ADMIT ONE</div><div style="position:absolute;left:34px;top:54px;font-family:Oswald,'
-             f'sans-serif;font-weight:700;font-size:50px;line-height:1;color:#3a2f24;letter-spacing:.04em">'
-             f'ITEM SHOP</div><div class="sb-type" style="position:absolute;left:34px;top:120px;font-size:22px;'
-             f'color:#6d5a44">{esc(when_short.upper())} · EVERY YEAR</div></div></div>')
+    comp.add(f'<div class="full" style="z-index:4">{_ticket()}</div>')
     # The small code sticker stays until the outro's big one has landed on top of it.
     comp.add(f'<div class="full" style="z-index:30;{_a("lkout", content_end + .45, .01, "linear")}">{_code()}</div>')
     comp.add(PREP_JS)
+    comp.add(CENTRE_JS)
 
     # ---- hook (frame 0 is the thumbnail: everything already on the page)
     a, b = lead[0][1], lead[1][1]
     span = f"{years[0]}–{years[-1]}"
     hook = (f'<div class="abs" style="inset:0;{_a("sbout", HOOK - .5, .5, "cubic-bezier(.6,0,.8,.4)")}">'
-            + _sticker(ctx.art(a), 40, 560, 700, -6, None, a["name"], wmax=340)
-            + f'<div class="abs" style="left:0;top:0;transform-origin:460px 980px;'
+            + _tape(136, 576, -14, w=230) + _tape(310, 668, 9, w=210)
+            + _sticker(ctx.art(a), 100, 580, 680, -4, None, a["name"], wmax=290, box_w=300)
+            + f'<div class="abs" style="left:0;top:0;transform-origin:420px 1000px;'
               f'{_a("sbwiggle", .35, .5, "ease-in-out")}">'
-            + _sticker(ctx.art(b), 300, 660, 640, 5, None, b["name"], wmax=320) + '</div>'
-            + _tape(120, 548, -14) + _tape(380, 648, 9, w=160))
+            + _sticker(ctx.art(b), 286, 672, 620, 4, None, b["name"], wmax=250, box_w=256) + '</div>')
     if bday:
-        hook += (f'<div class="abs sb-marker" data-fit="340" data-lines="3" style="left:{COL_X + 30}px;top:600px;'
-                 f'width:340px;font-size:84px;line-height:1.05">Fortnite turns {bday["age"]}!</div>'
-                 f'<div class="abs sb-hand" data-fit="340" data-lines="3" style="left:{COL_X + 30}px;top:900px;'
-                 f'width:340px;font-size:56px">Battle Royale came out on this day in {bday["year"]}</div>')
+        hook += (f'<div class="abs sb-marker" data-fit="{XH - COL_X - 50}" data-lines="2" style="left:{COL_X + 30}px;'
+                 f'top:596px;width:{XH - COL_X - 50}px;font-size:84px;line-height:1.05">Fortnite turns {bday["age"]}!'
+                 f'</div>'
+                 f'<div class="abs sb-hand" data-fit="{COL_W - 40}" data-lines="3" style="left:{COL_X + 40}px;'
+                 f'top:880px;width:{COL_W - 40}px;font-size:56px">Battle Royale came out on this day in '
+                 f'{bday["year"]}</div>')
     else:
-        hook += (f'<div class="abs sb-marker" data-fit="330" style="left:{COL_X + 30}px;top:620px;font-size:74px;'
-                 f'white-space:nowrap">{esc(span)}</div>'
-                 + stroke_static([rough_ellipse(COL_X + 196, 660, 205, 76, seed=7)], MARK_RED, 10)
-                 + f'<div class="abs sb-hand" data-fit="{COL_W}" data-lines="3" style="left:{COL_X + 20}px;'
-                   f'top:790px;width:{COL_W}px;font-size:58px">one outfit from the shop on this date, '
+        hook += (f'<div class="abs sb-marker" data-fit="{XH - COL_X - 60}" style="left:{COL_X + 30}px;top:608px;'
+                 f'font-size:78px;white-space:nowrap">{esc(span)}</div>'
+                 + stroke_static([rough_ellipse(COL_X + 222, 652, 232, 80, seed=7)], MARK_RED, 10)
+                 + f'<div class="abs sb-hand" data-fit="{COL_W - 10}" data-lines="3" style="left:{COL_X + 10}px;'
+                   f'top:800px;width:{COL_W - 10}px;font-size:58px">one outfit from the shop on this date, '
                    f'every year</div>')
     hook += '</div>'
     comp.scene(0, HOOK, f'<div class="full">{hook}</div>', fade_in=.01, fade_out=.05, z=10)
@@ -283,15 +350,16 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
     # ---- outro: the question, the three picks, and the code, big
     picks = [r[1] for r in lead] + ([third] if third else [])
     t = content_end
-    out = (f'<div class="abs sb-marker" style="left:70px;top:560px;width:900px;font-size:88px;line-height:1.08;'
-           f'{write_on(t - .2, 1.0, 22)}">which year had<br>the best shop?</div>')
-    for i, (x, y, h, rot) in enumerate([(40, 800, 460, -6), (330, 850, 420, 4), (650, 760, 320, -3)][:len(picks)]):
-        out += _sticker(ctx.art(picks[i]), x, y, h, rot, t + .6 + i * .25, picks[i]["name"], wmax=280)
+    out = (f'<div class="abs sb-marker" data-fit="{XH - X0 - 10}" data-lines="2" style="left:{X0}px;top:572px;'
+           f'width:{XH - X0 - 10}px;font-size:88px;line-height:1.08;{write_on(t - .2, 1.0, 22)}">'
+           f'which year had<br>the best shop?</div>')
+    for i, (x, y, h, rot) in enumerate([(110, 800, 440, -4), (336, 836, 410, 3), (566, 776, 250, -3)][:len(picks)]):
+        out += _sticker(ctx.art(picks[i]), x, y, h, rot, t + .6 + i * .25, picks[i]["name"], wmax=220, box_w=228)
     comp.scene(t - LEAD, comp.duration, f'<div class="full">{out}</div>', fade_in=.01, fade_out=.01, z=12)
     # The big code is slapped down right over the small one, covering it: the code
     # never shows twice and is never missing. (sbslap: a sticker drops, it doesn't fade.)
-    cx, cy = CODE_X + CODE_D / 2 - 14, CODE_Y + CODE_D / 2 - 4
-    big = _code(cx - OUTRO_CODE_D / 2, cy - OUTRO_CODE_D / 2, OUTRO_CODE_D, -7,
+    # It grows up and to the left, where there's room: its right edge stays at X1.
+    big = _code(X1 - OUTRO_CODE_D, CODE_Y + CODE_D / 2 - OUTRO_CODE_D / 2 - 18, OUTRO_CODE_D, -7,
                 _a("sbslap", t - .1, .55, extra="--r:-7deg;"))
     comp.scene(t - LEAD, comp.duration, f'<div class="full">{big}</div>', fade_in=.01, fade_out=.01, z=31)
     comp.cue(t - .1, "paper"); comp.cue(t - .2, "pen")
