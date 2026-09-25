@@ -34,7 +34,8 @@ been checked frame by frame:
 - the code is readable in every frame
 - the first frame works as a thumbnail
 - nothing is cut off or covered, even with the longest names
-- nothing important sits where TikTok's buttons and captions go
+- nothing important sits where any app's buttons, header or caption go (TikTok, Instagram,
+  YouTube Shorts and Facebook all cover the edges; see "Fitting every app" below)
 - the pacing feels right, with no empty frames
 - the length is 62–90 seconds
 
@@ -44,6 +45,25 @@ look they were built with until they are rebuilt.
 
 If a look ever fails on a day's data, that video is drawn in the classic look instead (the
 GitHub run shows a warning), so a look can never cost a video.
+
+## Fitting every app
+
+Each video posts to TikTok, Instagram Reels, YouTube Shorts and Facebook Reels, and each app
+draws its own buttons and text over the picture: a header across the top, the like/comment/share
+buttons down the right side, and the name, caption and audio line across the bottom. So every
+look and every classic format keeps its text, its cosmetics and the USE CODE: BAD element inside
+the part of the frame none of them covers (1080x1920 video):
+
+- from x 60 to x 1020 between y 230 and y 740
+- from x 60 to x 900 between y 740 and y 1420 (the buttons run down the right side below that)
+- on the first frame, which is also the cover, text starts at y 285 or lower, because
+  Instagram's profile grid crops the cover to 4:5
+
+Backgrounds and decoration can still fill the whole frame. `scripts/cc_safe.py` holds these
+numbers and checks every video in the browser that renders it; the nightly builds run the check
+on each video, record it in the release's manifest (`safe_zones`), and if a look ever fails it
+the classic version of that format is used instead. The preview harness writes `apps.jpg`, key
+stills under each app's buttons and captions, for a quick look.
 
 ## Trying a look without switching it on
 
