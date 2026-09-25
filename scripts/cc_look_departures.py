@@ -3,16 +3,19 @@ DEPARTURES -- Last Chance, as an airport split-flap board filmed on a phone.
 
     0:00  hook     the DEPARTURES · ITEM SHOP board, complete on frame 0: every
                    offer in the video with its price and a blinking LAST CALL,
-                   and under it the lime USE CODE: B A D flap sign. The rows
-                   re-sync (a cascade of flaps), then the first row lights up.
-    0:03  offers   one per offer (R s; a little longer on a thin day, so the
-                   video still runs past a minute). Cut to the gate: the gate
-                   sign's flaps clatter over to the offer's name and price, and
-                   the gate monitor switches to the cosmetic, with its type,
-                   how long it's been in the shop, and what a bundle includes.
-    ~0:53 board    back on the board: every row flips to LAST CALL again, a
-                   light runs down the rows, and the sub-row flips to WHICH ONE
-                   ARE YOU GRABBING? It holds there to the end.
+                   and under it the lime USE CODE: B A D flap sign. An airport
+                   chime, the rows re-sync (a cascade of flaps), the first row
+                   lights up and the camera pushes in on it.
+    0:03  offers   one per offer (R s; longer on a thin day, so the video still
+                   runs past a minute). Cut to the gate: the gate sign's flaps
+                   clatter over to the offer's name and price (its status says
+                   LAST CALL, then LEAVES 8 PM ET), and the gate monitor switches
+                   to the cosmetic with its type, "in the shop since" / "added
+                   today", a bundle's regular price and what it includes.
+    ~0:55 board    back on the board: every row flips to LAST CALL again, a
+                   light runs down the rows and the sub-row flips to WHICH ONE
+                   ARE YOU GRABBING? On a longer hold the sub-row pages back and
+                   forth with the reset time while the light moves row to row.
 
 Facts on screen are the classic format's (cc_fmt_last_chance): the shown name,
 the type (rarity and type, or BUNDLE · N ITEMS), the price, a bundle's regular
@@ -36,6 +39,7 @@ FONTS = ("Barlow Condensed", "Oswald")
 INK = "#ece6d7"             # off-white flap print
 AMBER = "#ffb21f"
 CHARS = "ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789"
+LAST_CALL = "LAST|CALL"     # the status flaps: two short lines
 SD = .062                   # seconds per flap step
 NARROW = {"·", ",", ":", ".", "'"}
 NF = .52                    # a separator flap's width, as a share of a letter flap
@@ -60,8 +64,13 @@ def _a(name, t, dur, ease="linear", extra=""):
 class Flaps:
     """Split-flap modules. A cell shows `first`; each flip (t, glyph) spins it
     through a few random glyphs and lands on `glyph`: a stepped strip of glyphs
-    (one nested wrapper per flip, so the offsets add up) and a flap half that
-    falls on every step."""
+    (one nested, relatively positioned wrapper per flip, so the offsets add up)
+    and a flap half that falls on every step.
+
+    Only layout and paint properties move (top, height, colour). The renderer
+    keeps every animation paused, and Chrome gives each paused-but-unfinished
+    transform or opacity animation its own compositing layer: with a board of
+    flaps that was over a thousand layers and twice the render time."""
 
     def __init__(self, seed: int):
         self.rnd = random.Random(seed)
@@ -70,8 +79,9 @@ class Flaps:
     def glyph(g: str) -> str:
         if not g.strip():
             return "<b>&nbsp;</b>"
-        if g == "LAST CALL":
-            return '<b class="w2">LAST<br>CALL</b>'
+        if "|" in g:                               # a two-line status: "LAST|CALL"
+            top, bottom = g.split("|", 1)
+            return f'<b class="w2">{esc(top)}<br>{esc(bottom)}</b>'
         cls = {"M": ' class="nm"', "W": ' class="nw"'}.get(g, "")
         return f"<b{cls}>{esc(g)}</b>"
 
@@ -106,10 +116,6 @@ class Flaps:
             out.append(self.cell(x, y, cw, h, fs, first[i], fl, cls, lo=lo, hi=hi))
             x += cp
         return "".join(out), x
-
-
-def _run_width(text: str, pitch: float) -> float:
-    return sum(pitch * NF if ch in NARROW else pitch for ch in text)
 
 
 # ---------------------------------------------------------------- shared pieces
@@ -326,8 +332,8 @@ def _board(fl: Flaps, g: dict, names: list, prices: list, head: str, sub: str, *
         parts.append(f'<div class="dp-lamp" style="left:{col_status:.1f}px;top:{y + ch / 2 - lamp / 2:.1f}px;'
                      f'width:{lamp:.0f}px;height:{lamp:.0f}px"></div>')
         st_x = col_status + lamp + 7
-        fl_ = [(t_r + .4, "LAST CALL")] if t_r is not None else ()
-        parts.append(fl.cell(st_x, y, CX1 - st_x, ch, max(15, ch * .46), "LAST CALL", fl_, "rem", word=True,
+        fl_ = [(t_r + .4, LAST_CALL)] if t_r is not None else ()
+        parts.append(fl.cell(st_x, y, CX1 - st_x, ch, max(15, ch * .46), LAST_CALL, fl_, "rem", word=True,
                              lo=3, hi=5))
         if lit:
             for row, t_on, t_off in lit:
@@ -403,7 +409,8 @@ def _name_lines(name: str, g: dict) -> list:
     return [l.ljust(g["C"]) for l in (ls + [""])[:2]]
 
 
-def _gate_sign(fl: Flaps, g: dict, name: str, price: int, prev: tuple, t0: float, first: bool) -> tuple:
+def _gate_sign(fl: Flaps, g: dict, name: str, price: int, prev: tuple, t0: float, first: bool, R_: float,
+               leaves: str) -> tuple:
     """The gate's flap sign: the name, then the price in V-Bucks and LAST CALL.
     Its cells start on the previous offer's text and clatter over to this one's."""
     x0 = 36
@@ -436,8 +443,9 @@ def _gate_sign(fl: Flaps, g: dict, name: str, price: int, prev: tuple, t0: float
     sx = 1044 - 36 - 190
     parts.append(f'<div class="dp-lab" style="left:{sx - 150:.0f}px;top:{g["y_b"] + hb / 2 - 13:.0f}px">STATUS</div>')
     parts.append(f'<div class="dp-lamp" style="left:{sx - 30:.0f}px;top:{g["y_b"] + hb / 2 - 9:.0f}px;width:18px;height:18px"></div>')
-    fl_ = [(t0 + .5, "LAST CALL")] if first else ()
-    parts.append(fl.cell(sx, g["y_b"], 190, hb, hb * .44, " " if first else "LAST CALL", fl_, "rem", word=True,
+    # LAST CALL, then halfway through, when it leaves (the next offer flips it back)
+    fl_ = [(t0 + .5, LAST_CALL), (t0 + min(3.4, R_ * .52), leaves)]
+    parts.append(fl.cell(sx, g["y_b"], 190, hb, hb * .44, " " if first else leaves, fl_, "rem", word=True,
                          lo=3, hi=5))
     bw, bh = 1044 - 36 + 20, g["bottom"] - g["top"]
     bx, by = 26, g["top"]
@@ -521,30 +529,33 @@ def _monitor(ctx, it: dict, k: int, n: int, t0: float, R_: float, g: dict) -> st
         info.append(f'<div class="abs" style="left:0;--y0:{y + 10:.0f}px;--y1:{y:.0f}px;width:{info_w}px;'
                     f'{_a("dpup", t0 + .7 + i * .16, .2, "steps(2,start)")}">{html}</div>')
         y += h + gap
-    screen = (
-        f'<div class="abs" style="inset:0;background:radial-gradient(ellipse 62% 58% at 34% 56%,{col}55,{col}14 60%,'
-        f'rgba(0,0,0,0) 100%),linear-gradient(180deg,#0d1a31,#081226)"></div>'
-        # top bar: LAST CALL, and which offer this is
+    # The screen's frame stays lit (the navy page, LAST CALL, the leaving bar);
+    # at t_sw the page refreshes to this offer: its colour, the cosmetic, the
+    # facts and which offer it is -- the way a gate display updates.
+    frame = (
+        f'<div class="abs" style="inset:0;background:linear-gradient(180deg,#0d1a31,#081226)"></div>'
         f'<div class="abs" style="left:0;top:0;width:{sw}px;height:{bar}px;background:#0f2242;'
         f'box-shadow:inset 0 -2px 0 rgba(255,178,31,.55)"></div>'
         f'<div class="abs" style="left:22px;top:{bar / 2 - 8:.0f}px;width:16px;height:16px;border-radius:50%;'
         f'background-color:{AMBER};animation:dpblink2 1.2s linear 0s infinite"></div>'
         f'<div class="dp-ui abs" style="left:50px;top:0;line-height:{bar}px;font-size:34px;font-weight:800;'
         f'letter-spacing:.08em;color:{AMBER}">LAST CALL</div>'
+        f'<div class="abs" style="left:0;top:{sh - foot}px;width:{sw}px;height:{foot}px;background:#0b1a33;'
+        f'box-shadow:inset 0 2px 0 rgba(255,255,255,.08)"></div>'
+        f'<div class="dp-ui abs" style="left:22px;top:{sh - foot}px;line-height:{foot}px;font-size:28px;'
+        f'font-weight:600;letter-spacing:.1em">LEAVING THE SHOP AT RESET · '
+        f'<span style="color:{AMBER};font-weight:800">{esc(ctx.reset_et.upper())}</span></div>')
+    page = (
+        f'<div class="abs" style="left:0;top:{bar}px;width:{sw}px;height:{sh - bar - foot}px;'
+        f'background:radial-gradient(ellipse 62% 58% at 34% 56%,{col}55,{col}14 60%,rgba(0,0,0,0) 100%)"></div>'
         f'<div class="dp-ui abs" style="right:22px;top:0;line-height:{bar}px;font-size:30px;font-weight:600;'
         f'letter-spacing:.1em;color:#c9d3e2">{k} / {n}</div>'
         # the cosmetic, slowly pushing in
         f'<div class="abs" style="left:{ax}px;top:{bar + 12}px;width:{aw}px;height:{ah}px;transform-origin:50% 60%;'
         f'{_a("dpkb", t0, R_ + .3, "linear")}">{pic}</div>'
         f'<div class="abs" style="left:{sw - info_w - 18}px;top:{bar + 12}px;width:{info_w}px;height:{ah}px">'
-        f'{"".join(info)}</div>'
-        # bottom bar: when it leaves
-        f'<div class="abs" style="left:0;top:{sh - foot}px;width:{sw}px;height:{foot}px;background:#0b1a33;'
-        f'box-shadow:inset 0 2px 0 rgba(255,255,255,.08)"></div>'
-        f'<div class="dp-ui abs" style="left:22px;top:{sh - foot}px;line-height:{foot}px;font-size:28px;'
-        f'font-weight:600;letter-spacing:.1em">LEAVING THE SHOP AT RESET · '
-        f'<span style="color:{AMBER};font-weight:800">{esc(ctx.reset_et.upper())}</span></div>')
-    switch = (f'<div class="abs" style="inset:0;{_a("dpon", t_sw, .01, "steps(1,end)")}">{screen}</div>'
+        f'{"".join(info)}</div>')
+    switch = (f'{frame}<div class="abs" style="inset:0;{_a("dpon", t_sw, .01, "steps(1,end)")}">{page}</div>'
               f'<div class="abs" style="inset:0;{_a("dpflash2", t_sw, .24, "ease-out")}"></div>')
     return (f'<div class="dp-mon" style="left:{mx}px;top:{my:.0f}px;width:{mw}px;height:{mh:.0f}px">'
             f'<div class="dp-scr" style="left:{bz}px;top:{bz}px;width:{sw}px;height:{sh:.0f}px">{switch}'
@@ -596,11 +607,12 @@ def last_chance(ctx, picked: list) -> Comp:
     for k, it in enumerate(picked, 1):
         t0 = HOOK + (k - 1) * R_
         t1 = t0 + R_
-        sign = _gate_sign(fl, gg, names[k - 1], prices[k - 1], prev, t0, k == 1)
+        sign = _gate_sign(fl, gg, names[k - 1], prices[k - 1], prev, t0, k == 1, R_, f"LEAVES|{reset}")
         mon = _monitor(ctx, it, k, n, t0, R_, gg)
         comp.scene(t0 - .04, t1 + .02, shot(_wall(close=True) + sign + mon), fade_in=.01, fade_out=.01, z=11)
         comp.cue(t0 + .02, "flap"); comp.cue(t0 + .3, "flap")
         comp.cue(t0 + .25, "click")
+        comp.cue(t0 + .5, "flap"); comp.cue(t0 + min(3.4, R_ * .52), "flap")
         prev = (names[k - 1], prices[k - 1])
 
     # ---- back on the board: LAST CALL on every row, a light runs down them, and

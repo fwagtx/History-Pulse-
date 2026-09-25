@@ -1,16 +1,44 @@
 """
-YEARBOOK -- Guess the Season and Season Throwback as pages of a school yearbook.
+YEARBOOK -- Guess the Season and Season Throwback as pages of a school
+yearbook ("Locker High"): class photos on the mottled blue school backdrop,
+names in serif, notes in blue ballpoint, and a lime USE CODE: BAD sticky note
+on every frame (it stays put while the pages turn under it).
 
-Photo lab (shared with cc_look_caseboard): the cosmetics' art is turned into
-photos in the browser, once, before frame 0 -- the renderer has no PIL. A
-canvas measures each render's opaque pixels, finds the figure (the biggest
-connected shape, so floating bits and props don't fool it), its head and its
-height, then draws a head-and-shoulders crop onto a backdrop with a flash
-shadow, a slight film grade and grain, and swaps the result in as the <img>.
-Gear (pickaxes, gliders, back blings) gets the whole item instead of a crop.
+Guess the Season
+    0:00  hook      the class page: every round's photo with "SEASON ?" under
+                    it, "which season??" in pen -- then the page turns
+    0:03  rounds    one page per round (9.5 s): the photo big, its name and
+                    rarity, a ballot with the four seasons. The pen writes the
+                    round number, counts 3-2-1 in the margin, ticks the right
+                    box, greys the others and writes the season under the name.
+                    The page turns to the next.
+    outro           back on the class page, the pen fills in the answer key and
+                    asks how many you got
+
+Season Throwback
+    0:00  hook      the season's cover page: two of the class, big, and
+                    "8 skins. how many do you remember?" -- the page turns
+    0:03  the class page, every slot "not pictured" at first. Each cosmetic's
+                    print is laid over the page big, with its name and rarity
+                    and type (6.5 s), then set into its slot. The page fills
+                    photo by photo.
+    outro           the finished page, "which one did you own?"
+
+Facts on screen are the classic formats': names, rarity and type, the four
+season options and the season each was introduced in.
+
+Photo lab (cc_look_caseboard uses it too): the art becomes photos in the
+browser, once, before frame 0 -- the renderer has no PIL. A canvas finds the
+figure in the render (the biggest connected shape, measured on the opaque area
+only, so props, floating bits and the real files' wide margins don't fool it),
+its head and height, then draws a head-and-shoulders crop (or the whole item,
+for gear and for anything that isn't a standing figure) onto a backdrop with a
+flash shadow, a light film grade and grain, and swaps it in as the <img>.
+Missing or broken art gets the yearbook's "photo not available" silhouette.
 """
 
-from cc_looks import tex
+from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, rough_arrow, rough_check, stroke_static, stroke_svg, tex, write_on
+from cc_motion import RARITY, Comp, esc
 
 # ------------------------------------------------------------------ photo lab
 
@@ -310,7 +338,6 @@ def photo(art: str, w: float, h: float, crop: str = "head", seed: int = 1, kind:
     """An <img> the photo lab develops: crop 'head' (head and shoulders),
     'three' (head to thigh) or 'fit' (the whole item). Until it's developed it
     shows the backdrop colour, so nothing half-made can reach a frame."""
-    from cc_motion import esc
     return (f'<img data-ph="{kind}" data-crop="{crop}" data-film="{film}" data-w="{w:.0f}" data-h="{h:.0f}" '
             f'data-s="{scale:g}" data-seed="{seed}" data-none="{esc(none)}"'
             + (f' data-bg="{bg}"' if bg else "")
@@ -320,18 +347,12 @@ def photo(art: str, w: float, h: float, crop: str = "head", seed: int = 1, kind:
 
 # ------------------------------------------------------------------ the page
 
-import math  # noqa: E402
-
-from cc_looks import (KIT_CSS, LIME, PREP_JS, pad_to, rough_arrow, rough_check, rough_line,  # noqa: E402
-                      stroke_static, stroke_svg, write_on)
-from cc_motion import RARITY, Comp, esc  # noqa: E402
-
 HOOK = 3.0
 R1 = 9.5            # Guess the Season: one round, as cc_quiz.R1
 T_REV = 6.3         # the answer lands this far into a round, as cc_quiz.T_REV
 R3 = 6.5            # Season Throwback: one item's turn, as cc_quiz.R3
 FLIP = .6           # a page turn
-INK, PEN, SOFT = "#1f2430", "#1d3fa8", "#5b6272"
+INK, PEN = "#1f2430", "#1d3fa8"
 FONTS = ("Old Standard TT", "Oswald", "Caveat", "Permanent Marker")
 NOTE_X, NOTE_Y = 646, 1256      # the lime sticky note (below y 880, so all of it left of x 950)
 
@@ -501,15 +522,18 @@ def _class_grid(ctx, items: list, crop: str, answers: list = None, t_answer: flo
     return "".join(out)
 
 
-def _gs_class_page(ctx, spec, items: list, crop: str, final: bool, content_end: float = 0) -> tuple:
+def _quiz_no(spec: dict) -> str:
+    return f"Quiz No. {spec['episode']}" if spec.get("episode") else ""
+
+
+def _gs_class_page(ctx, spec, items: list, crop: str, answers: list = None, content_end: float = 0) -> tuple:
     """The quiz's class page: at the start (the thumbnail) and again at the end,
-    when the pen fills in the answer key. Returns (html, sounds)."""
+    when the pen fills in the answer key (answers given). Returns (html, sounds)."""
     n = len(items)
-    head, _ = _header("Guess the Season", f"Quiz No. {spec.get('episode', '')}".strip(),
-                      "When did each one come out?", 92)
+    final = bool(answers)
+    head, _ = _header("Guess the Season", _quiz_no(spec), "When did each one come out?", 92)
     sounds = []
     t = content_end + .3
-    answers = [_season(it["season_label"]) for it in items] if final else None
     html = [_paper(40), head, _class_grid(ctx, items, crop, answers, t)]
     # the pen: a question and an arrow at the top right, and a note in the free space
     if final:
@@ -541,8 +565,8 @@ def _gs_class_page(ctx, spec, items: list, crop: str, final: bool, content_end: 
                         f'transform:rotate(-4deg);{write_on(.45, .6, 12)}">no peeking!</div>')
         else:
             html.append(f'<div class="abs yb-pen" style="left:70px;top:1290px;font-size:64px;transform:rotate(-3deg)">'
-                        f'{n} rounds.</div><div class="abs yb-pen" style="left:318px;top:1276px;font-size:64px;'
-                        f'transform:rotate(-3deg);{write_on(.45, .6, 12)}">no peeking!</div>')
+                        f'{n} rounds. <span style="display:inline-block;{write_on(.45, .6, 12)}">no peeking!</span>'
+                        f'</div>')
         sounds.append((.45, "pen"))
     return "".join(html), sounds
 
@@ -558,7 +582,7 @@ def _gs_round(ctx, spec, it: dict, opts: list, answer: int, k: int, n: int, t0: 
     round number as the page opens, the countdown, the tick in the right box
     and the season under the name."""
     rev = t0 + T_REV
-    head, _ = _header("Guess the Season", f"Quiz No. {spec.get('episode', '')}".strip(), "", 80)
+    head, _ = _header("Guess the Season", _quiz_no(spec), "", 80)
     html = [_paper(40 + k), head,
             f'<div class="abs yb-pen" style="left:742px;top:258px;font-size:66px;transform:rotate(-5deg);'
             f'{write_on(t0 + .2, .5, 12)}">round {k}/{n}</div>',
@@ -581,6 +605,8 @@ def _gs_round(ctx, spec, it: dict, opts: list, answer: int, k: int, n: int, t0: 
     for i, o in enumerate(opts):
         y = BAL_Y + i * BAL_PITCH
         chap, _, seas = o.partition(" · ")
+        if not seas:                    # a label without a chapter part: one big line
+            chap, seas = "", o
         fade = "" if i == answer else _a("ybfade", rev + .1, .35, "ease-out")
         html.append(f'<div class="abs" style="left:{BAL_X}px;top:{y}px;width:{BAL_W}px;height:100px;{fade}">'
                     f'<div class="abs" style="left:0;top:16px;width:46px;height:46px;border:3px solid {INK};'
@@ -610,12 +636,13 @@ def guess_season(ctx, spec: dict, rounds: list) -> Comp:
     _setup(comp)
 
     # Under everything: the class page the last round turns over to (the answer key).
-    base, sounds = _gs_class_page(ctx, spec, items, crop, True, content_end)
+    answers = [_season(opts[ans]) for _, opts, ans in rounds]     # what the ballots marked
+    base, sounds = _gs_class_page(ctx, spec, items, crop, answers, content_end)
     comp.add(f'<div class="yb-page" style="z-index:1">{base}{_landing(content_end - FLIP)}</div>')
     for s in sounds:
         comp.cue(*s)
     # frame 0: the class page with every photo, "which season??"
-    hook, sounds = _gs_class_page(ctx, spec, items, crop, False)
+    hook, sounds = _gs_class_page(ctx, spec, items, crop)
     for s in sounds:
         comp.cue(*s)
     comp.scene(0, HOOK, _turn(f'<div class="yb-page">{hook}</div>', HOOK), fade_in=.01, fade_out=.01, z=40)

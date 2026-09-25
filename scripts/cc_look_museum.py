@@ -20,12 +20,11 @@ carried by the tour guide, so it stays in frame while the camera walks: it is on
 screen, whole and readable, in every frame.
 """
 
-import math
 import re
 
 from cc_fmt_og_check import _order, _season
 from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, tex, write_on
-from cc_motion import W, H, Comp, esc
+from cc_motion import H, Comp, esc
 
 HOOK = 3.0
 R_MIN, R_MAX = 6.6, 8.4           # seconds per exhibit (the classic's 6.6, stretched when there are fewer)
@@ -52,9 +51,9 @@ OBJ_MID = 800                     # ... mounted with its middle here
 COL_X, COL_W = 524, 430           # the right-hand column: header and placard
 HDR_Y, PLACARD_Y = 196, 440
 PLACARD_MAXH = 478                # it ends above the paddle
-ROPE_K, ROPE_P = 1480 / 1080, 1480       # the rope is nearer: it moves faster
+ROPE_P = 1480                     # the rope is nearer: it pans 1480 px a bay, not 1080
 # The guide's paddle (the creator code): board top-left, in frame pixels.
-PAD_X, PAD_Y, PAD_W = 613, 948, 304
+PAD_X, PAD_Y, PAD_W = 603, 948, 304
 PIVOT = (PAD_X + PAD_W / 2, 2350)        # the guide's hand, below the frame
 
 CSS = """
@@ -154,8 +153,7 @@ CSS = """
 
 .mz-vig{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 92%% 68%% at 44%% 43%%,rgba(0,0,0,0) 52%%,rgba(8,5,2,.46) 100%%)}
-.mz-grain{position:absolute;inset:-64px;pointer-events:none;background:url('%(grain)s') 0 0/256px 256px;opacity:.06;
-  animation:mzgrain .6s steps(6) 0s infinite normal both}
+.mz-grain{position:absolute;inset:-64px;pointer-events:none;background:url('%(grain)s') 0 0/256px 256px;opacity:.06}
 @keyframes mzgrain{0%%{transform:translate(0,0)}17%%{transform:translate(-37px,21px)}33%%{transform:translate(18px,-44px)}
   50%%{transform:translate(-22px,-13px)}67%%{transform:translate(41px,30px)}83%%{transform:translate(-9px,47px)}
   100%%{transform:translate(0,0)}}
@@ -537,7 +535,10 @@ def _bay_exhibit(ctx, it: dict, k: int, n: int, x0: float, t0: float, last_note:
 def _bay_hook(ctx, hero: dict, n: int, x0: float = 0) -> str:
     day = ctx.day
     when = day.strftime("%B %-d, %Y").upper()
-    html = [_lights(x0, None), f'<div class="mz-wash" style="left:{x0 + 420}px;top:300px;opacity:.8"></div>',
+    # the spot hums once as the video starts (frame 0 is fully lit)
+    blip = _a("mzblip", .3, .35)
+    html = [f'<div class="abs" style="inset:0;{blip}">{_lights(x0, None)}</div>',
+            f'<div class="mz-wash" style="left:{x0 + 420}px;top:300px;opacity:.8"></div>',
             _fixture(x0, None), _exhibit(ctx, hero, "hero", x0, None, FIG_H - 44),
             f'<div class="mz-title mz-nw" style="left:{x0 + 84}px;top:212px">THE OG MUSEUM</div>'
             f'<div class="mz-hair" style="left:{x0 + 88}px;top:294px;width:86px"></div>'

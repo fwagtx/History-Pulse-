@@ -20,12 +20,11 @@ frame and readable in every frame (the camera zooms around it).
 """
 
 import html as _html
-import math
 import random
 
 from cc_fmt_bundle_math import _title
-from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, rough_ellipse, rough_line, tex
-from cc_motion import W, H, Comp, esc
+from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, rough_check, rough_ellipse, rough_line, tex
+from cc_motion import Comp, esc
 
 HOOK = 3.0
 CONTENT = 52.0
@@ -136,7 +135,7 @@ CSS = """
 .rc-art img{position:absolute;visibility:hidden}
 .rc-img{position:absolute;display:block;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
 .rc-grain{position:absolute;left:-256px;top:-256px;width:1592px;height:2432px;pointer-events:none;opacity:.05;
-  background:url('%(grain)s') 0 0/256px 256px repeat;animation:rcgr .5s steps(1,end) 0s infinite both}
+  background:url('%(grain)s') 0 0/256px 256px repeat}
 @keyframes rcgr{0%%{transform:translate(0,0)}20%%{transform:translate(-131px,77px)}40%%{transform:translate(53px,-173px)}
   60%%{transform:translate(-201px,-29px)}80%%{transform:translate(97px,149px)}}
 .rc-vig{position:absolute;inset:0;pointer-events:none;
@@ -507,7 +506,7 @@ def _circle_row(r: dict, seed: int) -> tuple:
 
 # ------------------------------------------------------------------ the counter
 
-def _printer() -> str:
+def _printer(dur: float) -> str:
     lx, ly, lw, lh = LABEL
     seam = ly - 12
     slot_l, slot_w = PX - PR_X - 14, PW + 28
@@ -518,7 +517,8 @@ def _printer() -> str:
             f'<div class="lid" style="top:30px;height:{seam - 34}px"></div>'
             f'<div class="seam" style="top:{seam}px"></div>'
             f'<div class="btn" style="left:{PR_W - 124}px;top:{PR_H - 34 - 92}px">FEED</div>'
-            f'<div class="led" style="left:{PR_W - 160}px;top:{PR_H - 34 - 78}px"></div>'
+            f'<div class="led" style="left:{PR_W - 160}px;top:{PR_H - 34 - 78}px;'
+            f'animation:rcled {dur:.3f}s linear 0s 1 normal both"></div>'
             f'<div class="lip"></div>'
             f'<div class="teeth" style="left:{slot_l}px;width:{slot_w}px;clip-path:polygon(0 0,{teeth},100% 0)"></div>'
             f'<div class="slot" style="left:{slot_l}px;width:{slot_w}px"></div>'
@@ -553,8 +553,10 @@ def _photo(ctx, b: dict, k: int, t_land) -> str:
     art = ctx.art(b)
     cols = [c for c in (b.get("tile_colors") or []) if isinstance(c, str) and c.startswith("#") and len(c) == 7]
     c1, c2 = (cols + ["#2a2a30"])[:2] if cols else ("#6b6b73", "#2a2a30")
-    rot = [3.5, -3, 4.5, -2, 2.5, -4][k % 6]
-    dx, dy = [(0, 0), (-10, 8), (8, 4), (-6, -6), (10, 10), (-4, 2)][k % 6]
+    # each photo lands a little lower than the last, so it covers the caption below
+    # it and only a sliver of the older photo shows along the top
+    rot = [3.5, -2.5, 3, -2, 2.5, -3][k % 6]
+    dx, dy = [0, -6, 5, -4, 7, -3][k % 6], 14 * k
     anim = _a("rcland", t_land, .6, "cubic-bezier(.2,.8,.25,1)") if t_land is not None else ""
     name = _title(b)
     img = (f'<div class="rc-art" data-w="{PH_IMG - 16}" data-h="{PH_IMG - 10}" style="left:{PH_IMG // 2}px;'
@@ -620,39 +622,59 @@ def bundle_math(ctx, picks: list) -> Comp:
                 break
         p = Print(f"b{k}", doc, rnd)
         groups = _groups(doc)
+        items = [g for g in groups if g[0].startswith("item") or g[0] == "cols"]
+        prices = [g for g in groups if g[0].startswith("item")]
+        # Scheduled back from the tear, so every receipt holds about as long once
+        # it's circled; when the slot is long the pen also ticks each price first.
+        t_tear = s + R - .95
+        hold = max(2.5, min(3.6, .24 * R))
+        ticks = R >= 12
+        t_tick_len = .2 * len(prices) + .15 if ticks else 0.0
+        gap = max(.7, min(1.3, .9 * beat))
+        t_circle = t_tear - hold - .85
+        t_save = t_circle - .6 - (t_tick_len + .3 if ticks else 0.0)
+        t_total = t_save - 2 * gap
+        t_items = s + max(.85, 1.2 * beat)
+        step = (t_total - .35 - t_items) / max(1, len(items))
+        if not .28 <= step <= .95:
+            # too few lines to fill the time, or too many: print at a steady pace from the top
+            step = max(.28, min(.95, step))
+            t_total = t_items + len(items) * step + .35
+            t_save = t_total + 2 * gap
+            t_circle = t_save + .6 + (t_tick_len + .3 if ticks else 0.0)
         t = s - .15
         cues.append((t, "printer"))
-        items = [g for g in groups if g[0].startswith("item") or g[0] == "cols"]
-        step = max(.3, min(.75, 2.6 * beat / max(1, len(items))))
-        t_items = s + max(.85, 1.2 * beat)
-        t_total = t_bundle = t_save = None
+        k_item = 0
         for g, bottom in groups:
             if g == "head":
                 p.feed(t, bottom, .32)
                 t += .45
             elif g == "cols" or g.startswith("item"):
-                t = max(t, t_items)
+                t = max(t, t_items + k_item * step)
                 p.feed(t, bottom, .13)
-                if (items.index((g, bottom)) % 3) == 0:
+                if k_item % 3 == 0:
                     cues.append((t, "printer"))
-                t += step
+                k_item += 1
             elif g == "total":
-                t_total = t + .35 * beat
                 p.feed(t_total, bottom, .22)
                 cues += [(t_total, "printer"), (t_total + .3, "cash")]
-                t = t_total
             elif g == "bundle":
-                t_bundle = t + max(.7, .9 * beat)
-                p.feed(t_bundle, bottom, .2)
-                t = t_bundle
+                p.feed(t_total + gap, bottom, .2)
             elif g == "save":
-                t_save = t + max(.7, .9 * beat)
                 p.feed(t_save, bottom, .38)
                 cues.append((t_save, "printer"))
-                t = t_save
+        if ticks:
+            # the pen checks each price: a small tick beside it
+            marks = []
+            for j, (g, bottom) in enumerate(prices):
+                last = [r for r in doc.rows if r.get("group") == g][-1]
+                marks += rough_check(PM + TW + 9, last["y"] + last["h"] * .62, 19, seed=40 + 7 * k + j)
+            t_tick = t_save + .6
+            p.extra.append(_pen_svg(marks, t_tick, .15, 3.6, .05))
+            for j in range(0, len(prices), 3):
+                cues.append((t_tick + j * .2, "pen"))
         # the pen circles the saving
         save_row = next(r for r in doc.rows if r.get("mark") == "save")
-        t_circle = t_save + .55
         p.extra.append(_pen_svg([_circle_row(save_row, seed=11 + k)], t_circle, .85))
         cues.append((t_circle, "pen"))
         p.tear = (s + R - .95, s + R - .3)
@@ -681,6 +703,14 @@ def bundle_math(ctx, picks: list) -> Comp:
 
     for pr in prints:
         comp.css(pr.css(dur))
+    # the printer's LED flickers while it feeds
+    led = [(0.0, "opacity:1", "")]
+    for pr in prints:
+        for (ft, d, _) in pr.feeds:
+            led += [(ft, "opacity:1", ""), (ft + .03, "opacity:.25", ""), (ft + d + .02, "opacity:.25", ""),
+                    (ft + d + .08, "opacity:1", "")]
+    led.append((dur, "opacity:1", ""))
+    comp.css(_kf("rcled", led, dur))
     # zoom: ease between the points, never closer than a receipt's bottom allows
     comp.css(_kf("rczoom", [(t, f"transform:scale({z:.4f})", "cubic-bezier(.4,0,.3,1)") for t, z in sorted(zooms)],
                  dur))
@@ -694,7 +724,7 @@ def bundle_math(ctx, picks: list) -> Comp:
 
     # film grain and a soft vignette sit under the printer: nothing covers the label
     rig = (_pen(850, 960, 16) + "".join(photos) + "".join(pr.html(dur) for pr in prints)
-           + '<div class="rc-lipshade"></div><div class="rc-grain"></div><div class="rc-vig"></div>' + _printer())
+           + '<div class="rc-lipshade"></div><div class="rc-grain"></div><div class="rc-vig"></div>' + _printer(dur))
     comp.add(f'<div class="full" style="z-index:0;background:#6b4a2e;overflow:hidden">'
              f'<div class="rc-cam"><div class="rc-shake"><div class="rc-zoom" style="{_a("rczoom", 0, dur)}">'
              f'<div class="rc-counter"></div><div class="rc-rig">{rig}</div>'

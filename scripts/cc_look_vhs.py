@@ -79,6 +79,10 @@ CSS = """
 @keyframes vhpush{from{transform:scale(1)}to{transform:scale(1.045)}}
 @keyframes vhlift{from{transform:translate3d(0,0,0) rotateX(0deg) rotateZ(0deg)}
   to{transform:translate3d(-30px,-300px,430px) rotateX(-14deg) rotateZ(3deg)}}
+@keyframes vhland{from{transform:translate3d(-30px,-300px,430px) rotateX(-14deg) rotateZ(3deg)}
+  70%{transform:translate3d(0,6px,0) rotateX(0deg) rotateZ(0deg)}
+  to{transform:translate3d(0,0,0) rotateX(0deg) rotateZ(0deg)}}
+@keyframes vhpull{from{transform:scale(1.045)}to{transform:scale(1)}}
 @keyframes vhjit{0%{transform:translate(0,0)}7%{transform:translate(2px,0)}13%{transform:translate(-1px,1px)}
   21%{transform:translate(1px,0)}29%{transform:translate(-2px,0)}36%{transform:translate(0,-1px)}
   44%{transform:translate(3px,0)}51%{transform:translate(-1px,0)}58%{transform:translate(1px,1px)}
@@ -301,7 +305,7 @@ def _label(title: str, names: str, day_txt: str, part: str) -> str:
 
 def _code_sticker() -> str:
     """The creator code on a fluorescent lime sticker slapped across the cassette."""
-    return (f'<div class="abs" id="vhs-code" style="left:317px;top:292px;width:326px;height:216px;'
+    return (f'<div class="abs vhs-code" style="left:317px;top:292px;width:326px;height:216px;'
             f'transform:rotate(4deg);background:{LIME};border-radius:7px;box-shadow:0 1px 1px rgba(0,0,0,.5),'
             f'0 4px 8px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;'
             f'text-align:center">'
@@ -360,13 +364,16 @@ def _photo(k: int, it: dict, x: float, y: float, rot: float, has_art: bool) -> s
             f'rgba(0,0,0,.08));pointer-events:none"></div></div>')
 
 
-def _desk(group: list, idx: list, title: str, names: str, day_txt: str, part: str) -> str:
-    """Frame 0: the cassette and the photos on the desk; then the cassette is picked up."""
+def _desk(group: list, idx: list, title: str, names: str, day_txt: str, part: str, t_land: float) -> str:
+    """Frame 0: the cassette and the photos on the desk; then the cassette is
+    picked up. At t_land, after the tape is ejected, it's put back down: the last
+    frames match the first, so the video loops."""
     photos = "".join(_photo(j, group[j], x, y, rot, idx[j] >= 0) for j, (x, y, rot) in enumerate(PHOTOS[:len(group)]))
-    lift = _style(_a("vhlift", T_LIFT, T_CUT - T_LIFT + .08, "cubic-bezier(.5,0,.85,.4)"))
+    lift = _style(_a("vhlift", T_LIFT, T_CUT - T_LIFT + .08, "cubic-bezier(.5,0,.85,.4)"),
+                  _a("vhland", t_land, .5, "cubic-bezier(.2,.7,.3,1)", fill="forwards"))
     return (f'<div class="full" style="background:url({tex("vhs-desk.jpg")}) center/cover"></div>'
             f'<div class="full" style="perspective:1500px;perspective-origin:540px 560px;transform-origin:520px 760px;'
-            f'{_style(_a("vhpush", 0, T_CUT, "cubic-bezier(.4,0,.5,1)"))}">'
+            f'{_style(_a("vhpush", 0, T_CUT, "cubic-bezier(.4,0,.5,1)"), _a("vhpull", t_land, .5, "ease-out", fill="forwards"))}">'
             f'<div class="abs" style="left:534px;top:{DESK_Y}px;transform-style:preserve-3d;'
             f'transform:rotateX(24deg) scale(.97)">{photos}'
             f'<div style="transform-style:preserve-3d;{lift}"><div style="transform-style:preserve-3d;'
@@ -498,6 +505,7 @@ PLAY_ROWS = [[(0, n)] for n in (1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1)]
 FF_ROWS = [[(0, n), (6, n)] for n in (1, 2, 3, 4, 5, 4, 3, 2, 1)]
 REW_ROWS = [[(5 - n, n), (11 - n, n)] for n in (1, 2, 3, 4, 5, 4, 3, 2, 1)]
 STOP_ROWS = [[(0, 6)]] * 6
+EJECT_ROWS = [[(5 - n, 2 * n - 1)] for n in (1, 2, 3, 4, 5)] + [[(0, 0)]] + [[(0, 9)]] * 2
 
 
 # ------------------------------------------------------------------ in-page footage and noise
@@ -819,8 +827,10 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     styles = ["ff" if j % 3 == 1 else "glitch" for j in range(len(cuts))]
     t_rew = content_end
     t_menu = content_end + min(1.3, .16 * n + .1)
+    t_eject = dur - 1.2                               # EJECT, and the cassette is back on the desk
+    t_land = t_eject + .3
     ff_w = [(tc - .62, tc + .2) for tc, st in zip(cuts, styles) if st == "ff"]
-    rew_w, stop_w = [(t_rew, t_menu)], [(t_menu, dur + 1)]
+    rew_w, stop_w, eject_w = [(t_rew, t_menu)], [(t_menu, t_eject)], [(t_eject, t_land)]
 
     # ---- the hook: the desk (frame 0), then the player's blue screen
     title = _label_title(group, theme)
@@ -828,7 +838,7 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     ep, of = spec.get("episode"), spec.get("of", 31)
     day_txt = f"DAY {ep} OF {of}" if ep else "THROWBACK"
     part = f"PART {spec['part']}" if spec.get("part") else ""
-    comp.add(_layer(tr, [(0, T_CUT)], 1, _desk(group, idx, title, names, day_txt, part)))
+    comp.add(_layer(tr, [(0, T_CUT), (t_land, dur + 1)], 8, _desk(group, idx, title, names, day_txt, part, t_land)))
     comp.cue(T_LIFT - .05, "tape")
     blue = (f'<div class="full" style="background:{BLUE_BG}"></div>'
             + _osd(f"PLAY{_icon(PLAY_ROWS, 11)}", 84, 600, 170)
@@ -885,7 +895,8 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
                      f'background:#f2f2ee;box-shadow:4px 4px 0 rgba(0,0,0,.6);visibility:hidden;{_style(tr.vis(on))}">'
                      f'<div class="osd" data-fit="880" style="left:14px;top:8px;font-size:{size:.0f}px;color:#1c2ca6;'
                      f'text-shadow:none"><span style="color:#5563d6">{j + 1:02d}</span>&nbsp;{name}</div></div>')
-    comp.add(_layer(tr, stop_w, 7, menu))
+    comp.add(_layer(tr, stop_w + eject_w, 7, menu))
+    comp.cue(t_eject, "click"); comp.cue(t_land - .05, "tape")
 
     # ---- the tape over everything from the first blue frame: grain, snow at the
     # cuts, search bars when it winds, scanlines and a CRT's dark corners, a flicker
@@ -911,22 +922,23 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
             + f'<div class="crt"></div>'
               f'<div class="full fade" style="background:#fff8e8;{_style(_a("vhflick", 0, .53, "steps(1,end)", "infinite"))}">'
               f'</div>')
-    comp.add(_layer(tr, [(T_CUT, dur + 1)], 20, tape, "pointer-events:none;"))
+    comp.add(_layer(tr, [(T_CUT, t_land)], 20, tape, "pointer-events:none;"))
 
     # ---- the player's lettering, crisp on top
-    play_w = _minus((T_ROLL, dur + 1), ff_w + rew_w + stop_w)
+    play_w = _minus((T_ROLL, t_land), ff_w + rew_w + stop_w + eject_w)
     vis = lambda w: _style(tr.vis(w)) + "visibility:hidden;" if w else "visibility:hidden;"
     osd = (_osd(f"PLAY{_icon(PLAY_ROWS, 5)}", 78, 212, 80, vis(play_w))
            + _osd(f"FF{_icon(FF_ROWS, 6)}", 78, 212, 80, vis(ff_w))
            + _osd(f"REW{_icon(REW_ROWS, 6)}", 78, 212, 80, vis(rew_w))
            + _osd(f"STOP{_icon(STOP_ROWS, 8)}", 78, 212, 80, vis(stop_w))
+           + _osd(f"EJECT{_icon(EJECT_ROWS, 6)}", 78, 212, 80, vis(eject_w))
            + _osd("SP", 318, 228, 64, vis([(T_ROLL, t_menu)]))
            + _osd("CH 03", 0, 218, 64, vis([(T_CUT, T_ROLL)]), "right:66px;left:auto;")
            + "".join(_osd(f"{k + 1}/{n}", 0, 218, 64, vis([(starts[k] if k else T_ROLL, cuts[k] if k < n - 1 else t_rew)]),
                           "right:66px;left:auto;") for k in range(n))
            + _osd("USE CODE: BAD", 72, 292, 144, cls="osd codeline")
            + _osd("#EpicPartner", 80, 444, 44))
-    comp.add(_layer(tr, [(T_CUT, dur + 1)], 30, osd, "pointer-events:none;"))
+    comp.add(_layer(tr, [(T_CUT, t_land)], 30, osd, "pointer-events:none;"))
 
     comp.add(PREP_JS)
     comp.add(PREP_VHS.replace("__CFG__", json.dumps(cfg)))

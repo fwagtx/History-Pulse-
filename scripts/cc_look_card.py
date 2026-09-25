@@ -1,18 +1,20 @@
 """
 CARD -- Who's That Skin?, as LOCKER LEGENDS trading cards on a felt playmat,
-filmed from above.
+shot from above.
 
-    0:00  hook     the playmat, complete on frame 0: three cards fanned out, each
-                   a black silhouette with its name taped over, a sticky note
-                   WHO'S THAT SKIN? with the rounds, and the lime USE CODE: BAD
-                   token. The fan gathers into the first card.
-    0:03  rounds   one per round (9.5 s, as the classic): a card is dealt, a
-                   fresh note goes on the pad, four sticky notes A-D carry the
-                   names. A hold, then 3... 2... 1... is written on the note, the
-                   card flips (the LOCKER LEGENDS back shows in the air) and
-                   lands revealed -- name, colours, set and season -- and the
-                   right note is circled in red marker. Then it's all cleared.
-    ~1:00 outro    every card of the video fanned out face up, and the classic's
+    0:00  hook     the playmat, complete on frame 0: the first three cards fanned
+                   out, each a black silhouette with its name taped over, a
+                   sticky note WHO'S THAT SKIN? (quiz number, N rounds, 4 choices
+                   each), and the lime USE CODE: BAD token. The fan gathers into
+                   the first card.
+    0:03  rounds   one per round (9.5 s, as the classic): a card is dealt, a fresh
+                   note goes on the pad, four sticky notes A-D carry the names.
+                   A hold, then 3... 2... 1... in red marker on the note, a second
+                   apart; the card flips (the LOCKER LEGENDS back shows in the
+                   air) and lands revealed -- name, colours, set and season -- the
+                   right note is circled and ticked in red, the others get a
+                   pencil line. Then the notes are peeled off and the card goes.
+    ~1:00 outro    every card of the video laid out face up, and the classic's
                    question on a fresh note: how many did you get out of 6?
 
 Facts come only from the item: rarity and type (on the card from the start),
@@ -20,6 +22,11 @@ and after the flip its name, set and season (it["set"], it["season_label"]).
 No invented stats. The options and the answer are the plan's. Silhouettes stay
 black and names stay taped over until each reveal. The lime token is on screen
 in every frame.
+
+Render cost: the renderer keeps every animation paused, and Chrome gives each
+paused-but-unfinished transform/opacity/filter animation its own compositing
+layer, so swaps are done with visibility and shading with colour, and nothing
+full-frame moves for the whole video.
 """
 
 import math
@@ -249,7 +256,9 @@ CSS = """
 @keyframes cdoff{from{visibility:visible}to{visibility:hidden}}
 @keyframes cdon{from{visibility:hidden}to{visibility:visible}}
 @keyframes cdsil{from{filter:brightness(0)}to{filter:none}}
-@keyframes cdgather{to{transform:translate(-120px,1250px) rotate(-8deg)}}
+@keyframes cdspread{from{transform:rotate(var(--r))}to{transform:translate(var(--dx),var(--dy)) rotate(var(--r2))}}
+@keyframes cdgather{from{transform:translate(var(--dx),var(--dy)) rotate(var(--r2))}
+  to{transform:translate(-120px,1250px) rotate(-8deg)}}
 @keyframes cdfan{0%{opacity:0;transform:translate(-40px,900px) rotate(calc(var(--r) - 10deg))}
   70%{opacity:1;transform:translate(0,-5px) rotate(calc(var(--r) + .6deg))}100%{opacity:1;transform:rotate(var(--r))}}
 """
@@ -479,13 +488,19 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
 
     # ---- hook: the first three cards fanned out, silhouettes, names taped over
     fan = ""
-    for j, (x, y, rot, sc) in reversed(list(enumerate([(560, 930, 5, .86), (680, 990, 10, .8)]))):
+    # frame 0 has the fan; at .3 s a hand spreads it a little more, at 2.45 s it's
+    # gathered up and only the first card stays.
+    spread = [(560, 930, 5, .86, 3.5, 14, 6), (680, 990, 10, .8, 5, 20, 12)]
+    for j, (x, y, rot, sc, dr, dx, dy) in reversed(list(enumerate(spread))):
         if j + 1 < n:
             it = rounds[j + 1][0]
-            fan += _flat_card(ctx, it, j + 2, n, x, y, sc, rot,
-                              _a("cdgather", 2.45 + (1 - j) * .08, .5, "cubic-bezier(.55,0,.85,.35)"), False)
-    comp.scene(0, HOOK, f'<div class="full" style="overflow:hidden"><div class="cd-cam">{fan}</div></div>', fade_in=.01, fade_out=.01, z=10)
-    comp.cue(2.45, "paper")
+            move = (f"--r2:{rot + dr}deg;--dx:{dx}px;--dy:{dy}px;"
+                    f"animation:cdspread .5s cubic-bezier(.2,.8,.3,1) {.3 + j * .06:.2f}s 1 normal both,"
+                    f"cdgather .5s cubic-bezier(.55,0,.85,.35) {2.45 + (1 - j) * .08:.2f}s 1 normal forwards;")
+            fan += _flat_card(ctx, it, j + 2, n, x, y, sc, rot, move, False)
+    comp.scene(0, HOOK, f'<div class="full" style="overflow:hidden"><div class="cd-cam">{fan}</div></div>',
+               fade_in=.01, fade_out=.01, z=10)
+    comp.cue(.3, "paper"); comp.cue(2.45, "paper")
 
     # ---- the rounds
     for k, (it, opts, answer) in enumerate(rounds, 1):
@@ -535,10 +550,12 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
         cx = x0 + col * (cw_ + min(gap, 30)) + cw_ / 2
         cy = 560 + ch_ / 2 + row * (ch_ + 26)
         jit = ((i * 37 + n * 11) % 10) / 10 - .5
+        # the first one comes in while the last round's card is still leaving
         spread += _flat_card(ctx, it, i + 1, n, cx + jit * 16, cy + jit * 10, sc, jit * 7,
-                             _a("cdfan", t + .15 + i * .12, .5, "cubic-bezier(.2,.8,.3,1)"), True)
-        comp.cue(t + .15 + i * .12, "paper")
-    comp.scene(t - .1, comp.duration, f'<div class="full" style="overflow:hidden"><div class="cd-cam">{spread}</div></div>',
+                             _a("cdfan", t - .3 + i * .1, .5, "cubic-bezier(.2,.8,.3,1)"), True)
+        if i % 2 == 0:
+            comp.cue(t - .3 + i * .1, "paper")
+    comp.scene(t - .35, comp.duration, f'<div class="full" style="overflow:hidden"><div class="cd-cam">{spread}</div></div>',
                fade_in=.01, fade_out=.01, z=12)
     pad.append(f'<div class="abs" style="left:{PAD_X}px;top:{PAD_Y}px;width:{PAD_W}px;height:{PAD_H}px;--r:-2deg;'
                f'transform:rotate(-2deg);{_a("lkslap", t + .1, .5, "cubic-bezier(.2,.9,.25,1)")}">'

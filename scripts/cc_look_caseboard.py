@@ -397,7 +397,7 @@ def odd_one_out(ctx, spec: dict, rounds: list) -> Comp:
                    f'<div class="abs cb-type" style="left:-10px;top:-18px;transform:rotate(-4deg);background:#fdfcf6;'
                    f'padding:6px 12px 4px;font-size:31px;color:#b3261e;white-space:nowrap;box-shadow:0 1px 1px '
                    f'rgba(0,0,0,.25),0 5px 7px -2px rgba(0,0,0,.3)">CASE {i + 1}: {LETTERS[odd]}</div>'
-                   + _pin(pw / 2, 14, PIN_COLS[i % len(PIN_COLS)]) + '</div>')
+                   + _pin(pw - 34, 16, PIN_COLS[i % len(PIN_COLS)]) + '</div>')
         comp.cue(ti + .1, "pin")
     t_stamp = t + .15 + n * .5 + .35
     out.append(f'<div class="abs cb-type" style="left:150px;top:290px;width:470px;height:118px;--r:-7deg;'
