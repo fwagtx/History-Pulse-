@@ -21,6 +21,7 @@ screen, whole and readable, in every frame.
 """
 
 import math
+import re
 
 from cc_fmt_og_check import _order, _season
 from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, tex, write_on
@@ -29,11 +30,11 @@ from cc_motion import W, H, Comp, esc
 HOOK = 3.0
 R_MIN, R_MAX = 6.6, 8.4           # seconds per exhibit (the classic's 6.6, stretched when there are fewer)
 CONTENT = 52.8                    # what 8 exhibits take at 6.6 s
-PAN_D = 1.6                       # a pan from one bay to the next
-PAN_LEAD = .45                    # it starts this long before the exhibit's slot
-CLICK = 1.1                       # the spot comes on this long after the slot starts
-LABEL = 1.5                       # then the label light
-EASE_PAN = "cubic-bezier(.6,0,.32,1)"
+PAN_D = 1.75                      # a pan from one bay to the next
+PAN_LEAD = .55                    # it starts this long before the exhibit's slot
+CLICK = 1.25                      # the spot comes on this long after the slot starts
+LABEL = 1.7                       # then the label light
+EASE_PAN = "cubic-bezier(.55,0,.35,1)"
 FONTS = ("Cormorant Garamond",)
 
 # The room. Every bay is one screen wide; the camera frames one bay at a time.
@@ -48,8 +49,9 @@ VT_TOP, VT_D = 560, 48            # the glass case: front face top, depth of its
 FIG_H, FIG_W = 740, 420           # an outfit, head to sole
 OBJ_W, OBJ_H = 318, 430           # anything else, inside its case
 OBJ_MID = 800                     # ... mounted with its middle here
-COL_X, COL_W = 548, 404           # the right-hand column: header and placard
+COL_X, COL_W = 524, 430           # the right-hand column: header and placard
 HDR_Y, PLACARD_Y = 196, 440
+PLACARD_MAXH = 478                # it ends above the paddle
 ROPE_K, ROPE_P = 1480 / 1080, 1480       # the rope is nearer: it moves faster
 # The guide's paddle (the creator code): board top-left, in frame pixels.
 PAD_X, PAD_Y, PAD_W = 613, 948, 304
@@ -88,7 +90,7 @@ CSS = """
 
 .mz-card{position:absolute;width:%(colw)dpx;padding:30px 32px 32px;background:#f7f4ee;
   box-shadow:0 1px 1px rgba(0,0,0,.24),0 6px 12px rgba(0,0,0,.16),inset 0 0 0 1px rgba(0,0,0,.04)}
-.mz-card .n{font-family:'Cormorant Garamond';font-weight:700;font-size:52px;letter-spacing:.04em;color:#1d1a17;line-height:1;
+.mz-card .n{font-family:'Cormorant Garamond';font-weight:700;font-size:50px;letter-spacing:.04em;color:#1d1a17;line-height:1;
   text-transform:uppercase}
 .mz-card .k{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:38px;color:#4b443c;margin-top:8px;
   line-height:1.05;white-space:nowrap}
@@ -125,16 +127,16 @@ CSS = """
 .mz-feet{position:absolute;border-radius:50%%;height:20px;margin-top:-10px;
   background:radial-gradient(ellipse 50%% 50%% at 50%% 50%%,rgba(22,15,8,.62),rgba(22,15,8,0))}
 .mz-glass{position:absolute}
-.mz-tent{position:absolute;width:236px;padding:22px 18px 20px;background:#fbf8f1;text-align:center;
+.mz-tent{position:absolute;width:290px;padding:26px 20px 24px;background:#fbf8f1;text-align:center;
   box-shadow:0 2px 3px rgba(0,0,0,.25),0 8px 14px rgba(0,0,0,.12)}
-.mz-tent .t{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:36px;color:#2a241e;line-height:1.05}
-.mz-tent .u{font-family:'Inter';font-weight:500;font-size:20px;letter-spacing:.14em;color:#6a6157;margin-top:10px}
+.mz-tent .t{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:46px;color:#2a241e;line-height:1.05}
+.mz-tent .u{font-family:'Inter';font-weight:500;font-size:21px;letter-spacing:.14em;color:#6a6157;margin-top:12px}
 
-.mz-post{position:absolute;width:250px;padding:12px 12px 0;background:#fbf8f1;
+.mz-post{position:absolute;width:236px;padding:11px 11px 0;background:#fbf8f1;
   box-shadow:0 2px 3px rgba(0,0,0,.3),0 10px 16px rgba(0,0,0,.18)}
-.mz-post .ph{position:relative;width:226px;height:250px;overflow:hidden}
+.mz-post .ph{position:relative;width:214px;height:214px;overflow:hidden}
 .mz-post .cap{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:28px;color:#2a241e;
-  text-align:center;height:52px;line-height:52px;white-space:nowrap;overflow:hidden}
+  text-align:center;height:46px;line-height:46px;white-space:nowrap;overflow:hidden}
 .mz-ledge{position:absolute;height:18px;background:linear-gradient(#6b4a2e,#4a321f);box-shadow:0 6px 10px rgba(0,0,0,.35)}
 
 .mz-walk{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:%(px)dpx %(py)dpx}
@@ -285,14 +287,31 @@ ART_JS = """<script>(() => {
     for (const box of document.querySelectorAll('.mz-art')) { try { await prep(box); } catch (e) {} }
     // Names: shrink until no word runs past the edge and it takes at most N lines.
     for (const el of document.querySelectorAll('[data-mzfit]')) {
-      const maxW = +el.dataset.mzfit, lines = +(el.dataset.mzlines || 1);
+      const maxW = +el.dataset.mzfit, lines = +(el.dataset.mzlines || 1), one = +(el.dataset.mzone || 0);
       let size = parseFloat(getComputedStyle(el).fontSize), guard = 90;
+      if (one) {
+        const size0 = size;
+        el.style.whiteSpace = 'nowrap';
+        while (guard-- > 0 && size > size0 * one && el.scrollWidth > maxW + 2) { size *= 0.97; el.style.fontSize = size + 'px'; }
+        if (el.scrollWidth <= maxW + 2) continue;
+        el.style.whiteSpace = 'normal';
+      }
       const bad = () => {
         if (el.scrollWidth > maxW + 2) return true;
         const lh = parseFloat(getComputedStyle(el).lineHeight) || size * 1.1;
         return el.offsetHeight > lh * lines + 2;
       };
       while (guard-- > 0 && size > 12 && bad()) { size *= 0.96; el.style.fontSize = size + 'px'; }
+    }
+    // A placard never grows past its space on the wall.
+    for (const card of document.querySelectorAll('[data-mzmaxh]')) {
+      const maxH = +card.dataset.mzmaxh;
+      let guard = 40;
+      while (guard-- > 0 && card.offsetHeight > maxH) {
+        for (const el of card.querySelectorAll('.n,.k,.v,.l,.p')) {
+          el.style.fontSize = (parseFloat(getComputedStyle(el).fontSize) * 0.96) + 'px';
+        }
+      }
     }
   })();
 })();</script>"""
@@ -315,6 +334,11 @@ def _intro(it: dict) -> str:
     if raw.upper() == f"{ch}, {se}":
         return raw
     return f"{ch.title()}, {se.title()}"
+
+
+def _nb(text: str) -> str:
+    """Keep "Chapter 1" and "Season 3" together if the line has to wrap."""
+    return re.sub(r"\b(Chapter|Season) ", r"\1&nbsp;", text)
 
 
 def _is_figure(it: dict) -> bool:
@@ -463,9 +487,10 @@ def _exhibit(ctx, it: dict, uid: str, x0: float, t_on, fig_h: int = FIG_H) -> st
                     f'<img src="{art}" alt=""></div>')
     else:
         # no picture of it: a card with its name stands in the case
-        html.append(f'<div class="abs" style="left:{cx - 8 - 136:.0f}px;top:{floor_y - 196}px;width:272px;'
-                    f'transform:rotate(-2deg);{dimfig}"><div class="mz-tent" style="position:relative;margin:0 auto">'
-                    f'<div class="t" data-fit="200" data-lines="3" style="width:200px;margin:0 auto">{esc(it["name"])}</div>'
+        html.append(f'<div class="abs" style="left:{cx - 8 - 150:.0f}px;top:{floor_y - 2}px;width:300px;height:0;'
+                    f'{dimfig}"><div class="mz-tent" style="left:5px;bottom:0;transform:rotate(-2deg);'
+                    f'transform-origin:50% 100%"><div class="t" data-mzfit="250" data-mzlines="3" '
+                    f'style="width:250px;margin:0 auto">{esc(it["name"])}</div>'
                     f'<div class="u">{esc(_kind(it).upper())}</div></div></div>')
     html.append(_glass(cx - OB_W // 2 + 4, VT_TOP, OB_W - 8, OB_FRONT - 4, VT_D))
     if t_on is not None:
@@ -478,10 +503,11 @@ def _exhibit(ctx, it: dict, uid: str, x0: float, t_on, fig_h: int = FIG_H) -> st
 def _placard(it: dict, x: float, y: float, t_label) -> str:
     dim = "" if t_label is None else f'<div class="dim" style="{_a("mzunfade", t_label, .45, "ease-out")}"></div>'
     iw = COL_W - 64
-    return (f'<div class="mz-card" style="left:{x:.0f}px;top:{y:.0f}px">'
+    return (f'<div class="mz-card" data-mzmaxh="{PLACARD_MAXH}" style="left:{x:.0f}px;top:{y:.0f}px">'
             f'<div class="n" data-mzfit="{iw}" data-mzlines="2" style="width:{iw}px">{esc(it["name"])}</div>'
             f'<div class="k" data-fit="{iw}">{esc(_kind(it))}</div><div class="r"></div>'
-            f'<div class="l">Introduced in</div><div class="v" data-fit="{iw}">{esc(_intro(it))}</div>'
+            f'<div class="l">Introduced in</div><div class="v" data-mzfit="{iw}" data-mzlines="2" data-mzone=".82" '
+            f'style="width:{iw}px;white-space:normal">{_nb(esc(_intro(it)))}</div>'
             f'<div class="l">In the shop today</div><div class="v" data-fit="{iw}">{int(it["price"]):,} V-Bucks</div>'
             f'{dim}</div>')
 
@@ -527,19 +553,19 @@ def _bay_hook(ctx, hero: dict, n: int, x0: float = 0) -> str:
     return "".join(html)
 
 
-def _postcard(ctx, it: dict, x: float, y: float, rot: float, uid: str) -> str:
+def _postcard(ctx, it: dict, x: float, y: float, rot: float) -> str:
     art = ctx.art(it)
     cols = [c for c in (it.get("tile_colors") or []) if isinstance(c, str) and c.startswith("#") and len(c) == 7]
     c1, c2 = (cols + ["#6b6b73", "#2a2a30"])[:2] if cols else ("#6b6b73", "#2a2a30")
     bg = f"radial-gradient(ellipse 80% 70% at 50% 40%,{c1},{c2})"
-    inner = (f'<div class="mz-art" data-mode="card" data-w="200" data-h="232" data-up="2.4" '
-             f'style="left:113px;top:244px"><img src="{art}" alt=""></div>' if art else
+    inner = (f'<div class="mz-art" data-mode="card" data-w="190" data-h="198" data-up="2.4" '
+             f'style="left:107px;top:208px"><img src="{art}" alt=""></div>' if art else
              f'<div class="abs" style="inset:0;display:flex;align-items:center;justify-content:center;padding:14px;'
              f'font-family:\'Cormorant Garamond\';font-style:italic;font-size:34px;color:#fff;text-align:center">'
              f'{esc(it["name"])}</div>')
     return (f'<div class="mz-post" style="left:{x:.0f}px;top:{y:.0f}px;transform:rotate({rot}deg)">'
             f'<div class="ph" style="background:{bg}">{inner}</div>'
-            f'<div class="cap" data-fit="226">{esc(it["name"])}</div></div>')
+            f'<div class="cap" data-fit="206">{esc(it["name"])}</div></div>')
 
 
 def _bay_exit(ctx, picks: list, x0: float) -> str:
@@ -547,19 +573,18 @@ def _bay_exit(ctx, picks: list, x0: float) -> str:
     three = (outfits + [i for i in picks if i not in outfits])[:3]
     html = [f'<div class="mz-pool" style="left:{x0 + 540}px;top:760px;opacity:.9"></div>',
             f'<div class="mz-wash" style="left:{x0 + 540}px;top:420px;opacity:.9"></div>',
-            f'<div class="mz-title mz-nw" style="left:{x0 + 84}px;top:222px;font-size:48px;letter-spacing:.28em">'
+            f'<div class="mz-title mz-nw" style="left:{x0 + 84}px;top:212px;font-size:48px;letter-spacing:.28em">'
             f'THANK YOU FOR VISITING</div>'
-            f'<div class="mz-hair" style="left:{x0 + 88}px;top:292px;width:86px"></div>'
-            f'<div class="mz-sub" style="left:{x0 + 84}px;top:318px;font-size:92px;line-height:1">How OG is<br>'
+            f'<div class="mz-hair" style="left:{x0 + 88}px;top:280px;width:86px"></div>'
+            f'<div class="mz-sub" style="left:{x0 + 84}px;top:296px;font-size:90px;line-height:1">How OG is<br>'
             f'your locker?</div>'
-            f'<div class="mz-sc mz-nw" style="left:{x0 + 90}px;top:540px">TELL US IN THE COMMENTS</div>'
-            f'<div class="mz-sc mz-nw" style="left:{x0 + 90}px;top:610px;font-size:22px;letter-spacing:.3em;'
+            f'<div class="mz-sc mz-nw" style="left:{x0 + 90}px;top:516px">TELL US IN THE COMMENTS</div>'
+            f'<div class="mz-sc mz-nw" style="left:{x0 + 90}px;top:574px;font-size:21px;letter-spacing:.3em;'
             f'color:#5e554b">POSTCARDS · TODAY\'S EXHIBITS</div>']
-    xs = [(84, -3), (374, 2), (664, -2)]
     for j, it in enumerate(three):
-        x, rot = xs[j]
-        html.append(_postcard(ctx, it, x0 + x, 654, rot, f"pc{j}"))
-    html.append(f'<div class="mz-ledge" style="left:{x0 + 60}px;top:966px;width:900px"></div>')
+        x, rot = [(84, -3), (372, 2), (660, -2)][j]
+        html.append(_postcard(ctx, it, x0 + x, 606, rot))
+    html.append(f'<div class="mz-ledge" style="left:{x0 + 60}px;top:880px;width:900px"></div>')
     return "".join(html)
 
 
@@ -673,17 +698,18 @@ def og_check(ctx, picks: list) -> Comp:
              '<div class="mz-vig"></div><div class="mz-grain"></div></div>')
 
     # ---- the guide's paddle: the creator code, in every frame
-    t_out = content_end + .9
-    lift = (f"animation:mzlift .9s cubic-bezier(.3,.1,.2,1) {t_out:.3f}s 1 normal both;"
-            f"transform-origin:{PAD_X + PAD_W / 2:.0f}px {PAD_Y + 120}px")
+    t_out = content_end - .2
+    bx, by = PAD_X + PAD_W / 2, PAD_Y + 125           # the board's centre
+    lift = (f"animation:mzlift 1.2s cubic-bezier(.45,0,.25,1) {t_out:.3f}s 1 normal both;"
+            f"transform-origin:{bx:.0f}px {by:.0f}px")
     comp.css(f"@keyframes mzlift{{from{{transform:translate(0,0) scale(1)}}"
-             f"to{{transform:translate({540 - (PAD_X + PAD_W / 2):.0f}px,{1210 - (PAD_Y + 120)}px) scale(1.3)}}}}")
+             f"to{{transform:translate({540 - bx:.0f}px,{1190 - by:.0f}px) scale(1.3)}}}}")
     comp.add(f'<div class="full" style="z-index:30;pointer-events:none"><div class="abs" style="inset:0;{lift}">'
              f'<div class="mz-walk" style="{_a("mzwalk", 0, dur)}">{_paddle()}</div></div></div>')
     comp.add(PREP_JS)
     comp.add(ART_JS)
 
-    sounds += [(content_end + 1.0, "pop"), (content_end + 1.35, "clap")]
+    sounds.append((content_end + 1.3, "clap"))
     for t, kind in sounds:
         comp.cue(t, kind)
     comp.cues.sort()

@@ -115,12 +115,6 @@ def _run_width(text: str, pitch: float) -> float:
 # ---------------------------------------------------------------- shared pieces
 
 CSS = """
-.dp-cam{position:absolute;inset:0;animation:dpshake 2.7s ease-in-out 0s infinite alternate}
-@keyframes dpshake{0%{transform:translate(0,0)}35%{transform:translate(1.4px,-.9px)}
-  70%{transform:translate(-.8px,.6px)}100%{transform:translate(.5px,1.3px)}}
-.dp-stage{position:absolute;inset:0;perspective:2300px;perspective-origin:540px 700px}
-.dp-tilt{position:absolute;inset:0;transform-origin:540px 760px;
-  transform:rotateX(2.4deg) rotateY(1deg) rotateZ(.3deg)}
 .dp-wall{position:absolute;left:-60px;top:-60px;width:1200px;height:2040px;background:url('@slats@') center/cover}
 .dp-ceil{position:absolute;left:-60px;top:-60px;width:1200px;height:190px;
   background:linear-gradient(180deg,#0b0a09 0%,#161412 78%,#262220 100%);box-shadow:0 6px 14px rgba(0,0,0,.6)}
@@ -140,6 +134,7 @@ CSS = """
   background:linear-gradient(180deg,#333334 0%,#29292a 47%,#202021 50.5%,#262627 53%,#1b1b1c 100%);
   box-shadow:0 1px 1.5px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07)}
 .dp-f .s{position:absolute;left:0;width:100%}
+.dp-f .s div{position:relative}
 .dp-f b{display:block;height:var(--h);line-height:var(--h);text-align:center;color:@INK@;
   font-family:'Barlow Condensed';font-weight:800;font-size:var(--fs);white-space:nowrap}
 .dp-f b.nm{transform:scaleX(.86)}
@@ -149,25 +144,28 @@ CSS = """
   rgba(0,0,0,.34) 50.5%,rgba(0,0,0,.02) 56%,rgba(0,0,0,.2) 100%),rgba(255,255,255,var(--v))}
 .dp-f::after{content:"";position:absolute;left:0;right:0;top:calc(50% - 1px);height:2px;z-index:3;
   background:#060606;box-shadow:0 1px 0 rgba(255,255,255,.08)}
-.dp-f .p{position:absolute;left:0;right:0;top:0;height:50%;z-index:4;opacity:0;transform-origin:50% 100%;
-  background:linear-gradient(180deg,#4a4a4c 0%,#323234 55%,#1c1c1d 100%)}
-@keyframes dppu{0%{opacity:0;transform:scaleY(1)}3%{opacity:1;transform:scaleY(1)}
-  70%{opacity:1;transform:scaleY(.1)}100%{opacity:0;transform:scaleY(0)}}
-@keyframes dpfl{from{transform:none}to{transform:translateY(var(--d))}}
+.dp-f .p{position:absolute;left:0;right:0;top:0;height:0;z-index:4;background-color:rgba(62,62,64,0)}
+/* 0% is invisible on purpose: Chrome can land a multi-iteration forwards fill on ~0 */
+@keyframes dppu{0%{top:0;height:50%;background-color:rgba(62,62,64,0)}3%{top:0;height:50%;background-color:rgba(62,62,64,1)}
+  70%{top:45%;height:5%;background-color:rgba(44,44,46,1)}100%{top:50%;height:0;background-color:rgba(30,30,31,0)}}
+@keyframes dpfl{from{top:0}to{top:var(--d)}}
 .dp-f.rem b{letter-spacing:.06em;color:@AMBER@;animation:dpblink 1.2s linear 0s infinite}
 .dp-f.rem b.w2{line-height:calc(var(--h) / 2);white-space:normal}
 @keyframes dpblink{0%,46%{color:@AMBER@;text-shadow:0 0 5px rgba(255,170,30,.5)}
   50%,96%{color:#a87a22;text-shadow:none}100%{color:@AMBER@;text-shadow:0 0 5px rgba(255,170,30,.5)}}
-.dp-lamp{position:absolute;border-radius:50%;
-  background:radial-gradient(circle at 40% 35%,#fff3c8 0%,#ffbe3a 35%,#c77a06 75%,#6b3f02 100%);
+.dp-lamp{position:absolute;border-radius:50%;background-color:#ffbe3a;
+  background-image:radial-gradient(circle at 40% 35%,rgba(255,246,214,.95) 0%,rgba(255,246,214,0) 38%,rgba(0,0,0,0) 62%,rgba(60,30,0,.55) 100%);
   box-shadow:0 0 0 2px #0a0a0a,0 0 9px 2px rgba(255,170,30,.5);animation:dplampb 1.2s linear 0s infinite}
-@keyframes dplampb{0%,46%{filter:none}50%,96%{filter:brightness(.25) saturate(.6)}100%{filter:none}}
-.dp-lit{position:absolute;border-radius:4px;opacity:0;
+@keyframes dplampb{0%,46%{background-color:#ffbe3a;box-shadow:0 0 0 2px #0a0a0a,0 0 9px 2px rgba(255,170,30,.5)}
+  50%,96%{background-color:#4a3210;box-shadow:0 0 0 2px #0a0a0a,0 0 0 0 rgba(255,170,30,0)}
+  100%{background-color:#ffbe3a;box-shadow:0 0 0 2px #0a0a0a,0 0 9px 2px rgba(255,170,30,.5)}}
+.dp-lit{position:absolute;border-radius:4px;visibility:hidden;
   box-shadow:0 0 0 2px rgba(255,190,70,.85),0 0 12px 1px rgba(255,170,40,.3),inset 0 0 14px rgba(255,170,40,.18)}
-@keyframes dpon{from{opacity:0}to{opacity:1}}
-@keyframes dpoff{from{opacity:1}to{opacity:0}}
-@keyframes dpflash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
-@keyframes dpflash2{0%{opacity:0}20%{opacity:.35}100%{opacity:0}}
+@keyframes dpon{from{visibility:hidden}to{visibility:visible}}
+@keyframes dpoff{from{visibility:visible}to{visibility:hidden}}
+@keyframes dpflash2{0%{background-color:rgba(170,190,226,0)}20%{background-color:rgba(170,190,226,.32)}
+  100%{background-color:rgba(170,190,226,0)}}
+@keyframes dpblink2{0%,46%{background-color:#ffb21f}50%,96%{background-color:rgba(255,178,31,.25)}100%{background-color:#ffb21f}}
 .dp-shade{position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(165deg,rgba(0,0,0,0) 25%,rgba(0,0,0,.26) 75%,rgba(0,0,0,.4) 100%)}
 .dp-blight{position:absolute;inset:0;pointer-events:none;
@@ -189,14 +187,11 @@ CSS = """
 .dp-plate{position:absolute;padding:5px 14px 6px;border-radius:3px;font-family:'Barlow Condensed';font-weight:600;
   font-size:22px;letter-spacing:.08em;color:#2a2926;white-space:nowrap;
   background:linear-gradient(180deg,#b9b6ae,#8f8c85);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 2px 4px rgba(0,0,0,.6)}
-.dp-grain{position:absolute;left:-256px;top:-256px;width:1592px;height:2432px;pointer-events:none;opacity:.055;
-  background:url('@grain@') 0 0/512px 512px repeat;animation:dpgr .5s steps(1,end) 0s infinite}
-@keyframes dpgr{0%{transform:translate(0,0)}20%{transform:translate(-131px,77px)}40%{transform:translate(53px,-173px)}
-  60%{transform:translate(-201px,-29px)}80%{transform:translate(97px,149px)}}
-.dp-vig{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(125% 80% at 42% 36%,rgba(0,0,0,0) 52%,rgba(0,0,0,.6) 100%)}
-.dp-tint{position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,190,120,.035) 0%,rgba(0,0,0,0) 45%,rgba(18,28,42,.30) 100%)}
+/* the lens: one still layer for the vignette, the colour cast and the grain */
+.dp-lens{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(125% 80% at 42% 36%,rgba(0,0,0,0) 52%,rgba(0,0,0,.6) 100%),
+    linear-gradient(180deg,rgba(255,190,120,.035) 0%,rgba(0,0,0,0) 45%,rgba(18,28,42,.30) 100%)}
+.dp-grain{position:absolute;inset:0;pointer-events:none;opacity:.05;background:url('@grain@') 0 0/512px 512px repeat}
 
 /* the gate monitor */
 .dp-mon{position:absolute;border-radius:14px;background:linear-gradient(180deg,#1b1b1d,#0c0c0d);
@@ -210,10 +205,10 @@ CSS = """
     linear-gradient(118deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 38%,rgba(255,255,255,0) 62%,rgba(255,255,255,.03) 100%),
     radial-gradient(ellipse 80% 75% at 50% 50%,rgba(0,0,0,0) 60%,rgba(0,0,0,.35) 100%)}
 @keyframes dpkb{from{transform:scale(1)}to{transform:scale(1.06)}}
-@keyframes dpup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes dpup{from{visibility:hidden;top:var(--y0)}to{visibility:visible;top:var(--y1)}}
 @keyframes dppush{from{transform:scale(1)}to{transform:scale(1.07)}}
 @keyframes dpdrift{from{transform:scale(1)}to{transform:scale(1.035)}}
-@keyframes dpstrike{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes dpstrike{from{width:0}to{width:calc(100% + 8px)}}
 """
 
 
@@ -232,8 +227,8 @@ def _wall(close: bool = False) -> str:
             'closest-side,#fff8ec 0%,#fff8ec 40%,rgba(255,248,236,0))"></div>')
 
 
-def _overlays() -> str:
-    return '<div class="dp-tint"></div><div class="dp-grain"></div><div class="dp-vig"></div>'
+def _lens() -> str:
+    return '<div class="dp-lens"></div><div class="dp-grain"></div>'
 
 
 def _code_sign() -> str:
@@ -339,8 +334,8 @@ def _board(fl: Flaps, g: dict, names: list, prices: list, head: str, sub: str, *
                 if row == r:
                     parts.append(f'<div class="dp-lit" style="left:{x - 6:.0f}px;top:{y - 5:.0f}px;'
                                  f'width:{CX1 - x + 12:.0f}px;height:{ch + 10:.0f}px;'
-                                 f'animation:dpon .12s linear {t_on:.3f}s 1 normal both,'
-                                 f'dpoff .25s linear {t_off:.3f}s 1 normal forwards"></div>')
+                                 f'animation:dpon .01s steps(1,end) {t_on:.3f}s 1 normal both,'
+                                 f'dpoff .01s steps(1,end) {t_off:.3f}s 1 normal forwards"></div>')
     lfs = min(21, max(16, P * .6))
     parts.append(f'<div class="dp-lab" style="left:{x + 1:.0f}px;top:{g["lab_y"]:.0f}px;font-size:{lfs:.0f}px">ITEM</div>'
                  f'<div class="dp-lab" style="right:{1080 - col_price - price_w:.0f}px;top:{g["lab_y"]:.0f}px;'
@@ -500,7 +495,7 @@ def _monitor(ctx, it: dict, k: int, n: int, t0: float, R_: float, g: dict) -> st
     if reg:
         blocks.append((lab("REGULAR PRICE") + f'<div class="dp-ui" style="position:relative;display:inline-block;'
                        f'font-size:40px;font-weight:800;color:#b8c2d2;margin-top:4px">{reg:,}<span style="position:'
-                       f'absolute;left:-4px;right:-4px;top:52%;height:4px;background:#ff5a4f;transform-origin:0 50%;'
+                       f'absolute;left:-4px;width:0;top:52%;height:4px;background:#ff5a4f;'
                        f'{_a("dpstrike", t0 + 1.4, .25, "ease-out")}"></span></div>', 30 + 42))
     members = _members(it) if bundle else []
     gap = 44 if not bundle else 30
@@ -522,9 +517,9 @@ def _monitor(ctx, it: dict, k: int, n: int, t0: float, R_: float, g: dict) -> st
     for i, (html, h) in enumerate(blocks):
         if i:
             info.append(f'<div class="abs" style="left:0;top:{y - gap / 2:.0f}px;width:{info_w - 20}px;height:1px;'
-                        f'background:rgba(201,211,226,.16);{_a("dpon", t0 + .7 + i * .16, .3)}"></div>')
-        info.append(f'<div class="abs" style="left:0;top:{y:.0f}px;width:{info_w}px;'
-                    f'{_a("dpup", t0 + .7 + i * .16, .3, "cubic-bezier(.2,.8,.2,1)")}">{html}</div>')
+                        f'background:rgba(201,211,226,.16);{_a("dpon", t0 + .7 + i * .16, .01, "steps(1,end)")}"></div>')
+        info.append(f'<div class="abs" style="left:0;--y0:{y + 10:.0f}px;--y1:{y:.0f}px;width:{info_w}px;'
+                    f'{_a("dpup", t0 + .7 + i * .16, .2, "steps(2,start)")}">{html}</div>')
         y += h + gap
     screen = (
         f'<div class="abs" style="inset:0;background:radial-gradient(ellipse 62% 58% at 34% 56%,{col}55,{col}14 60%,'
@@ -533,7 +528,7 @@ def _monitor(ctx, it: dict, k: int, n: int, t0: float, R_: float, g: dict) -> st
         f'<div class="abs" style="left:0;top:0;width:{sw}px;height:{bar}px;background:#0f2242;'
         f'box-shadow:inset 0 -2px 0 rgba(255,178,31,.55)"></div>'
         f'<div class="abs" style="left:22px;top:{bar / 2 - 8:.0f}px;width:16px;height:16px;border-radius:50%;'
-        f'background:{AMBER};animation:dpblink2 1.2s linear 0s infinite"></div>'
+        f'background-color:{AMBER};animation:dpblink2 1.2s linear 0s infinite"></div>'
         f'<div class="dp-ui abs" style="left:50px;top:0;line-height:{bar}px;font-size:34px;font-weight:800;'
         f'letter-spacing:.08em;color:{AMBER}">LAST CALL</div>'
         f'<div class="dp-ui abs" style="right:22px;top:0;line-height:{bar}px;font-size:30px;font-weight:600;'
@@ -549,9 +544,8 @@ def _monitor(ctx, it: dict, k: int, n: int, t0: float, R_: float, g: dict) -> st
         f'<div class="dp-ui abs" style="left:22px;top:{sh - foot}px;line-height:{foot}px;font-size:28px;'
         f'font-weight:600;letter-spacing:.1em">LEAVING THE SHOP AT RESET · '
         f'<span style="color:{AMBER};font-weight:800">{esc(ctx.reset_et.upper())}</span></div>')
-    switch = (f'<div class="abs" style="inset:0;{_a("dpon", t_sw, .1)}">{screen}</div>'
-              f'<div class="abs" style="inset:0;background:#9fb4d8;opacity:0;mix-blend-mode:screen;'
-              f'{_a("dpflash2", t_sw, .22, "ease-out")}"></div>')
+    switch = (f'<div class="abs" style="inset:0;{_a("dpon", t_sw, .01, "steps(1,end)")}">{screen}</div>'
+              f'<div class="abs" style="inset:0;{_a("dpflash2", t_sw, .24, "ease-out")}"></div>')
     return (f'<div class="dp-mon" style="left:{mx}px;top:{my:.0f}px;width:{mw}px;height:{mh:.0f}px">'
             f'<div class="dp-scr" style="left:{bz}px;top:{bz}px;width:{sw}px;height:{sh:.0f}px">{switch}'
             f'<div class="dp-scan"></div><div class="dp-glass"></div></div>'
@@ -572,7 +566,6 @@ def last_chance(ctx, picked: list) -> Comp:
                  ("grain", tex("departures-grain.png")), ("INK", INK), ("AMBER", AMBER), ("LIME", LIME)):
         css = css.replace(f"@{k}@", v)
     comp.css(css)
-    comp.css("@keyframes dpblink2{0%,46%{opacity:1}50%,96%{opacity:.25}100%{opacity:1}}")
     names = [_shown_name(it) for it in picked]
     prices = [int(it["price"]) for it in picked]
     reset = ctx.reset_et.upper()
@@ -585,9 +578,8 @@ def last_chance(ctx, picked: list) -> Comp:
 
     comp.add('<div class="full" style="z-index:0;background:#0c0b0a"></div>')
 
-    def shot(inner: str, push: str = "") -> str:
-        return (f'<div class="full"><div class="dp-cam"><div class="dp-stage"><div class="dp-tilt" '
-                f'style="{push}">{inner}</div></div></div>{_overlays()}</div>')
+    def shot(inner: str) -> str:
+        return f'<div class="full" style="overflow:hidden">{inner}</div>'
 
     # ---- hook: the board, complete on frame 0; the rows re-sync, row 1 lights up
     hook = _wall() + _board(fl, bg, names, prices, head, sub, resync=.35, lit=[(0, 2.2, HOOK + 1)],
@@ -636,7 +628,8 @@ def last_chance(ctx, picked: list) -> Comp:
         comp.cue(ts_, "flap"); comp.cue(ts_ + .4, "flap")
 
     # ---- the code sign: on screen the whole time, above everything
-    comp.add(f'<div class="full" style="z-index:30"><div class="dp-cam">{_code_sign()}</div></div>')
+    comp.add(f'<div class="full" style="z-index:25">{_lens()}</div>')
+    comp.add(f'<div class="full" style="z-index:30">{_code_sign()}</div>')
     comp.add(PREP_JS)
     comp.cues.sort()
     return comp

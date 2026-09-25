@@ -35,9 +35,9 @@ MARK = "#c8261f"                # red marker
 PENCIL = "#4b463f"
 
 # Where things sit (safe area y 190-1480; below y 880 nothing right of x 960).
-CARD_X, CARD_Y, CARD_W, CARD_H = 44, 552, 560, 784
-NOTE_X, NOTE_Y, NOTE_W, NOTE_H, NOTE_STEP = 630, 552, 310, 178, 202
-PAD_X, PAD_Y, PAD_W, PAD_H = 42, 206, 340, 300          # the note pad: title + countdown
+CARD_X, CARD_Y, CARD_W, CARD_H = 40, 552, 580, 812
+NOTE_X, NOTE_Y, NOTE_W, NOTE_H, NOTE_STEP = 648, 552, 298, 186, 209
+PAD_X, PAD_Y, PAD_W, PAD_H = 40, 206, 364, 304          # the note pad: title + countdown
 TOKEN_X, TOKEN_Y, TOKEN_D = 668, 208, 290
 
 # Beats inside a round, seconds from its start.
@@ -61,6 +61,20 @@ def _mix(hex_: str, other: str, k: float) -> str:
     a = [int(hex_[i:i + 2], 16) for i in (1, 3, 5)]
     b = [int(other[i:i + 2], 16) for i in (1, 3, 5)]
     return "#" + "".join(f"{round(x + (y - x) * k):02x}" for x, y in zip(a, b))
+
+
+def _svg_box(svg: str, w: float, h: float) -> str:
+    """The kit's stroke SVGs are frame-sized; inside a note that makes the
+    note's layer frame-sized too. Size them to the note (strokes may still
+    overflow a little: overflow is visible)."""
+    return svg.replace('width="1080" height="1920" viewBox="0 0 1080 1920"',
+                       f'width="{w:.0f}" height="{h:.0f}" viewBox="0 0 {w:.0f} {h:.0f}"')
+
+
+def _words(text: str) -> str:
+    """Escaped text whose hyphenated words never break at the hyphen."""
+    return " ".join(f'<span style="white-space:nowrap">{esc(w)}</span>' if "-" in w else esc(w)
+                    for w in text.split(" "))
 
 
 def _base(it: dict) -> str:
@@ -126,7 +140,7 @@ def _flip_css() -> str:
 
     def shade(u):
         a = _flip_state(u)[0]
-        return f"opacity:{.55 * abs(math.sin(math.radians(a))) ** 1.4:.3f}"
+        return f"background-color:rgba(11,9,6,{.55 * abs(math.sin(math.radians(a))) ** 1.4:.3f})"
 
     return "\n".join([_kf("cdflip", card), _kf("cdshadow", shadow), _kf("cdshade", shade)])
 
@@ -137,8 +151,7 @@ T_SWAP = _t_angle(180)          # the face swaps (quiz -> revealed) while the ba
 # ---------------------------------------------------------------- CSS
 
 CSS = """
-.cd-cam{position:absolute;inset:0;animation:cddrift 7s ease-in-out -3.5s infinite alternate}
-@keyframes cddrift{from{transform:translate(-2px,1px) rotate(-.12deg)}to{transform:translate(2px,-1px) rotate(.12deg)}}
+.cd-cam{position:absolute;inset:0}
 .cd-mat{position:absolute;left:-60px;top:-70px;width:1200px;height:1860px;border-radius:0 0 34px 34px;
   background:radial-gradient(ellipse 760px 900px at 470px 900px,rgba(255,226,170,.20),rgba(255,226,170,.06) 55%,rgba(255,226,170,0) 80%),
     radial-gradient(ellipse 1000px 1250px at 520px 880px,rgba(0,0,0,0) 42%,rgba(0,0,0,.5) 100%),
@@ -147,10 +160,7 @@ CSS = """
   border:3px dashed rgba(206,226,214,.18);border-top:0}
 .cd-wood{position:absolute;left:-60px;top:1760px;width:1200px;height:260px;background:url('@wood@') center/cover}
 .cd-wood::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(16,8,3,.78),rgba(16,8,3,.55) 35%,rgba(8,4,2,.7))}
-.cd-grain{position:absolute;inset:-64px;pointer-events:none;background:url('@grain@') 0 0/256px 256px;opacity:.07;
-  animation:cdgrain .6s steps(6) 0s infinite}
-@keyframes cdgrain{0%{transform:translate(0,0)}17%{transform:translate(-37px,21px)}33%{transform:translate(18px,-44px)}
-  50%{transform:translate(-22px,-13px)}67%{transform:translate(41px,30px)}83%{transform:translate(-9px,47px)}100%{transform:translate(0,0)}}
+.cd-grain{position:absolute;inset:0;pointer-events:none;background:url('@grain@') 0 0/256px 256px;opacity:.06}
 .cd-vig{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 85% 64% at 48% 50%,rgba(0,0,0,0) 58%,rgba(0,0,0,.34) 100%)}
 
@@ -184,8 +194,8 @@ CSS = """
   box-shadow:inset 0 0 0 2px rgba(120,70,20,.45),0 0 0 2px rgba(255,236,190,.5),0 3px 6px rgba(60,30,10,.35)}
 .cd-namebar{position:absolute;left:10px;top:10px;right:10px;height:74px;border-radius:9px;
   background:linear-gradient(#fbf4e2,#f1e3c2);box-shadow:inset 0 0 0 2px rgba(135,82,28,.4),inset 0 -8px 12px rgba(160,100,30,.10)}
-.cd-name{position:absolute;left:22px;top:0;font-family:'Playfair Display';font-weight:900;font-size:54px;line-height:74px;
-  color:#22170e;letter-spacing:.02em;white-space:nowrap}
+.cd-namebox{position:absolute;left:20px;top:0;bottom:0;display:flex;align-items:center}
+.cd-name{font-family:'Playfair Display';font-weight:900;font-size:54px;line-height:1.0;color:#22170e;letter-spacing:.02em}
 .cd-gem{position:absolute;right:24px;top:24px;width:26px;height:26px;transform:rotate(45deg);border-radius:4px}
 .cd-tape{position:absolute;left:6px;top:6px;width:330px;height:64px;transform:rotate(-1.6deg);
   background:linear-gradient(rgba(240,226,184,.97),rgba(228,210,164,.97)),url('@paper@') center/cover;
@@ -208,7 +218,7 @@ CSS = """
 .cd-foot{position:absolute;left:0;right:0;bottom:26px;text-align:center;font-family:'Barlow Condensed';font-weight:600;
   font-size:18px;letter-spacing:.2em;color:rgba(40,22,8,.8)}
 .cd-foot b{font-weight:800}
-.cd-shade{position:absolute;inset:0;background:#0b0906;opacity:0}
+.cd-shade{position:absolute;inset:0;background-color:rgba(11,9,6,0)}
 .cd-edge{position:absolute;inset:0;border-radius:28px;box-shadow:inset 0 0 0 1.5px rgba(255,244,220,.55)}
 .cd-bk{position:absolute;inset:0;background:
   repeating-linear-gradient(45deg,rgba(222,178,98,.16) 0 2px,rgba(0,0,0,0) 2px 26px),
@@ -236,8 +246,8 @@ CSS = """
 @keyframes cdclear{to{transform:translate(-1150px,140px) rotate(-17deg)}}
 @keyframes cdpeel{0%{transform:rotate(var(--r))}25%{transform:translate(4px,-16px) rotate(calc(var(--r) + 3deg))}
   100%{transform:translate(880px,-260px) rotate(calc(var(--r) + 34deg))}}
-@keyframes cdoff{from{opacity:1}to{opacity:0}}
-@keyframes cdon{from{opacity:0}to{opacity:1}}
+@keyframes cdoff{from{visibility:visible}to{visibility:hidden}}
+@keyframes cdon{from{visibility:hidden}to{visibility:visible}}
 @keyframes cdsil{from{filter:brightness(0)}to{filter:none}}
 @keyframes cdgather{to{transform:translate(-120px,1250px) rotate(-8deg)}}
 @keyframes cdfan{0%{opacity:0;transform:translate(-40px,900px) rotate(calc(var(--r) - 10deg))}
@@ -274,29 +284,45 @@ def _card_face(ctx, it: dict, k: int, n: int, t_swap=None, art_img=True) -> str:
               f"radial-gradient(circle at 50% 100%,rgba(0,0,0,0) 47%,{pat}44 49%,{pat}44 55%,rgba(0,0,0,0) 57%) 28px 14px/56px 28px,"
               f"linear-gradient({tint},{_mix(base, '#ffffff', .45)})")
     q = r = ""
-    if t_swap is not None:
+    never = t_swap == "never"             # the quiz face for good (the hook's fan)
+    if never:
+        r = 'style="display:none"'
+    elif t_swap is not None:
         q = f'style="{_a("cdoff", t_swap, .01, "steps(1,end)")}"'
         r = f'style="{_a("cdon", t_swap, .01, "steps(1,end)")}"'
     kind = f"{it.get('rarity_label') or ''} {it.get('type') or ''}".strip().upper()
     name = esc(it["name"])
+    nw = CARD_W - 44 - 20 - 84          # the name bar, less the gem
+    # One line, shrunk to fit -- unless that would go below ~32 px: then two
+    # balanced lines (Playfair 900 averages about .56 em a letter).
+    est = len(it["name"]) * .56 * 54
+    if est <= nw or 54 * nw / est >= 32:
+        name_el = f'<div class="cd-name" data-fit="{nw}" style="white-space:nowrap">{name}</div>'
+    else:
+        name_el = (f'<div class="cd-name" data-fit="{nw}" data-lines="2" style="width:{nw}px;font-size:36px;'
+                   f'text-wrap:balance">{_words(it["name"])}</div>')
     art = ctx.art(it) if art_img else ""
     iw, ih = CARD_W - 44 - 20, 436
     if art:
-        sil = f'{_a("cdsil", t_swap, .01, "steps(1,end)")}' if t_swap is not None else ""
+        sil = ("filter:brightness(0);" if never else
+               _a("cdsil", t_swap, .01, "steps(1,end)") if t_swap is not None else "")
         pic = (f'<div class="abs" style="left:0;top:0;width:{iw}px;height:{ih}px;{sil}">'
                f'<img data-trim src="{art}" style="position:absolute;left:14px;top:12px;width:{iw - 28}px;'
                f'height:{ih - 12}px;object-fit:contain"></div>')
     else:
-        # No picture: a question mark where the silhouette would be, and the
-        # name printed in the window once it's revealed.
+        # No picture: a marker question mark where the silhouette would be,
+        # and once it's revealed a big printed initial, like a monogram.
+        qa = _a("cdoff", t_swap, .01, "steps(1,end)") if (t_swap is not None and not never) else ""
+        ra = ("display:none;" if never else
+              _a("cdon", t_swap, .01, "steps(1,end)") if t_swap is not None else "")
+        box = f"left:0;top:0;width:{iw}px;height:{ih}px;display:flex;align-items:center;justify-content:center;"
+        initial = next((c for c in it["name"] if c.isalnum()), "?").upper()
         pic = ""
         if t_swap is not None:
-            pic += (f'<div class="abs cd-mark" {q} style="left:0;top:0;width:{iw}px;height:{ih}px;display:flex;'
-                    f'align-items:center;justify-content:center;font-size:260px;color:rgba(20,14,8,.85)">?</div>')
-        pic += (f'<div class="abs" {r} style="left:30px;top:0;width:{iw - 60}px;height:{ih}px;display:flex;'
-                f'align-items:center;justify-content:center;text-align:center">'
-                f'<div style="font-family:\'Playfair Display\';font-weight:900;font-size:64px;line-height:1.05;'
-                f'color:#22170e;width:{iw - 60}px" data-fit="{iw - 60}" data-lines="3">{name}</div></div>')
+            pic += (f'<div class="abs cd-mark" style="{box}font-size:260px;color:rgba(20,14,8,.85);{qa}">?</div>')
+        pic += (f'<div class="abs" style="{box}{ra}"><div style="font-family:\'Playfair Display\';font-weight:900;'
+                f'font-size:300px;line-height:1;color:{_mix(base, "#000000", .45)};opacity:.55">{esc(initial)}</div>'
+                f'</div>')
     set_ = it.get("set") or ""
     season = it.get("season_label") or ""
     rows = [("Set:", esc(set_) if set_ else "&mdash;"), ("Introduced:", esc(season) if season else "&mdash;")]
@@ -307,13 +333,13 @@ def _card_face(ctx, it: dict, k: int, n: int, t_swap=None, art_img=True) -> str:
     tape = f'<div class="cd-tape" {q}>???</div>' if t_swap is not None else ""
     return (f'<div class="abs" style="inset:0;background:{border}"></div>'
             f'<div class="cd-inner">'
-            f'<div class="cd-namebar"><div class="cd-name" {r} data-fit="{CARD_W - 44 - 20 - 90}">{name}</div>'
+            f'<div class="cd-namebar"><div class="cd-namebox" {r}>{name_el}</div>'
             f'<div class="cd-gem" style="background:linear-gradient(135deg,{hi},{base} 55%,{lo});'
             f'box-shadow:0 0 0 2px {lo}88"></div>{tape}</div>'
             f'<div class="cd-window" style="{window}">{pic}<div class="cd-winshade"></div></div>'
             f'<div class="cd-type" style="background:linear-gradient({_mix(base, "#ffffff", .55)},'
-            f'{_mix(base, "#ffffff", .35)});box-shadow:inset 0 0 0 2px {lo}88" data-fit="{CARD_W - 44 - 20 - 30}">'
-            f'{esc(kind)}</div>'
+            f'{_mix(base, "#ffffff", .35)});box-shadow:inset 0 0 0 2px {lo}88"><span data-fit="{CARD_W - 44 - 20 - 36}" '
+            f'style="white-space:nowrap">{esc(kind)}</span></div>'
             f'<div class="cd-stats">{stats}</div></div>'
             f'<div class="cd-foot">LOCKER LEGENDS · {k} / {n} · <b>CODE BAD</b></div>'
             f'<div class="cd-edge"></div>')
@@ -347,13 +373,12 @@ def _card(ctx, it: dict, k: int, n: int, t0: float, rot: float, deal: bool, t_ou
         move.append(f"cddeal {DEAL:.3f}s cubic-bezier(.2,.75,.3,1) {t0 + T_DEAL:.3f}s 1 normal both")
     move.append(f"cdclear .5s cubic-bezier(.55,0,.85,.35) {t_out:.3f}s 1 normal forwards")
     front = _card_face(ctx, it, k, n, t_swap)
-    return (f'<div class="abs" style="left:0;top:0;width:1080px;height:1920px;transform-origin:{x + w / 2}px {y + h / 2}px;'
-            f'animation:{",".join(move)}">'
-            f'<div class="abs" style="left:{x + w / 2:.0f}px;top:{y + h / 2:.0f}px;width:0;height:0;transform:rotate({rot}deg)">'
+    return (f'<div class="abs" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px;animation:{",".join(move)}">'
+            f'<div class="abs" style="left:{w / 2:.0f}px;top:{h / 2:.0f}px;width:0;height:0;transform:rotate({rot}deg)">'
             f'<div class="cd-shd" style="left:{-w / 2 + 14:.0f}px;top:{-h / 2 + 18:.0f}px;width:{w - 28}px;height:{h - 30}px;'
             f'{_a("cdshadow", t_flip, FLIP_D)}"></div></div>'
-            f'<div class="cd-persp" style="perspective-origin:{x + w / 2:.0f}px {y + h / 2:.0f}px">'
-            f'<div class="cd-card" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px;transform:rotate({rot}deg)">'
+            f'<div class="cd-persp" style="perspective-origin:{w / 2:.0f}px {h / 2:.0f}px">'
+            f'<div class="cd-card" style="left:0;top:0;width:{w}px;height:{h}px;transform:rotate({rot}deg)">'
             f'<div class="cd-card" style="left:0;top:0;width:{w}px;height:{h}px;{_a("cdflip", t_flip, FLIP_D)}">'
             f'<div class="cd-face">{front}<div class="cd-shade" style="{_a("cdshade", t_flip, FLIP_D)}"></div></div>'
             f'<div class="cd-face cd-back">{_card_back()}<div class="cd-shade" style="{_a("cdshade", t_flip, FLIP_D)}"></div></div>'
@@ -364,8 +389,7 @@ def _flat_card(ctx, it: dict, k: int, n: int, cx: float, cy: float, scale: float
                revealed: bool) -> str:
     """A card lying still (the hook's fan, the outro's spread)."""
     w, h = CARD_W, CARD_H
-    # unrevealed: the quiz face for good (its swap time is never reached)
-    face = _card_face(ctx, it, k, n, None if revealed else 1e6)
+    face = _card_face(ctx, it, k, n, None if revealed else "never")
     return (f'<div class="abs" style="left:{cx:.0f}px;top:{cy:.0f}px;width:0;height:0;--r:{rot}deg;'
             f'transform:rotate({rot}deg);{anim}">'
             f'<div class="abs" style="left:{-w / 2:.0f}px;top:{-h / 2:.0f}px;width:{w}px;height:{h}px;'
@@ -374,25 +398,25 @@ def _flat_card(ctx, it: dict, k: int, n: int, cx: float, cy: float, scale: float
             f'<div class="cd-face" style="position:absolute;inset:0">{face}</div></div></div>')
 
 
-def _pad_note(i: int, t_in, lines: str, corner: str, rot: float) -> str:
+def _pad_note(t_in, lines: str, corner: str, rot: float) -> str:
     """A note on the pad (top left). t_in=None: there from frame 0."""
     anim = _a("lkslap", t_in, .5, "cubic-bezier(.2,.9,.25,1)") if t_in is not None else ""
     return (f'<div class="abs" style="left:{PAD_X}px;top:{PAD_Y}px;width:{PAD_W}px;height:{PAD_H}px;'
             f'--r:{rot}deg;transform:rotate({rot}deg);{anim}">'
             f'<div class="cd-note" style="{_note_bg(NOTE_COLS[0])}"></div>'
-            f'<div class="abs cd-hand" style="left:24px;top:18px;font-size:84px;transform:rotate(-1.5deg)">'
-            f'WHO\'S THAT<br>SKIN?</div>'
-            f'<div class="abs cd-hand" style="right:18px;top:8px;font-size:36px;font-weight:600;color:{PENCIL}">'
-            f'{corner}</div>{lines}</div>')
+            f'<div class="abs cd-hand" style="left:24px;top:22px;font-size:70px;line-height:.9;transform:rotate(-1.5deg);'
+            f'white-space:nowrap">WHO\'S THAT<br>SKIN?</div>'
+            f'<div class="abs cd-hand" style="left:200px;top:98px;font-size:42px;font-weight:600;color:{PENCIL};'
+            f'transform:rotate(-4deg);white-space:nowrap">{corner}</div>{lines}</div>')
 
 
 def _countdown(t: float) -> str:
     """3... 2... 1..., written in red on the note a second apart."""
     out = []
     for j, s in enumerate(("3…", "2…", "1…")):
-        out.append(f'<span style="display:inline-block;margin-right:26px;{write_on(t + j, .28, 8)}">{s}</span>')
-    return (f'<div class="abs cd-hand" style="left:30px;top:196px;font-size:76px;color:{MARK};'
-            f'transform:rotate(-2deg);white-space:nowrap">{"".join(out)}</div>')
+        out.append(f'<span style="display:inline-block;margin-right:12px;{write_on(t + j, .26, 8)}">{s}</span>')
+    return (f'<div class="abs cd-hand" style="left:24px;top:168px;font-size:100px;line-height:1;color:{MARK};'
+            f'transform:rotate(-3deg);white-space:nowrap;letter-spacing:-.02em">{"".join(out)}</div>')
 
 
 def _options(opts: list, answer: int, t0: float, t_out: float) -> tuple:
@@ -400,11 +424,12 @@ def _options(opts: list, answer: int, t0: float, t_out: float) -> tuple:
     right one is circled and ticked in red; the others get a pencil line.
     Returns (html, sounds)."""
     html, sounds = [], []
-    rots = [-2.2, 1.6, -1.2, 2.4]
     t_rev = t0 + T_REV
+    rnd = (int(t0 * 10) * 7919) % 1000
     for j, text in enumerate(opts):
-        x, y = NOTE_X, NOTE_Y + j * NOTE_STEP
-        rot = rots[(j + int(t0)) % 4] * (1 if j % 2 else -1) * -1
+        jit = ((rnd * (j + 3) * 37) % 100) / 100
+        x, y = NOTE_X + (jit - .5) * 14, NOTE_Y + j * NOTE_STEP + (jit - .5) * 6
+        rot = (1.2 + 1.6 * jit) * (1 if (j + rnd) % 2 else -1)
         t_in = t0 + T_OPT + j * .09
         col = NOTE_COLS[j]
         right = j == answer
@@ -423,10 +448,11 @@ def _options(opts: list, answer: int, t0: float, t_out: float) -> tuple:
             f'<div class="cd-note" style="{_note_bg(col)}"></div>'
             f'<div class="abs cd-mark" style="left:18px;top:14px;width:58px;height:58px;font-size:40px;display:flex;'
             f'align-items:center;justify-content:center">{"ABCD"[j]}</div>'
-            + stroke_static([rough_ellipse(47, 43, 27, 25, seed=j + 11, overshoot=.12, wobble=.06)], "#1d1b18", 4, .85) +
+            + _svg_box(stroke_static([rough_ellipse(47, 43, 27, 25, seed=j + 11, overshoot=.12, wobble=.06)],
+                                     "#1d1b18", 4, .85), NOTE_W, NOTE_H) +
             f'<div class="abs cd-hand" data-fit="{NOTE_W - 40}" data-lines="2" style="left:22px;top:76px;'
-            f'width:{NOTE_W - 40}px;font-size:50px;line-height:.95">{esc(text)}</div>'
-            f'{marks}</div>')
+            f'width:{NOTE_W - 40}px;font-size:50px;line-height:.95;text-wrap:balance">{_words(text)}</div>'
+            f'{_svg_box(marks, NOTE_W, NOTE_H)}</div>')
         sounds.append((t_in, "paper"))
     return "".join(html), sounds
 
@@ -448,17 +474,17 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
     ep = spec.get("episode")
 
     # the table: on screen the whole time
-    comp.add('<div class="full" style="z-index:0;background:#14231f"><div class="cd-cam">'
+    comp.add('<div class="full" style="z-index:0;background:#14231f;overflow:hidden"><div class="cd-cam">'
              '<div class="cd-wood"></div><div class="cd-mat"></div></div></div>')
 
     # ---- hook: the first three cards fanned out, silhouettes, names taped over
     fan = ""
-    for j, (x, y, rot) in enumerate([(690, 960, 9), (440, 925, -7)]):
+    for j, (x, y, rot, sc) in reversed(list(enumerate([(560, 930, 5, .86), (680, 990, 10, .8)]))):
         if j + 1 < n:
             it = rounds[j + 1][0]
-            fan += _flat_card(ctx, it, j + 2, n, x, y, .8, rot,
-                              _a("cdgather", 2.45 + j * .08, .5, "cubic-bezier(.55,0,.85,.35)"), False)
-    comp.scene(0, HOOK, f'<div class="full"><div class="cd-cam">{fan}</div></div>', fade_in=.01, fade_out=.01, z=10)
+            fan += _flat_card(ctx, it, j + 2, n, x, y, sc, rot,
+                              _a("cdgather", 2.45 + (1 - j) * .08, .5, "cubic-bezier(.55,0,.85,.35)"), False)
+    comp.scene(0, HOOK, f'<div class="full" style="overflow:hidden"><div class="cd-cam">{fan}</div></div>', fade_in=.01, fade_out=.01, z=10)
     comp.cue(2.45, "paper")
 
     # ---- the rounds
@@ -469,7 +495,7 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
         start = 0 if k == 1 else t0 + T_DEAL - .05
         card = _card(ctx, it, k, n, t0, rot, deal=k > 1, t_out=t_out)
         notes, sounds = _options(opts, answer, t0, t_out)
-        comp.scene(start, t0 + R1 + .02, f'<div class="full"><div class="cd-cam">{card}{notes}</div></div>',
+        comp.scene(start, t0 + R1 + .02, f'<div class="full" style="overflow:hidden"><div class="cd-cam">{card}{notes}</div></div>',
                    fade_in=.01, fade_out=.01, z=11)
         if k > 1:
             comp.cue(t0 + T_DEAL + .05, "paper")
@@ -486,24 +512,33 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
         comp.cue(t_out + .05, "whoosh")
 
     # ---- the note pad (top left): a note for the hook, then a fresh one per round
-    pad = [_pad_note(0, None, f'<div class="abs cd-hand" style="left:30px;top:200px;font-size:60px;color:{MARK};'
-                              f'transform:rotate(-2deg);white-space:nowrap">{n} rounds · 4 choices</div>',
+    pad = [_pad_note(None, f'<div class="abs cd-hand" data-fit="{PAD_W - 50}" style="left:26px;top:178px;'
+                           f'font-size:62px;line-height:1.05;color:{MARK};transform:rotate(-2.5deg);white-space:nowrap">'
+                           f'{n} rounds<br>4 choices each</div>',
                      f"quiz #{ep}" if ep else "", -4)]
     for k in range(1, n + 1):
         t0 = HOOK + (k - 1) * R1
-        pad.append(_pad_note(k, t0 + T_NOTE, _countdown(t0 + T_CD), f"{k}/{n}", [3, -2.5, 2, -3.5, 1.5, -2][k % 6]))
+        pad.append(_pad_note(t0 + T_NOTE, _countdown(t0 + T_CD), f"{k}/{n}", [3, -2.5, 2, -3.5, 1.5, -2][k % 6]))
         comp.cue(t0 + T_NOTE, "paper")
 
     # ---- outro: every card, face up, and the question
     t = content_end
     spread = ""
-    xs = [150 + i * (640 / max(1, n - 1)) for i in range(n)]
+    sc = .5
+    cw_, ch_ = CARD_W * sc, CARD_H * sc
+    top_row = (n + 1) // 2 if n <= 4 else 3
     for i, (it, _, _) in enumerate(rounds):
-        u = (i - (n - 1) / 2) / max(1, (n - 1) / 2)
-        spread += _flat_card(ctx, it, i + 1, n, xs[i] + 90, 930 + 60 * u * u, .44, 13 * u,
+        row, col = (0, i) if i < top_row else (1, i - top_row)
+        in_row = top_row if row == 0 else n - top_row
+        gap = (910 - in_row * cw_) / max(1, in_row - 1) if in_row > 1 else 0
+        x0 = 45 + (910 - (in_row * cw_ + (in_row - 1) * min(gap, 30))) / 2
+        cx = x0 + col * (cw_ + min(gap, 30)) + cw_ / 2
+        cy = 560 + ch_ / 2 + row * (ch_ + 26)
+        jit = ((i * 37 + n * 11) % 10) / 10 - .5
+        spread += _flat_card(ctx, it, i + 1, n, cx + jit * 16, cy + jit * 10, sc, jit * 7,
                              _a("cdfan", t + .15 + i * .12, .5, "cubic-bezier(.2,.8,.3,1)"), True)
         comp.cue(t + .15 + i * .12, "paper")
-    comp.scene(t - .1, comp.duration, f'<div class="full"><div class="cd-cam">{spread}</div></div>',
+    comp.scene(t - .1, comp.duration, f'<div class="full" style="overflow:hidden"><div class="cd-cam">{spread}</div></div>',
                fade_in=.01, fade_out=.01, z=12)
     pad.append(f'<div class="abs" style="left:{PAD_X}px;top:{PAD_Y}px;width:{PAD_W}px;height:{PAD_H}px;--r:-2deg;'
                f'transform:rotate(-2deg);{_a("lkslap", t + .1, .5, "cubic-bezier(.2,.9,.25,1)")}">'
@@ -511,7 +546,7 @@ def whos_that(ctx, spec: dict, rounds: list) -> Comp:
                f'<div class="abs cd-hand" data-fit="{PAD_W - 44}" data-lines="3" style="left:24px;top:22px;'
                f'width:{PAD_W - 44}px;font-size:70px;line-height:.95">How many did you get out of {n}?</div></div>')
     comp.cue(t + .1, "paper")
-    comp.add(f'<div class="full" style="z-index:20"><div class="cd-cam">{"".join(pad)}</div></div>')
+    comp.add(f'<div class="full" style="z-index:20;overflow:hidden"><div class="cd-cam">{"".join(pad)}</div></div>')
 
     # ---- the code token and the camera's grain: above everything, the whole time
     comp.add(f'<div class="full" style="z-index:30"><div class="cd-cam">{_token()}</div>'

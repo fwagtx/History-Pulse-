@@ -533,14 +533,17 @@ def _gs_class_page(ctx, spec, items: list, crop: str, final: bool, content_end: 
                     'which season??</div>')
         html.append(stroke_static(rough_arrow(870, 392, GRID_X + 2 * PITCH_X + CELL * .55, GRID_Y - 4, seed=8,
                                               head=22, curve=.32), PEN, 5))
-        note = f"{n} rounds. no peeking!"
+        # "6 rounds." is on the page from frame 0; "no peeking!" gets written as it starts
         if n % 3:
-            html.append(f'<div class="abs yb-pen" data-fit="270" data-lines="3" style="left:{GRID_X + (n % 3) * PITCH_X + 6}px;'
-                        f'top:{GRID_Y + PITCH_Y + 40}px;width:270px;font-size:64px;line-height:1.05;white-space:normal;'
-                        f'transform:rotate(-3deg)">{esc(note)}</div>')
+            x, y, px = GRID_X + (n % 3) * PITCH_X + 10, GRID_Y + PITCH_Y + 50, 70
+            html.append(f'<div class="abs yb-pen" style="left:{x}px;top:{y}px;font-size:{px}px;transform:rotate(-3deg)">'
+                        f'{n} rounds.</div><div class="abs yb-pen" style="left:{x + 4}px;top:{y + 84}px;font-size:{px}px;'
+                        f'transform:rotate(-4deg);{write_on(.45, .6, 12)}">no peeking!</div>')
         else:
             html.append(f'<div class="abs yb-pen" style="left:70px;top:1290px;font-size:64px;transform:rotate(-3deg)">'
-                        f'{esc(note)}</div>')
+                        f'{n} rounds.</div><div class="abs yb-pen" style="left:318px;top:1276px;font-size:64px;'
+                        f'transform:rotate(-3deg);{write_on(.45, .6, 12)}">no peeking!</div>')
+        sounds.append((.45, "pen"))
     return "".join(html), sounds
 
 
@@ -550,12 +553,15 @@ BAL_X, BAL_Y, BAL_PITCH, BAL_W = 648, 470, 132, 300     # all of it left of x 95
 COUNT_Y = 1016
 
 
-def _gs_round(ctx, it: dict, opts: list, answer: int, k: int, n: int, t0: float, crop: str) -> tuple:
+def _gs_round(ctx, spec, it: dict, opts: list, answer: int, k: int, n: int, t0: float, crop: str) -> tuple:
     """One round's page. Printed: the photo, the name, the ballot. In pen: the
-    countdown, the tick in the right box and the season under the name."""
+    round number as the page opens, the countdown, the tick in the right box
+    and the season under the name."""
     rev = t0 + T_REV
-    head, _ = _header("Guess the Season", f"Round {k} of {n}", "", 80)
+    head, _ = _header("Guess the Season", f"Quiz No. {spec.get('episode', '')}".strip(), "", 80)
     html = [_paper(40 + k), head,
+            f'<div class="abs yb-pen" style="left:742px;top:258px;font-size:66px;transform:rotate(-5deg);'
+            f'{write_on(t0 + .2, .5, 12)}">round {k}/{n}</div>',
             f'<div class="yb-photo" style="left:{PH_X}px;top:{PH_Y}px">'
             f'{photo(ctx.art(it), PH_W, PH_H, "close" if crop == "head" else crop, 20 + k)}'
             f'</div>']
@@ -589,7 +595,8 @@ def _gs_round(ctx, it: dict, opts: list, answer: int, k: int, n: int, t0: float,
     for j, d in enumerate("321"):
         html.append(f'<div class="abs yb-pen" style="left:{BAL_X + 12 + j * 100}px;top:{COUNT_Y}px;font-size:120px;'
                     f'transform:rotate({(-4, 2, -2)[j]}deg);{write_on(rev - 3 + j, .28, 8)}">{d}</div>')
-    sounds = [(rev - 3 + j, "tick") for j in range(3)] + [(rev, "ding"), (rev, "pen"), (rev + .35, "pen")]
+    sounds = ([(t0 + .2, "pen")] + [(rev - 3 + j, "tick") for j in range(3)]
+              + [(rev, "ding"), (rev, "pen"), (rev + .35, "pen")])
     return "".join(html), sounds
 
 
@@ -608,13 +615,15 @@ def guess_season(ctx, spec: dict, rounds: list) -> Comp:
     for s in sounds:
         comp.cue(*s)
     # frame 0: the class page with every photo, "which season??"
-    hook, _ = _gs_class_page(ctx, spec, items, crop, False)
+    hook, sounds = _gs_class_page(ctx, spec, items, crop, False)
+    for s in sounds:
+        comp.cue(*s)
     comp.scene(0, HOOK, _turn(f'<div class="yb-page">{hook}</div>', HOOK), fade_in=.01, fade_out=.01, z=40)
     comp.cue(HOOK - FLIP, "flip")
 
     for k, (it, opts, ans) in enumerate(rounds, 1):
         t0 = HOOK + (k - 1) * R1
-        page, sounds = _gs_round(ctx, it, opts, ans, k, n, t0, crop)
+        page, sounds = _gs_round(ctx, spec, it, opts, ans, k, n, t0, crop)
         comp.scene(t0 - FLIP, t0 + R1, _turn(f'<div class="yb-page">{page}{_landing(t0 - FLIP)}</div>', t0 + R1),
                    fade_in=.01, fade_out=.01, z=40 - k)
         comp.cue(t0 + R1 - FLIP, "flip")
@@ -632,18 +641,57 @@ def guess_season(ctx, spec: dict, rounds: list) -> Comp:
 
 def _slots(n: int) -> tuple:
     """The class page's photo grid: (photo w, photo h, name px, [(x, y)]). It
-    stays left of x 950 so the finished page clears TikTok's buttons, and far
-    enough under the title that a close-up of the top row leaves it out."""
+    stays left of x 950 and clear of the code note, and the photos have the
+    print's shape, so a print laid into its slot lands exactly on it."""
     if n <= 6:
-        pw, ph, cols, name_px, y0, pitch = 240, 240, 3, 36, 548, 358
+        pw, cols, name_px, pitch = 244, 3, 36, 386
     else:
-        pw, ph, cols, name_px, y0, pitch = 202, 226, 4, 30, 520, 332
+        pw, cols, name_px, pitch = 202, 4, 30, 340
+    ph = round(pw * PR_PH / PR_PW)
     gap = (886 - cols * pw) / (cols - 1)
-    return pw, ph, name_px, [(64 + (i % cols) * (pw + gap), y0 + (i // cols) * pitch) for i in range(n)]
+    return pw, ph, name_px, [(64 + (i % cols) * (pw + gap), 470 + (i // cols) * pitch) for i in range(n)]
 
 
-CAM_X, CAM_Y, CAM_W = 540, 660, 560     # a close-up puts the photo here, this wide
-MOVE, MOVE_ROW = .8, 1.1
+# the print of the photo whose turn it is: laid over the page, big
+PR_X, PR_Y, PR_B, PR_PW, PR_PH, PR_CAP = 184, 446, 24, 512, 580, 172
+PR_W, PR_H = PR_PW + 2 * PR_B, PR_B + PR_PH + PR_CAP
+T_IN, T_OUT, T_PLACE = .05, 5.8, .55        # in each turn: lands, starts for its slot, takes this long
+
+
+def _print(comp: Comp, ctx, it: dict, i: int, t0: float, slot: tuple, pw: float, crop: str, kind: str,
+           col: str) -> str:
+    """The portrait as a print: slid in over the page, held, then laid into its
+    slot on the page (where the page's own copy of the photo takes over)."""
+    x, y = slot
+    rot = (-2.2, 1.6, -1.4, 2.0)[i % 4]
+    k = pw / PR_PW
+    dx, dy = x - (PR_X + PR_B), y - (PR_Y + PR_B)
+    name = comp.uid("ybprint")
+    t1, t2, t3 = t0 + T_IN, t0 + T_OUT, t0 + T_OUT + T_PLACE
+    d = comp.duration
+    pct = lambda t: f"{t / d * 100:.4f}%"
+    comp.css(f"@keyframes {name}{{0%{{transform:translate(640px,40px) rotate(9deg);opacity:0}}"
+             f"{pct(t1 - .001)}{{transform:translate(640px,40px) rotate(9deg);opacity:0}}"
+             f"{pct(t1)}{{transform:translate(640px,40px) rotate(9deg);opacity:1;"
+             f"animation-timing-function:cubic-bezier(.2,.75,.25,1)}}"
+             f"{pct(t1 + .5)}{{transform:translate(0,0) rotate({rot}deg);opacity:1;"
+             f"animation-timing-function:ease-in-out}}"
+             f"{pct(t2)}{{transform:translate(0,-8px) rotate({rot * .6:.2f}deg);opacity:1;"
+             f"animation-timing-function:cubic-bezier(.5,0,.3,1)}}"
+             f"{pct(t3 - .06)}{{transform:translate({dx:.1f}px,{dy:.1f}px) scale({k:.4f}) rotate(0deg);opacity:1}}"
+             f"{pct(t3)}{{transform:translate({dx:.1f}px,{dy:.1f}px) scale({k:.4f}) rotate(0deg);opacity:0}}"
+             f"100%{{transform:translate({dx:.1f}px,{dy:.1f}px) scale({k:.4f});opacity:0}}}}")
+    comp.cue(t1 + .32, "paper")
+    comp.cue(t3 - .05, "paper")
+    return (f'<div class="abs" style="left:{PR_X}px;top:{PR_Y}px;width:{PR_W}px;height:{PR_H}px;'
+            f'transform-origin:{PR_B}px {PR_B}px;animation:{name} {d:.3f}s linear 0s 1 normal both;'
+            f'background:#fbfaf6;box-shadow:0 2px 3px rgba(0,0,0,.2),0 18px 30px -6px rgba(0,0,0,.38)">'
+            f'<div class="abs" style="left:{PR_B}px;top:{PR_B}px">{photo(ctx.art(it), PR_PW, PR_PH, crop, 31 + i)}</div>'
+            + _caption(PR_B, PR_B + PR_PH + 14, PR_PW, it["name"], 52,
+                       f'<div class="yb-sc" data-fit="{PR_PW}" style="font-size:25px;display:flex;align-items:center">'
+                       f'<i style="display:inline-block;width:.6em;height:.6em;background:{col};margin-right:.45em;'
+                       f'flex:none"></i>{esc(kind)}</div>', 4)
+            + '</div>')
 
 
 def throwback(ctx, spec: dict, group: list, theme: dict = None) -> Comp:
@@ -657,65 +705,34 @@ def throwback(ctx, spec: dict, group: list, theme: dict = None) -> Comp:
     comp = Comp(pad_to(content_end))
     _setup(comp)
 
-    # ---- the class page, filled photo by photo while a camera looks at each one
+    # ---- the class page: "not pictured" until each print is laid into its slot
     pw, ph, name_px, slots = _slots(n)
-    zoom = CAM_W / pw
     head, _ = _header(season, "Throwback", "", 84, over="Class of")
-    page = [_paper(12), head]
+    page, prints = [_paper(12), head], []
     for i, (it, (x, y)) in enumerate(zip(group, slots)):
         t0 = HOOK + i * R3
-        land = t0 + (MOVE_ROW if i and slots[i][1] != slots[i - 1][1] else MOVE) - .25
+        placed = t0 + T_OUT + T_PLACE
         kind = _kind(it) + (f" · {theme['debut'](it)}" if theme and theme.get("debut") else "")
         col = RARITY.get(it.get("rarity", ""), "#9aa0a6")
-        # until its turn, the slot holds the yearbook's "not pictured" placeholder
         page.append(f'<div class="yb-photo" style="left:{x:.0f}px;top:{y:.0f}px">'
-                    f'{photo("", pw, ph, crop, 61 + i, scale=zoom, none="-" if gear else "")}</div>'
-                    f'<div class="yb-photo" style="left:{x:.0f}px;top:{y:.0f}px;--r:0deg;{_a("lkslap", land, .5)}">'
-                    f'{photo(ctx.art(it), pw, ph, crop, 31 + i, scale=zoom)}</div>'
+                    f'{photo("", pw, ph, crop, 61 + i, none="-" if gear else "")}</div>'
+                    f'<div class="yb-photo" style="left:{x:.0f}px;top:{y:.0f}px;{_a("lkin", placed - .07, .05, "linear")}">'
+                    f'{photo(ctx.art(it), pw, ph, crop, 31 + i)}</div>'
                     + _caption(x, y + ph + 10, pw, it["name"], name_px,
-                               f'<div class="yb-sc" data-fit="{pw}" style="font-size:{name_px * .56:.0f}px;'
-                               f'display:flex;align-items:center;gap:6px"><i style="display:inline-block;width:.62em;'
-                               f'height:.62em;background:{col};flex:none"></i>{esc(kind)}</div>', 4,
-                               _a("ybwipe", land + .35, .45, "cubic-bezier(.3,.6,.4,1)")))
-        comp.cue(land, "paper")
-    # the outro, in pen, once the camera has pulled back
-    t_out = content_end + MOVE_ROW + .2
-    page.append(f'<div class="abs yb-pen" data-fit="560" data-lines="2" style="left:70px;top:1262px;width:560px;'
-                f'font-size:68px;line-height:1.02;white-space:normal;transform:rotate(-3deg);'
-                f'{write_on(t_out, 1.0, 20)}">which one did you own?</div>')
+                               f'<div class="yb-sc" data-fit="{pw}" data-lines="2" style="width:{pw}px;'
+                               f'font-size:{name_px * .56:.0f}px;line-height:1.15;letter-spacing:.08em;'
+                               f'white-space:normal"><i style="display:inline-block;width:.62em;height:.62em;'
+                               f'background:{col};margin-right:.4em"></i>{esc(kind)}</div>', 4,
+                               _a("ybwipe", placed, .4, "cubic-bezier(.3,.6,.4,1)")))
+        prints.append(_print(comp, ctx, it, i, t0, (x, y), pw, crop, kind, col))
+    t_out = content_end + .35
+    page.append(f'<div class="abs yb-pen" data-fit="560" style="left:70px;top:1262px;font-size:68px;'
+                f'transform:rotate(-3deg);{write_on(t_out, 1.0, 20)}">which one did you own?</div>'
+                f'<div class="abs yb-pen" style="left:96px;top:1358px;font-size:50px;color:#2a4bb0;'
+                f'transform:rotate(-4deg);{write_on(t_out + 1.6, .9, 18)}">stay legendary :) &ndash; BAD</div>')
     comp.cue(t_out, "pen")
-
-    # the camera: page -> each photo in turn -> page
-    def view(i):
-        x, y = slots[i]
-        return CAM_X - zoom * (x + pw / 2), CAM_Y - zoom * (y + ph / 2), zoom
-    ease, ease_in, ease_out = "cubic-bezier(.55,0,.25,1)", "cubic-bezier(.5,0,.9,.55)", "cubic-bezier(.1,.45,.3,1)"
-    stops = [(0, (0, 0, 1), "linear"), (HOOK, (0, 0, 1), ease)]
-    for i in range(n):
-        t0 = HOOK + i * R3
-        if i:
-            stops.append((t0, view(i - 1), ease))
-            if slots[i][1] != slots[i - 1][1]:        # a new row: pull back a little on the way
-                (ax, ay, _), (bx, by, _) = view(i - 1), view(i)
-                zm = 1 + (zoom - 1) * .35
-                k = zm / zoom
-                mx = CAM_X - k * (CAM_X - (ax + bx) / 2)
-                my = CAM_Y - k * (CAM_Y - (ay + by) / 2)
-                stops[-1] = (t0, view(i - 1), ease_in)
-                stops.append((t0 + MOVE_ROW / 2, (mx, my, zm), ease_out))
-                stops.append((t0 + MOVE_ROW, view(i), "linear"))
-                continue
-        stops.append((t0 + MOVE, view(i), "linear"))
-    stops += [(content_end, view(n - 1), ease), (content_end + MOVE_ROW, (0, 0, 1), "linear"),
-              (comp.duration, (0, 0, 1), "linear")]
-    cam = comp.uid("ybcam")
-    dur = comp.duration
-    comp.css(f"@keyframes {cam}{{" + "".join(
-        f"{t / dur * 100:.4f}%{{transform:translate({x:.1f}px,{y:.1f}px) scale({z:.4f});"
-        f"animation-timing-function:{e}}}" for t, (x, y, z), e in stops) + "}")
-    comp.add(f'<div class="yb-page" style="z-index:1"><div class="full" style="transform-origin:0 0;'
-             f'animation:{cam} {dur:.3f}s linear 0s 1 normal both">{"".join(page)}</div>'
-             f'{_landing(HOOK - FLIP)}</div>')
+    comp.cue(t_out + 1.6, "pen")
+    comp.add(f'<div class="yb-page" style="z-index:1">{"".join(page)}{"".join(prints)}{_landing(HOOK - FLIP)}</div>')
 
     # ---- frame 0: the cover -- two of the class, big, and the question
     head, y = _header(season, "Throwback", "", 88, over="Class of")
@@ -726,10 +743,14 @@ def throwback(ctx, spec: dict, group: list, theme: dict = None) -> Comp:
                      f'{photo(ctx.art(it), 424, 500, crop, 51 + j)}</div>'
                      + _caption(x, y + 522, 424, it["name"], 42,
                                 f'<div class="yb-sc" data-fit="424" style="font-size:22px">{esc(_kind(it))}</div>'))
-    q = f"{n} {noun}. how many do you remember?"
-    cover.append(f'<div class="abs yb-pen" data-fit="560" data-lines="3" style="left:70px;top:{y + 700:.0f}px;'
-                 f'width:560px;font-size:64px;line-height:1.04;white-space:normal;transform:rotate(-3deg)">'
-                 f'{esc(q)}</div>')
+    # "8 skins." is there on frame 0; the question gets written as the video starts
+    cover.append(f'<div class="abs" style="left:70px;top:{y + 690:.0f}px;width:560px;display:flex;'
+                 f'flex-direction:column;gap:4px;transform:rotate(-3deg);transform-origin:0 0">'
+                 f'<div class="yb-pen" data-fit="560" data-lines="2" style="width:560px;font-size:72px;'
+                 f'line-height:1.02;white-space:normal">{n} {esc(noun)}.</div>'
+                 f'<div class="yb-pen" data-fit="560" data-lines="2" style="width:560px;font-size:60px;'
+                 f'line-height:1.04;white-space:normal;{write_on(.4, 1.0, 20)}">how many do you remember?</div></div>')
+    comp.cue(.4, "pen")
     comp.scene(0, HOOK, _turn(f'<div class="yb-page">{"".join(cover)}</div>', HOOK), fade_in=.01, fade_out=.01, z=40)
     comp.cue(HOOK - FLIP, "flip")
 
