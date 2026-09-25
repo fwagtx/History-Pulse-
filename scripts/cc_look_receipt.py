@@ -43,6 +43,9 @@ LIP = 437                         # where the paper leaves the printer (frame y)
 HIDE = 6                          # paper hidden under the lip
 ZZ = 12                           # zig-zag tooth height of a torn edge
 SHOW_ITEMS = 7                    # item lines; more share one "+N more items" line
+# How a long receipt is made to fit, one step at a time: (compact, item lines, clip names).
+FIT_STEPS = [(0, 7, False), (1, 7, False), (2, 7, False), (3, 7, False),
+             (3, 7, True), (3, 6, True), (3, 5, True), (3, 4, True), (3, 3, True)]
 INK = "#2d2a26"
 PEN = "#1f3b99"
 
@@ -57,15 +60,11 @@ Z_MAX, Z_MIN = 1.02, .92
 BOTTOM = 1440
 # The pile of bundle photos on the counter, top right (above y 880, so it may
 # reach past x 960).
-PH_X, PH_Y, PH_W = 754, 246, 298
+PH_X, PH_Y, PH_W = 744, 246, 298
 PH_IMG = PH_W - 24
 
 CSS = """
-.rc-cam{position:absolute;left:-80px;top:-80px;width:1240px;height:2080px;
-  animation:rcdrift %(dur).3fs ease-in-out 0s 1 normal both}
-@keyframes rcdrift{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(-6px,3px) rotate(.18deg)}}
-.rc-shake{position:absolute;inset:0;animation:rcsh 2.9s ease-in-out 0s infinite alternate both}
-@keyframes rcsh{0%%{transform:translate(0,0)}40%%{transform:translate(1.1px,-.7px)}100%%{transform:translate(-.6px,.9px)}}
+.rc-cam{position:absolute;left:-80px;top:-80px;width:1240px;height:2080px}
 .rc-zoom{position:absolute;inset:0;transform-origin:%(zox)dpx %(zoy)dpx;will-change:transform}
 .rc-counter{position:absolute;left:-10px;top:-10px;width:1260px;height:2100px;background:url('%(counter)s') 0 0/1260px 2100px}
 .rc-rig{position:absolute;left:80px;top:80px;width:1080px;height:1920px;transform:rotate(-1.2deg);transform-origin:540px 700px}
@@ -310,9 +309,9 @@ def _doc_intro(n: int, when: str) -> Doc:
     doc = Doc()
     _header(doc, when)
     doc.add("dash", "-" * COLS, group="a")
-    doc.add("text", f"{n} BUNDLES TODAY", align="c", group="a")
+    doc.add("text", f"{n} OF TODAY'S BUNDLES", align="c", group="a")
     doc.add("text", "EVERY ITEM IN THEM IS", align="c", group="a", small=True)
-    doc.add("text", "ALSO SOLD ON ITS OWN", align="c", group="a", small=True)
+    doc.add("text", "ALSO SOLD ALONE TODAY", align="c", group="a", small=True)
     doc.add("dash", "-" * COLS, group="a")
     doc.gap(10)
     doc.add("big", "IS THE BUNDLE", group="q")
@@ -321,9 +320,12 @@ def _doc_intro(n: int, when: str) -> Doc:
     return doc
 
 
-def _doc_bundle(b: dict, parts: list, total: int, k: int, n: int, when: str, compact: int = 0) -> Doc:
+def _doc_bundle(b: dict, parts: list, total: int, k: int, n: int, when: str, compact: int = 0,
+                show: int = SHOW_ITEMS, clip: bool = False) -> Doc:
     """compact 0..3: drop the column heads, then the 'k OF n' line, then tighten the
-    line height -- only as far as a long receipt needs."""
+    line height -- only as far as a long receipt needs. For the longest receipts,
+    clip=True cuts item names to one line (as a till does), and `show` folds the
+    last items into one "+N more items" line with their summed price."""
     doc = Doc(LH if compact < 3 else 46)
     _header(doc, when)
     if compact < 2:
@@ -331,12 +333,17 @@ def _doc_bundle(b: dict, parts: list, total: int, k: int, n: int, when: str, com
     doc.add("dash", "-" * COLS, group="head")
     if compact < 1:
         doc.add("text", _lr("ITEM", "V-BUCKS"), group="cols", small=True)
-    lines = parts if len(parts) <= SHOW_ITEMS else parts[:SHOW_ITEMS - 1]
+    lines = parts if len(parts) <= show else parts[:show - 1]
     for i, p in enumerate(lines):
-        for j, text in enumerate(_priced(p["name"], _money(p["price"]), dots=False)):
+        price = _money(p["price"])
+        rows = _priced(p["name"], price, dots=False)
+        if clip and len(rows) > 1:
+            room = COLS - len(price) - 1
+            rows = [_lr(p["name"][:room - 1].rstrip() + "…", price)]
+        for text in rows:
             doc.add("text", text, group=f"item{i}")
-    if len(parts) > SHOW_ITEMS:
-        rest = parts[SHOW_ITEMS - 1:]
+    if len(parts) > show:
+        rest = parts[show - 1:]
         for text in _priced(f"+{len(rest)} more items", _money(sum(int(p['price']) for p in rest)), dots=False):
             doc.add("text", text, group=f"item{len(lines)}")
     doc.add("dash", "-" * COLS, group="total")
@@ -616,8 +623,8 @@ def bundle_math(ctx, picks: list) -> Comp:
     for k, (b, parts, total) in enumerate(picks):
         s = HOOK + k * R
         doc = None
-        for compact in range(4):
-            doc = _doc_bundle(b, parts, total, k + 1, n, when, compact)
+        for compact, show, clip in FIT_STEPS:
+            doc = _doc_bundle(b, parts, total, k + 1, n, when, compact, show, clip)
             if fits(doc, Z_MIN + .02):
                 break
         p = Print(f"b{k}", doc, rnd)
@@ -680,11 +687,11 @@ def bundle_math(ctx, picks: list) -> Comp:
         p.tear = (s + R - .95, s + R - .3)
         cues.append((s + R - .95, "paper"))
         prints.append(p)
-        # the camera eases back as the paper grows, just ahead of each feed
-        zooms.append((s + .05, Z_MAX))
+        # the camera eases back as the paper grows, just ahead of each feed, holds,
+        # and eases in again while the receipt is torn off
         for (ft, d, bottom) in p.feeds:
             zooms.append((ft - .05, zoom_for(bottom)))
-        zooms.append((s + R - .35, zooms[-1][1]))
+        zooms.append((s + R - .95, zooms[-1][1]))
 
     # ---- the outro: a last, short receipt
     close = Print("c", _doc_close(when), rnd)
@@ -699,7 +706,12 @@ def bundle_math(ctx, picks: list) -> Comp:
     cues.append((t_q, "pen"))
     prints.append(close)
     zooms += [(content_end + .1, Z_MAX)] + [(ft - .05, zoom_for(b)) for (ft, d, b) in close.feeds]
-    zooms.append((dur, zooms[-1][1]))
+    # last, the camera leans in on the code (the label is the zoom's centre, so it
+    # grows in place; the receipt still ends above BOTTOM)
+    last_bottom = LIP - HIDE + max(b for (_, _, b) in close.feeds) + ZZ
+    z_end = min(1.09, (BOTTOM - ZOY) / max(1.0, last_bottom - ZOY))
+    t_lean = max(t_q + 1.2, dur - 3.2)
+    zooms += [(t_lean, zooms[-1][1]), (min(dur - .3, t_lean + 2.4), z_end), (dur, z_end)]
 
     for pr in prints:
         comp.css(pr.css(dur))
@@ -726,9 +738,9 @@ def bundle_math(ctx, picks: list) -> Comp:
     rig = (_pen(850, 960, 16) + "".join(photos) + "".join(pr.html(dur) for pr in prints)
            + '<div class="rc-lipshade"></div><div class="rc-grain"></div><div class="rc-vig"></div>' + _printer(dur))
     comp.add(f'<div class="full" style="z-index:0;background:#6b4a2e;overflow:hidden">'
-             f'<div class="rc-cam"><div class="rc-shake"><div class="rc-zoom" style="{_a("rczoom", 0, dur)}">'
+             f'<div class="rc-cam"><div class="rc-zoom" style="{_a("rczoom", 0, dur)}">'
              f'<div class="rc-counter"></div><div class="rc-rig">{rig}</div>'
-             f'</div></div></div></div>')
+             f'</div></div></div>')
     comp.add(PREP_JS)
     comp.add(ART_JS)
     for t, kind in cues:

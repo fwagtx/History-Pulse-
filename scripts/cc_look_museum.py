@@ -153,10 +153,6 @@ CSS = """
 
 .mz-vig{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 92%% 68%% at 44%% 43%%,rgba(0,0,0,0) 52%%,rgba(8,5,2,.46) 100%%)}
-.mz-grain{position:absolute;inset:-64px;pointer-events:none;background:url('%(grain)s') 0 0/256px 256px;opacity:.06}
-@keyframes mzgrain{0%%{transform:translate(0,0)}17%%{transform:translate(-37px,21px)}33%%{transform:translate(18px,-44px)}
-  50%%{transform:translate(-22px,-13px)}67%%{transform:translate(41px,30px)}83%%{transform:translate(-9px,47px)}
-  100%%{transform:translate(0,0)}}
 @keyframes mzon{0%%{opacity:0}10%%{opacity:.92}16%%{opacity:.38}24%%{opacity:1}32%%{opacity:.78}45%%{opacity:1}100%%{opacity:1}}
 @keyframes mzoff{0%%{opacity:1}10%%{opacity:.08}16%%{opacity:.62}24%%{opacity:0}32%%{opacity:.22}45%%{opacity:0}100%%{opacity:0}}
 @keyframes mzfig{0%%{filter:brightness(.3) saturate(.55)}10%%{filter:brightness(.93) saturate(.95)}
@@ -695,8 +691,7 @@ def og_check(ctx, picks: list) -> Comp:
              f'<div class="mz-pan" style="width:{rope_w}px;{_a("mzrope", 0, dur)}">'
              f'<div class="abs" style="left:0;top:1180px;width:{rope_w}px;height:600px;'
              f'background:url({tex("museum-rope.png")}) 0 0/{ROPE_P}px 600px repeat-x"></div></div></div></div>')
-    comp.add('<div class="full" style="z-index:9;pointer-events:none;overflow:hidden">'
-             '<div class="mz-vig"></div><div class="mz-grain"></div></div>')
+    comp.add('<div class="full" style="z-index:9;pointer-events:none;overflow:hidden"><div class="mz-vig"></div></div>')
 
     # ---- the guide's paddle: the creator code, in every frame
     t_out = content_end - .2
@@ -710,7 +705,7 @@ def og_check(ctx, picks: list) -> Comp:
     comp.add(PREP_JS)
     comp.add(ART_JS)
 
-    sounds.append((content_end + 1.3, "clap"))
+    sounds += [(content_end - PAN_LEAD + .08, "whoosh"), (content_end + 1.3, "clap")]
     for t, kind in sounds:
         comp.cue(t, kind)
     comp.cues.sort()

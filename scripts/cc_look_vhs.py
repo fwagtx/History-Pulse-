@@ -83,11 +83,9 @@ CSS = """
   70%{transform:translate3d(0,6px,0) rotateX(0deg) rotateZ(0deg)}
   to{transform:translate3d(0,0,0) rotateX(0deg) rotateZ(0deg)}}
 @keyframes vhpull{from{transform:scale(1.045)}to{transform:scale(1)}}
-@keyframes vhjit{0%{transform:translate(0,0)}7%{transform:translate(2px,0)}13%{transform:translate(-1px,1px)}
-  21%{transform:translate(1px,0)}29%{transform:translate(-2px,0)}36%{transform:translate(0,-1px)}
-  44%{transform:translate(3px,0)}51%{transform:translate(-1px,0)}58%{transform:translate(1px,1px)}
-  66%{transform:translate(-3px,0)}74%{transform:translate(0,0)}81%{transform:translate(2px,-1px)}
-  88%{transform:translate(-1px,0)}94%{transform:translate(1px,2px)}100%{transform:translate(0,0)}}
+@keyframes vhjit{0%{transform:translate(0,0)}12%{transform:translate(2px,0)}24%{transform:translate(0,0)}
+  41%{transform:translate(-2px,1px)}52%{transform:translate(1px,0)}66%{transform:translate(0,0)}
+  79%{transform:translate(3px,0)}88%{transform:translate(-1px,0)}100%{transform:translate(0,0)}}
 @keyframes vhroll{0%{transform:translateY(40%)}16%{transform:translateY(24%) skewX(-2deg)}
   32%{transform:translate(14px,10%)}48%{transform:translateY(3%)}64%{transform:translate(-6px,-1%)}
   80%{transform:translate(3px,0)}100%{transform:none}}
@@ -96,7 +94,7 @@ CSS = """
   36%{transform:translate(-8px,-15%) skewX(3deg)}54%{transform:translate(0,-30%)}72%,100%{transform:translate(0,-46%)}}
 @keyframes vhglitchw{0%{opacity:.18}18%{opacity:0}36%{opacity:.12}54%,100%{opacity:0}}
 @keyframes vhglitchk{0%,36%{opacity:0}54%{opacity:.3}72%,100%{opacity:.6}}
-@keyframes vhflick{0%{opacity:0}20%{opacity:.025}40%{opacity:.01}60%{opacity:.035}80%{opacity:.012}100%{opacity:0}}
+@keyframes vhflick{0%{opacity:0}25%{opacity:.03}50%{opacity:.012}75%{opacity:.035}100%{opacity:0}}
 @keyframes vhexp{from{opacity:.42}to{opacity:0}}
 @keyframes vhrew{0%{transform:translate(-18px,0) scaleY(1.02)}25%{transform:translate(14px,-2%) skewX(-3deg)}
   50%{transform:translate(-6px,1%) skewX(2deg)}75%{transform:translate(20px,-1%)}100%{transform:translate(-12px,0)}}
@@ -388,12 +386,13 @@ def _caption(it: dict, theme: dict) -> str:
     """Burned into the recording: the name, rarity and type with the event year,
     when it first hit the shop; and the camcorder's own date stamp."""
     line2 = " · ".join(x for x in (_kind(it), _era(it, theme)) if x)
-    debut = (theme["debut"](it) if theme.get("debut") else "").upper()
+    known = bool(it.get("first_shop"))
+    debut = (theme["debut"](it) if known and theme.get("debut") else "").upper()
     return (f'<div class="cam" data-fit="880" style="left:78px;top:1142px;font-size:88px">{esc(it["name"].upper())}</div>'
             f'<div class="cam" data-fit="880" style="left:80px;top:1240px;font-size:50px">{esc(line2)}</div>'
             f'<div class="cam" data-fit="880" style="left:80px;top:1294px;font-size:50px">{esc(debut)}</div>'
             f'<div class="cam" style="right:{W - 944}px;top:1366px;font-size:96px;text-align:right">'
-            f'{esc(_stamp(it, theme))}</div>')
+            f'{esc(_stamp(it, theme) if known else "")}</div>')
 
 
 # How the camera moves in each recording, in turn: a hand-held drift, a slow zoom
@@ -402,18 +401,19 @@ MOVES = ("drift", "zoom", "hold", "drift", "pan", "zoom", "hold", "drift")
 
 
 def _move(move: str, rnd: random.Random) -> tuple:
-    """(transform-origin, from, to) for one recording's camera."""
+    """(transform-origin, from, to) for one recording's camera: scale and shift,
+    no rotation (which the video encoder can't follow cheaply)."""
     j = lambda a: rnd.uniform(-a, a)
     if move == "zoom":
-        return "580px 760px", (1.03, j(6), j(6), j(.2)), (rnd.uniform(1.2, 1.24), j(8), j(8), j(.25))
+        return "580px 760px", (1.03, j(6), j(6), 0), (rnd.uniform(1.2, 1.24), j(8), j(8), 0)
     if move == "pan":
         d = 1 if rnd.random() < .5 else -1
-        return "580px 1000px", (1.1, 34 * d, j(6), j(.2)), (1.11, -34 * d, j(6), j(.2))
+        return "580px 1000px", (1.1, 34 * d, j(6), 0), (1.11, -34 * d, j(6), 0)
     if move == "hold":
         s0 = rnd.uniform(1.05, 1.07)
-        return "580px 1000px", (s0, j(4), j(4), j(.1)), (s0 + .006, j(4), j(4), j(.1))
+        return "580px 1000px", (s0, j(4), j(4), 0), (s0 + .006, j(4), j(4), 0)
     s0 = rnd.uniform(1.035, 1.06)
-    return "580px 1000px", (s0, j(14), j(14), j(.3)), (s0 + rnd.uniform(.025, .06), j(14), j(14), j(.3))
+    return "580px 1000px", (s0, j(14), j(14), 0), (s0 + rnd.uniform(.025, .06), j(14), j(14), 0)
 
 
 def _clip(comp: Comp, tr: _Tracks, k: int, it: dict, theme: dict, t0: float, t_in: float, roll: bool,
@@ -424,14 +424,14 @@ def _clip(comp: Comp, tr: _Tracks, k: int, it: dict, theme: dict, t0: float, t_i
     hand = comp.uid("vh")
     move = MOVES[k % len(MOVES)] if _is_figure(it) else ("drift", "hold")[k % 2]
     origin, (s0, tx0, ty0, r0), (s1, tx1, ty1, r1) = _move(move, rnd)
-    comp.css(f"@keyframes {hand}{{from{{transform:scale({s0:.3f}) translate({tx0:.1f}px,{ty0:.1f}px) rotate({r0:.2f}deg)}}"
-             f"to{{transform:scale({s1:.3f}) translate({tx1:.1f}px,{ty1:.1f}px) rotate({r1:.2f}deg)}}}}")
+    comp.css(f"@keyframes {hand}{{from{{transform:scale({s0:.3f}) translate({tx0:.1f}px,{ty0:.1f}px)}}"
+             f"to{{transform:scale({s1:.3f}) translate({tx1:.1f}px,{ty1:.1f}px)}}}}")
     band = comp.uid("vb")
     y_a, y_b = (1950, -200) if rnd.random() < .5 else (-200, 1950)
     comp.css(f"@keyframes {band}{{from{{transform:translateY({y_a}px)}}to{{transform:translateY({y_b}px)}}}}"
              f"@keyframes {band}i{{from{{transform:translate(24px,{-y_a}px)}}to{{transform:translate(24px,{-y_b}px)}}}}")
     bdur = rnd.uniform(1.5, 2.1)
-    pic = (f'<div class="full lay" style="transform-origin:{origin};'
+    pic = (f'<div class="full lay vhand" style="transform-origin:{origin};'
            f'{_style(_a(hand, t0 - .3, R + .6, "cubic-bezier(.45,.05,.55,.95)"))}">'
            f'<img class="plate vhs-plate" data-p="{k}">'
            f'<div class="abs lay" style="left:0;top:0;width:{W}px;height:150px;overflow:hidden;visibility:hidden;'
@@ -456,12 +456,14 @@ def _clip(comp: Comp, tr: _Tracks, k: int, it: dict, theme: dict, t0: float, t_i
     expo = f'<div class="full fade" style="background:#000;{_style(_a("vhexp", t_in - .05, .6, "ease-out"))}"></div>'
     return (f'<div class="full" style="overflow:hidden;background:#000">'
             f'<div class="full lay" style="{_style(*moves)}">'
-            f'<div class="full lay" style="{_style(_a("vhjit", 0, 1.37, "steps(1,end)", "infinite"))}">'
+            f'<div class="full lay vjit" style="{_style(_a("vhjit", 0, 1.37, "steps(1,end)", "infinite"))}">'
             f'{pic}{_caption(it, theme)}{expo}{flash}</div></div></div>')
 
 
 def _jumps(comp: Comp, rnd: random.Random, n: int, dx: int, dy: int) -> str:
-    """Keyframes that jump a noise layer to a new place every frame (n frames a loop)."""
+    """Keyframes that jump a noise layer to a new place every frame, n frames a
+    loop. A short loop (3) looks just as random, and the video encoder, which
+    keeps the last 3 frames to copy from, finds each place again for free."""
     name = comp.uid("vj")
     comp.css(f"@keyframes {name}{{" + "".join(
         f"{i * 100 / n:.3f}%{{transform:translate({rnd.randint(-dx, dx)}px,{rnd.randint(-dy, dy)}px)}}"
@@ -476,15 +478,15 @@ def _search_bars(comp: Comp, tr: _Tracks, windows: list, rnd: random.Random, up:
         return ""
     out = []
     for _ in range(count):
-        h = rnd.randint(96, 150)
-        y0 = rnd.randint(260, 1400)
+        h = rnd.randint(90, 130)
+        y0 = rnd.randint(580, 1330)                  # below the player's lettering
         mv = comp.uid("vsb")
-        a, b = (y0 + 380, y0 - 380) if up else (y0 - 380, y0 + 380)
+        a, b = (y0 + 70, y0 - 70) if up else (y0 - 70, y0 + 70)
         comp.css(f"@keyframes {mv}{{from{{transform:translateY({a}px)}}to{{transform:translateY({b}px)}}}}")
         out.append(f'<div class="abs lay" style="left:0;top:0;width:{W}px;height:{h}px;overflow:hidden;visibility:hidden;'
-                   f'{_style(_a(mv, windows[0][0], rnd.uniform(.7, 1.1), "linear", "infinite"), tr.vis(windows))}">'
+                   f'{_style(_a(mv, windows[0][0], 1.0, "linear", "infinite", ) , tr.vis(windows))}">'
                    f'<div class="abs lay" style="left:-100px;top:0;width:1280px;height:{h}px;'
-                   f'{_style(_jumps(comp, rnd, 8, 90, 0))}">'
+                   f'{_style(_jumps(comp, rnd, 3, 90, 0))}">'
                    f'<canvas class="vhs-noise" data-kind="bar" width="427" height="{h // 2}" '
                    f'style="display:block;width:1280px;height:{h}px"></canvas></div></div>')
     return "".join(out)
@@ -619,7 +621,7 @@ function tape(src, seed) {
     let gs = 0;
     for (let x = 0; x < w; x++) {
       const i = y * w + x, c = y * w + (x >= 8 ? x - 8 : 0);
-      if ((x % 3) === 0) gs = (rand() + rand() + rand() - 1.5) * 7;
+      if ((x % 3) === 0) gs = (rand() + rand() + rand() - 1.5) * 4;
       const yy = Y[i] + (Y[i] - Yb[i]) * .6 + gs, u = U[c] * .8, v = V[c] * .8;
       Rr[i] = yy + 1.402 * v; Gg[i] = yy - .344136 * u - .714136 * v; Bb[i] = yy + 1.772 * u;
     }
@@ -724,10 +726,15 @@ function noise(c, kind, rand) {
         p[i * 4] = 236; p[i * 4 + 1] = 232; p[i * 4 + 2] = 222; p[i * 4 + 3] = v * 255;
       }
     }
+  } else if (kind === 'drops') {                  // tape dropouts: short bright dashes, and nothing else
+    for (let k = 0; k < 34; k++) {
+      const y = Math.floor(rand() * h), x0 = Math.floor(rand() * w), L = 2 + Math.floor(rand() * 14), a = 150 + rand() * 105;
+      for (let x = x0; x < Math.min(w, x0 + L); x++) { const j = (y * w + x) * 4; p[j] = p[j + 1] = p[j + 2] = 245; p[j + 3] = a; }
+    }
   } else if (kind === 'grain') {
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const j = (y * w + x) * 4, n = (rand() + rand() + rand() - 1.5) * 1.4;
-      p[j] = p[j + 1] = p[j + 2] = n > 0 ? 255 : 0; p[j + 3] = Math.min(255, Math.abs(n) * 42);
+      p[j] = p[j + 1] = p[j + 2] = n > 0 ? 255 : 0; p[j + 3] = Math.min(255, Math.abs(n) * 26);
     }
     for (let k = 0; k < 26; k++) {                  // dropouts: short bright dashes
       const y = Math.floor(rand() * h), x0 = Math.floor(rand() * w), L = 3 + Math.floor(rand() * 22);
@@ -835,6 +842,8 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     # ---- the hook: the desk (frame 0), then the player's blue screen
     title = _label_title(group, theme)
     names = " + ".join(it["name"].lower() for it in group[:2]) + (f" + {n - 2} more" if n > 2 else "")
+    if len(names) > 40:                               # long names: the first, and how many more
+        names = f"{group[0]['name'].lower()} + {n - 1} more"
     ep, of = spec.get("episode"), spec.get("of", 31)
     day_txt = f"DAY {ep} OF {of}" if ep else "THROWBACK"
     part = f"PART {spec['part']}" if spec.get("part") else ""
@@ -858,7 +867,7 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
         t_out = cuts[k] if k < n - 1 else t_rew
         band_t = t0 + rnd.uniform(1.4, 3.6)
         comp.add(_layer(tr, [(t_in, t_out)], 3, _clip(comp, tr, k, it, theme, t0, t_in, roll, glitch_at, band_t, rnd)))
-    comp.cue(T_ROLL, "static")
+    comp.cue(T_ROLL - .12, "static")
     for tc, st in zip(cuts, styles):
         if st == "glitch":
             comp.cue(tc - .3, "static")
@@ -874,7 +883,7 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     rew = (f'<div class="full" style="overflow:hidden;background:#000"><div class="full lay" '
            f'style="{_style(_a("vhrew", t_rew, .24, "steps(1,end)", "infinite"))}">{rew}</div></div>')
     comp.add(_layer(tr, rew_w, 6, rew))
-    comp.cue(t_rew, "click"); comp.cue(t_rew + .04, "static"); comp.cue(t_menu, "click")
+    comp.cue(t_rew, "click"); comp.cue(t_rew + .04, "static"); comp.cue(t_rew + .5, "static"); comp.cue(t_menu, "click")
 
     menu = f'<div class="full" style="background:{BLUE_BG}"></div>' + _osd("WHICH ONE DID YOU OWN?", 80, 556, 96, fit=920)
     pitch = min(96, 640 / n)
@@ -884,43 +893,42 @@ def throwback(ctx, spec: dict, group: list, theme: dict) -> Comp:
     sel = 1.1
     for j, it in enumerate(group):
         y = 690 + j * pitch
+        # (a child's own visibility beats its layer's, so every window ends before the menu does)
         on = [(t_sel + (c * n + j) * sel, t_sel + (c * n + j + 1) * sel) for c in range(int((dur - t_sel) / (n * sel)) + 1)]
-        on = [(a, b) for a, b in on if a < dur]
+        on = [(a, min(b, t_eject)) for a, b in on if a < t_eject - .2]
         name = esc(it["name"].upper())
-        menu += (f'<div class="osd" data-fit="880" style="left:84px;top:{y:.0f}px;font-size:{size:.0f}px;'
+        row = f"height:{size:.0f}px;display:flex;align-items:center;"      # a shrunk long name stays centred
+        menu += (f'<div class="osd" data-fit="840" style="left:84px;top:{y:.0f}px;font-size:{size:.0f}px;{row}'
                  f'{_style(_a("lkin", t_list + j * .09, .01, "steps(1,end)"))}">'
                  f'<span style="color:#aab3ff">{j + 1:02d}</span>&nbsp;{name}</div>')
         if on:
-            menu += (f'<div class="abs" style="left:70px;top:{y - 8:.0f}px;width:900px;height:{size + 12:.0f}px;'
+            menu += (f'<div class="abs" style="left:70px;top:{y - 8:.0f}px;width:870px;height:{size + 12:.0f}px;'
                      f'background:#f2f2ee;box-shadow:4px 4px 0 rgba(0,0,0,.6);visibility:hidden;{_style(tr.vis(on))}">'
-                     f'<div class="osd" data-fit="880" style="left:14px;top:8px;font-size:{size:.0f}px;color:#1c2ca6;'
+                     f'<div class="osd" data-fit="840" style="left:14px;top:6px;font-size:{size:.0f}px;{row}color:#1c2ca6;'
                      f'text-shadow:none"><span style="color:#5563d6">{j + 1:02d}</span>&nbsp;{name}</div></div>')
     comp.add(_layer(tr, stop_w + eject_w, 7, menu))
     comp.cue(t_eject, "click"); comp.cue(t_land - .05, "tape")
 
     # ---- the tape over everything from the first blue frame: grain, snow at the
     # cuts, search bars when it winds, scanlines and a CRT's dark corners, a flicker
-    snow_pts = [(0, 0), (T_ROLL - .04, .95), (T_ROLL + .08, .6), (T_ROLL + .16, .38), (T_ROLL + .24, .18),
-                (T_ROLL + .32, 0)]
+    snow_pts = [(0, 0), (T_ROLL - .1, 1), (T_ROLL + .04, 0)]
     for tc, st in zip(cuts, styles):
-        if st == "glitch":
-            snow_pts += [(tc - .3, .26), (tc - .24, .5), (tc - .18, .22), (tc - .12, .42), (tc - .04, .9),
-                         (tc + .06, .62), (tc + .14, .36), (tc + .22, .16), (tc + .3, 0)]
-        else:
-            snow_pts += [(tc - .6, .18), (tc - .5, .1), (tc - .34, .22), (tc - .2, .12), (tc - .06, .3),
-                         (tc + .04, .14), (tc + .16, 0)]
-    snow_pts += [(t_rew, .3), (t_rew + .1, .16), (t_menu - .12, .5), (t_menu, 0)]
+        if st == "glitch":           # the picture tears, a burst of snow, the next recording rolls in
+            snow_pts += [(tc - .1, 1), (tc + .04, 0)]
+        else:                        # searching: the bars do the work, a touch of snow as it lands
+            snow_pts += [(tc - .04, .5), (tc + .04, 0)]
+    snow_pts += [(t_rew - .04, .6), (t_rew + .04, 0), (t_menu - .1, 1), (t_menu, 0)]
     tape = (f'<div class="abs lay" style="left:-100px;top:-100px;width:1280px;height:2120px;'
-            f'{_style(_jumps(comp, rnd, 12, 90, 90))}"><canvas class="vhs-noise" data-kind="grain" width="427" '
+            f'{_style(_jumps(comp, rnd, 3, 90, 90))}"><canvas class="vhs-noise" data-kind="drops" width="640" '
             f'height="1060" style="display:block;width:1280px;height:2120px"></canvas></div>'
             f'<div class="full fade" style="opacity:0;{_style(tr.levels(snow_pts))}"><div class="abs lay" '
-            f'style="left:-100px;top:-100px;width:1280px;height:2120px;{_style(_jumps(comp, rnd, 12, 90, 90))}">'
-            f'<canvas class="vhs-noise" data-kind="snow" width="427" height="1060" '
+            f'style="left:-100px;top:-100px;width:1280px;height:2120px;{_style(_jumps(comp, rnd, 3, 90, 90))}">'
+            f'<canvas class="vhs-noise" data-kind="snow" width="256" height="530" '
             f'style="display:block;width:1280px;height:2120px"></canvas></div></div>'
             + _search_bars(comp, tr, ff_w, rnd, up=False, count=2)
             + _search_bars(comp, tr, rew_w, rnd, up=True, count=3)
             + f'<div class="crt"></div>'
-              f'<div class="full fade" style="background:#fff8e8;{_style(_a("vhflick", 0, .53, "steps(1,end)", "infinite"))}">'
+              f'<div class="full fade vflick" style="background:#fff8e8;{_style(_a("vhflick", 0, .9, "steps(1,end)", "infinite"))}">'
               f'</div>')
     comp.add(_layer(tr, [(T_CUT, t_land)], 20, tape, "pointer-events:none;"))
 

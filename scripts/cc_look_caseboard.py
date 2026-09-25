@@ -39,6 +39,7 @@ POLS = [(48, 530, -5.6, (292, 22)), (624, 496, 4.4, (166, 18)),
         (104, 926, 3.4, (298, 22)), (574, 996, -4.4, (36, 22))]
 PIN_COLS = ["yellow", "blue", "red", "yellow", "green", "red", "blue", "yellow"]
 CODE_X, CODE_Y, CODE_W, CODE_H, CODE_R = 24, 1336, 500, 108, -1.6
+CODE_BIG_Y, CODE_BIG_W = 1306, 684          # the outro's bigger card, pinned over it
 CARD_X, CARD_Y, CARD_W, CARD_H, CARD_R = 40, 196, 592, 276, -1.8
 PAD_X, PAD_Y, PAD_S, PAD_R = 752, 204, 224, 6
 
@@ -182,19 +183,26 @@ def _board(n: int) -> str:
               f'{_strokes(_question_mark(152, 22, .52, rot=12), "#23211e", 12, PAD_S, PAD_S, .7, (.45, .1))}</div>')
 
 
-def _code() -> str:
-    """USE CODE: BAD on a lime card pinned to the cork, #EpicPartner typed next to it."""
-    px, py = _rot_point(CODE_X, CODE_Y, CODE_W, CODE_H, CODE_R, 44, 20)
-    return (f'<div class="cb-sticky" style="left:{CODE_X}px;top:{CODE_Y}px;width:{CODE_W}px;height:{CODE_H}px;'
-            f'transform:rotate({CODE_R}deg);display:flex;align-items:baseline;justify-content:center;gap:14px;'
-            f'padding:6px 24px 8px;color:#111;background:linear-gradient(180deg,#efff62 0%,{LIME} 45%,#ddf236 100%)">'
-            f'<span style="position:relative;flex:none;white-space:nowrap;font:400 40px/1 \'Permanent Marker\'">'
+def _code(big: bool = False, t: float = 0) -> str:
+    """USE CODE: BAD on a lime card pinned to the cork, #EpicPartner typed next to
+    it. big=True: the outro's bigger card, pinned over it at t."""
+    x, y, w, h, r = (CODE_X, CODE_BIG_Y, CODE_BIG_W, 150, CODE_R) if big else (CODE_X, CODE_Y, CODE_W, CODE_H, CODE_R)
+    uc, bad = (52, 150) if big else (40, 112)
+    px, py = _rot_point(x, y, w, h, r, 44, 20)
+    anim = _a("cbslap", t, .45, extra=f"--r:{r}deg;transform-origin:10% 20%;") if big else f"transform:rotate({r}deg);"
+    tag_x, tag_y = (CODE_X + CODE_BIG_W + 18, 1420) if big else (552, 1418)
+    return (f'<div class="abs" style="left:0;top:0;{_a("cbin", t, .01, "linear") if big else ""}">'
+            f'<div class="cb-sticky" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px;{anim}display:flex;'
+            f'align-items:baseline;justify-content:center;gap:14px;padding:6px 24px 8px;color:#111;'
+            f'background:linear-gradient(180deg,#efff62 0%,{LIME} 45%,#ddf236 100%)">'
+            f'<span style="position:relative;flex:none;white-space:nowrap;font:400 {uc}px/1 \'Permanent Marker\'">'
             f'USE CODE:</span><span style="position:relative;flex:none;white-space:nowrap;'
-            f'font:400 112px/.84 \'Permanent Marker\'">BAD</span></div>'
-            + _pin(px, py, "red", 26)
-            + '<div class="abs cb-type" style="left:552px;top:1418px;transform:rotate(1.8deg);background:#f7f4ea;'
-              'padding:9px 14px 7px;font-size:23px;box-shadow:0 1px 1px rgba(0,0,0,.25),0 6px 8px -2px '
-              'rgba(0,0,0,.35)">#EpicPartner</div>')
+            f'font:400 {bad}px/.84 \'Permanent Marker\'">BAD</span></div>'
+            + _pin(px, py, "red", 28 if big else 26,
+                   _a("cbpin", t + .3, .25, "cubic-bezier(.3,1.2,.5,1)") if big else "")
+            + f'<div class="abs cb-type" style="left:{tag_x}px;top:{tag_y}px;transform:rotate(1.8deg);'
+              f'background:#f7f4ea;padding:9px 14px 7px;font-size:23px;box-shadow:0 1px 1px rgba(0,0,0,.25),'
+              f'0 6px 8px -2px rgba(0,0,0,.35)">#EpicPartner</div></div>')
 
 
 def _polaroid(ctx, it: dict, j: int, k: int, seed: int, scale: float = 1.0) -> tuple:
@@ -416,7 +424,11 @@ def odd_one_out(ctx, spec: dict, rounds: list) -> Comp:
     comp.cue(t_ask, "paper")
     comp.scene(t - .05, comp.duration, f'<div class="full">{"".join(out)}</div>', fade_in=.01, fade_out=.01, z=12)
 
-    comp.add(f'<div class="full" style="z-index:40">{_code()}</div>')
+    t_big = t_ask + 1.1
+    comp.add(f'<div class="full" style="z-index:40;{_a("lkout", t_big + .4, .1, "linear")}">{_code()}</div>')
+    comp.add(f'<div class="full" style="z-index:41">{_code(True, t_big)}</div>')
+    comp.cue(t_big, "paper")
+    comp.cue(t_big + .35, "pin")
     comp.add(PREP_JS)
     comp.add(photo_lab())
     comp.cues.sort()

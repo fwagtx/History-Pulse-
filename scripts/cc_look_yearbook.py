@@ -355,6 +355,7 @@ FLIP = .6           # a page turn
 INK, PEN = "#1f2430", "#1d3fa8"
 FONTS = ("Old Standard TT", "Oswald", "Caveat", "Permanent Marker")
 NOTE_X, NOTE_Y = 646, 1256      # the lime sticky note (below y 880, so all of it left of x 950)
+BIG_X, BIG_Y = 578, 1238        # the outro's bigger one, over it
 
 CSS = """
 .yb-page{position:absolute;inset:0;overflow:hidden;background:#eeeae1 url(%(paper)s) center/cover}
@@ -395,17 +396,27 @@ def _paper(page_no: int = 0) -> str:
                f'color:#9aa0aa">{page_no}</div>' if page_no else ""))
 
 
-def _code_note() -> str:
-    """USE CODE: BAD on a lime sticky note stuck to the page, #EpicPartner on it, small."""
-    return (f'<div class="abs" style="left:{NOTE_X}px;top:{NOTE_Y}px;width:292px;height:186px;transform:rotate(3deg);'
+def _code_note(big: bool = False, t: float = 0) -> str:
+    """USE CODE: BAD on a lime sticky note stuck to the page, #EpicPartner on it,
+    small. big=True: the outro's bigger note, slapped on over it at t."""
+    x, y, w, h, uc, bad, ep = ((BIG_X, BIG_Y, 360, 220, 52, 158, 21) if big else (NOTE_X, NOTE_Y, 292, 186, 42, 124, 19))
+    anim = _a("lkslap", t, .5, extra="--r:3deg;") if big else ""
+    return (f'<div class="abs" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px;transform:rotate(3deg);'
             f'background:linear-gradient(180deg,#e2f63a 0%,{LIME} 22%,#e6fd3c 70%,#d9ef33 100%);'
             f'box-shadow:0 2px 2px rgba(0,0,0,.18),0 14px 16px -8px rgba(0,0,0,.35);display:flex;'
-            f'flex-direction:column;align-items:center;justify-content:center;padding-top:4px">'
-            f'<div style="font-family:\'Permanent Marker\';font-size:42px;line-height:1;color:#111">USE CODE:</div>'
-            f'<div style="font-family:\'Permanent Marker\';font-size:124px;line-height:.84;color:#111;'
+            f'flex-direction:column;align-items:center;justify-content:center;padding-top:4px;{anim}">'
+            f'<div style="font-family:\'Permanent Marker\';font-size:{uc}px;line-height:1;color:#111">USE CODE:</div>'
+            f'<div style="font-family:\'Permanent Marker\';font-size:{bad}px;line-height:.84;color:#111;'
             f'margin-top:2px">BAD</div>'
-            f'<div style="font-family:Oswald,sans-serif;font-weight:500;font-size:19px;letter-spacing:.08em;'
+            f'<div style="font-family:Oswald,sans-serif;font-weight:500;font-size:{ep}px;letter-spacing:.08em;'
             f'color:#3a4010;margin-top:6px">#EpicPartner</div></div>')
+
+
+def _code(comp: Comp, t_big: float):
+    """The note on every frame; in the outro a bigger one is slapped on over it."""
+    comp.add(f'<div class="full" style="z-index:60;{_a("lkout", t_big + .35, .1, "linear")}">{_code_note()}</div>')
+    comp.add(f'<div class="full" style="z-index:61">{_code_note(True, t_big)}</div>')
+    comp.cue(t_big, "paper")
 
 
 def _header(title: str, right: str = "", sub: str = "", size: int = 92, over: str = "") -> tuple:
@@ -528,11 +539,12 @@ def _quiz_no(spec: dict) -> str:
 
 def _gs_class_page(ctx, spec, items: list, crop: str, answers: list = None, content_end: float = 0) -> tuple:
     """The quiz's class page: at the start (the thumbnail) and again at the end,
-    when the pen fills in the answer key (answers given). Returns (html, sounds)."""
+    when the pen fills in the answer key (answers given). Returns (html, sounds,
+    the time the pen is done)."""
     n = len(items)
     final = bool(answers)
     head, _ = _header("Guess the Season", _quiz_no(spec), "When did each one come out?", 92)
-    sounds = []
+    sounds, done = [], .45 + .6
     t = content_end + .3
     html = [_paper(40), head, _class_grid(ctx, items, crop, answers, t)]
     # the pen: a question and an arrow at the top right, and a note in the free space
@@ -548,10 +560,11 @@ def _gs_class_page(ctx, spec, items: list, crop: str, answers: list = None, cont
                         f'top:{GRID_Y + PITCH_Y + 30}px;width:270px;font-size:58px;line-height:1.05;white-space:normal;'
                         f'transform:rotate(-3deg);{write_on(t_q, 1.1, 22)}">{esc(q)}</div>')
         else:
-            html.append(f'<div class="abs yb-pen" data-fit="540" data-lines="2" style="left:70px;top:1262px;'
-                        f'width:540px;font-size:64px;line-height:1.05;white-space:normal;transform:rotate(-3deg);'
+            html.append(f'<div class="abs yb-pen" data-fit="470" data-lines="2" style="left:70px;top:1262px;'
+                        f'width:470px;font-size:64px;line-height:1.05;white-space:normal;transform:rotate(-3deg);'
                         f'{write_on(t_q, 1.1, 22)}">{esc(q)}</div>')
         sounds.append((t_q, "pen"))
+        done = t_q + 1.1
     else:
         html.append('<div class="abs yb-pen" style="left:600px;top:322px;font-size:60px;transform:rotate(-4deg)">'
                     'which season??</div>')
@@ -568,7 +581,7 @@ def _gs_class_page(ctx, spec, items: list, crop: str, answers: list = None, cont
                         f'{n} rounds. <span style="display:inline-block;{write_on(.45, .6, 12)}">no peeking!</span>'
                         f'</div>')
         sounds.append((.45, "pen"))
-    return "".join(html), sounds
+    return "".join(html), sounds, done
 
 
 # the round page
@@ -637,12 +650,12 @@ def guess_season(ctx, spec: dict, rounds: list) -> Comp:
 
     # Under everything: the class page the last round turns over to (the answer key).
     answers = [_season(opts[ans]) for _, opts, ans in rounds]     # what the ballots marked
-    base, sounds = _gs_class_page(ctx, spec, items, crop, answers, content_end)
+    base, sounds, done = _gs_class_page(ctx, spec, items, crop, answers, content_end)
     comp.add(f'<div class="yb-page" style="z-index:1">{base}{_landing(content_end - FLIP)}</div>')
     for s in sounds:
         comp.cue(*s)
     # frame 0: the class page with every photo, "which season??"
-    hook, sounds = _gs_class_page(ctx, spec, items, crop)
+    hook, sounds, _ = _gs_class_page(ctx, spec, items, crop)
     for s in sounds:
         comp.cue(*s)
     comp.scene(0, HOOK, _turn(f'<div class="yb-page">{hook}</div>', HOOK), fade_in=.01, fade_out=.01, z=40)
@@ -657,7 +670,7 @@ def guess_season(ctx, spec: dict, rounds: list) -> Comp:
         for s in sounds:
             comp.cue(*s)
 
-    comp.add(f'<div class="full" style="z-index:60">{_code_note()}</div>')
+    _code(comp, done + .4)
     comp.add(PREP_JS)
     comp.add(photo_lab())
     comp.cues.sort()
@@ -671,7 +684,7 @@ def _slots(n: int) -> tuple:
     stays left of x 950 and clear of the code note, and the photos have the
     print's shape, so a print laid into its slot lands exactly on it."""
     if n <= 6:
-        pw, cols, name_px, pitch = 244, 3, 36, 386
+        pw, cols, name_px, pitch = 244, 3, 36, 376
     else:
         pw, cols, name_px, pitch = 202, 4, 30, 340
     ph = round(pw * PR_PH / PR_PW)
@@ -753,12 +766,12 @@ def throwback(ctx, spec: dict, group: list, theme: dict = None) -> Comp:
                                _a("ybwipe", placed, .4, "cubic-bezier(.3,.6,.4,1)")))
         prints.append(_print(comp, ctx, it, i, t0, (x, y), pw, crop, kind, col))
     t_out = content_end + .35
-    page.append(f'<div class="abs yb-pen" data-fit="560" style="left:70px;top:1262px;font-size:68px;'
-                f'transform:rotate(-3deg);{write_on(t_out, 1.0, 20)}">which one did you own?</div>'
-                f'<div class="abs yb-pen" style="left:96px;top:1358px;font-size:50px;color:#2a4bb0;'
-                f'transform:rotate(-4deg);{write_on(t_out + 1.6, .9, 18)}">stay legendary :) &ndash; BAD</div>')
+    page.append(f'<div class="abs yb-pen" style="left:70px;top:1250px;font-size:70px;line-height:1.02;'
+                f'transform:rotate(-3deg);{write_on(t_out, 1.0, 20)}">which one<br>did you own?</div>'
+                f'<div class="abs yb-pen" style="left:92px;top:1404px;font-size:44px;color:#2a4bb0;'
+                f'transform:rotate(-4deg);{write_on(t_out + 1.5, .8, 18)}">stay legendary :) &ndash; BAD</div>')
     comp.cue(t_out, "pen")
-    comp.cue(t_out + 1.6, "pen")
+    comp.cue(t_out + 1.5, "pen")
     comp.add(f'<div class="yb-page" style="z-index:1">{"".join(page)}{"".join(prints)}{_landing(HOOK - FLIP)}</div>')
 
     # ---- frame 0: the cover -- two of the class, big, and the question
@@ -781,7 +794,7 @@ def throwback(ctx, spec: dict, group: list, theme: dict = None) -> Comp:
     comp.scene(0, HOOK, _turn(f'<div class="yb-page">{"".join(cover)}</div>', HOOK), fade_in=.01, fade_out=.01, z=40)
     comp.cue(HOOK - FLIP, "flip")
 
-    comp.add(f'<div class="full" style="z-index:60">{_code_note()}</div>')
+    _code(comp, t_out + 2.6)
     comp.add(PREP_JS)
     comp.add(photo_lab())
     comp.cues.sort()
