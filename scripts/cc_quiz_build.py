@@ -29,6 +29,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import cc_quiz as Q  # noqa: E402
+import cc_safe as S  # noqa: E402
 from cc_build import COVER_T, REPO, _render_one, post_problems  # noqa: E402
 from cc_common import CC_DIR, OUT_DIR, log, write_json  # noqa: E402
 from cc_formats import MIN_SECONDS, Ctx, ig_caption  # noqa: E402
@@ -84,13 +85,18 @@ def main():
     for spec in entries:
         name = f"slot {spec['slot']} {spec.get('series', '')} {spec['format']} #{spec['episode']}".replace("  ", " ")
         try:
-            v = Q.build(spec, items, ctx)
+            # Held to the apps' safe box (cc_safe): a look that puts something
+            # under TikTok/Instagram/YouTube/Facebook UI falls back to the classic.
+            v, safe = S.gate(lambda: Q.build(spec, items, ctx), name, log)
         except Exception as e:  # noqa: BLE001 - one bad video must not sink the day
             log(f"  {name} crashed: {e!r}")
             continue
         if v is None:
             log(f"  {name}: artwork missing, left out")
             continue
+        if not safe["ok"]:
+            print(f"::warning::{name}: something sits under the apps' UI -- {S.summary(safe, 3)}",
+                  file=sys.stderr)
         if not MIN_SECONDS - .01 <= v.comp.duration <= MAX_SECONDS:
             log(f"  {name}: {v.comp.duration:.1f}s is outside {MIN_SECONDS:.0f}-{MAX_SECONDS:.0f}s, left out")
             continue
@@ -98,8 +104,8 @@ def main():
         if problems:
             log(f"  {name} left out: {'; '.join(problems)}")
             continue
-        log(f"  {name}: {v.comp.duration:.1f}s")
-        built.append((spec, v))
+        log(f"  {name}: {v.comp.duration:.1f}s, safe zones {'OK' if safe['ok'] else 'NOT OK'}")
+        built.append((spec, v, safe))
     if not built:
         raise SystemExit("No quiz video could be built for this day.")
 
@@ -108,7 +114,7 @@ def main():
     tag = args.release or f"quiz-{day.isoformat()}"
     base = f"https://github.com/{REPO}/releases/download/{tag}/"
     jobs = []
-    for spec, v in built:
+    for spec, v, _ in built:
         stem = f"bad-quiz-{day.isoformat()}-{spec['slot']}-{v.format.replace('_', '-')}"
         qa_times = ([COVER_T, 1.2] + [float(t) for t in range(4, int(v.comp.duration), 6)]
                     + [round(v.comp.duration - 2, 2)])
@@ -126,7 +132,7 @@ def main():
             list(ex.map(_render_one, jobs))
 
     videos = []
-    for (spec, v), job in zip(built, jobs):
+    for (spec, v, safe), job in zip(built, jobs):
         stem = job[2]
         hh, mm = (int(x) for x in spec["at"].split(":"))
         post = datetime(day.year, day.month, day.day, hh, mm, tzinfo=LOCAL_TZ)
@@ -148,6 +154,7 @@ def main():
             "caption": v.caption,
             "ig_caption": ig_caption(v.caption),       # Instagram allows 5 hashtags
             "hashtags": v.hashtags,
+            "safe_zones": S.note(safe),
         })
     manifest = {
         "kind": "quiz",

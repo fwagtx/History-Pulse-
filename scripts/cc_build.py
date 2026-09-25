@@ -33,6 +33,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import cc_formats as F
+import cc_safe as S
 from cc_common import OUT_DIR, load_config, log, today_stamp, write_json
 
 LOCAL_TZ = ZoneInfo("America/Chicago")
@@ -214,7 +215,7 @@ def build_all(shop: dict, art, day: date, only: list | None) -> list:
     chosen, used = [], set()
     plans = [[n] for n in only] if only else plan(day)
     for slot, candidates in zip(SLOTS, plans):
-        video = None
+        video, safe, spare = None, None, None
         for name in candidates:
             if name in used:
                 continue
@@ -223,7 +224,9 @@ def build_all(shop: dict, art, day: date, only: list | None) -> list:
                 log(f"  slot {slot['slot']}: {name} not available, skipping")
                 continue
             try:
-                video = fn(ctx)
+                # Held to the apps' safe box (cc_safe); a look that fails it falls
+                # back to the classic version of the format.
+                video, safe = S.gate(lambda: fn(ctx), f"slot {slot['slot']} {name}", log)
             except Exception as e:  # noqa: BLE001 - one bad format must not sink the day
                 log(f"  slot {slot['slot']}: {name} crashed: {e!r}")
                 video = None
@@ -239,13 +242,26 @@ def build_all(shop: dict, art, day: date, only: list | None) -> list:
                 log(f"  slot {slot['slot']}: {name} skipped: {'; '.join(problems)}")
                 video = None
                 continue
+            if not safe["ok"]:
+                # Something would sit under the apps' UI: try the slot's next
+                # format, keeping this one as the last resort.
+                log(f"  slot {slot['slot']}: {name} puts something under the apps' UI, trying next")
+                spare = spare or (name, video, safe)
+                video = None
+                continue
             used.add(name)
             break
+        if video is None and spare:
+            name, video, safe = spare
+            used.add(name)
+            print(f"::warning::slot {slot['slot']}: every format put something under the apps' UI; "
+                  f"using {name} -- {S.summary(safe, 3)}", file=sys.stderr)
         if video is None:
             log(f"  slot {slot['slot']}: nothing buildable")
             continue
-        log(f"  slot {slot['slot']} ({slot['name']}): {video.format}, {video.comp.duration:.1f}s")
-        chosen.append((slot, video))
+        log(f"  slot {slot['slot']} ({slot['name']}): {video.format}, {video.comp.duration:.1f}s, "
+            f"safe zones {'OK' if safe['ok'] else 'NOT OK'}")
+        chosen.append((slot, video, safe))
     return chosen
 
 
@@ -284,7 +300,7 @@ def main():
     rot = rotation(day)
     ext = "webm" if args.preview else "mp4"
     jobs = []
-    for slot, v in chosen:
+    for slot, v, _ in chosen:
         stem = f"bad-{day.isoformat()}-{slot['slot']}-{v.format.replace('_', '-')}"
         qa_times = ([COVER_T, 1.2] + [float(t) for t in range(4, int(v.comp.duration), 6)]
                     + [round(v.comp.duration - 2, 2)])
@@ -303,7 +319,7 @@ def main():
             list(ex.map(_render_one, jobs))
 
     videos = []
-    for (slot, v), (_, _, stem, *_rest) in zip(chosen, jobs):
+    for (slot, v, safe), (_, _, stem, *_rest) in zip(chosen, jobs):
         post = slot_time(day, slot["at"])
         videos.append({
             "slot": slot["slot"],
@@ -323,6 +339,7 @@ def main():
             "caption": v.caption,
             "ig_caption": F.ig_caption(v.caption),     # Instagram allows 5 hashtags
             "hashtags": v.hashtags,
+            "safe_zones": S.note(safe),
         })
 
     manifest = {

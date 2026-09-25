@@ -192,6 +192,53 @@ def summary(res: dict, limit: int = 12) -> str:
     return "\n".join(lines)
 
 
+def gate(make, name: str, log=print):
+    """Build a video with make() and hold it to the safe box.
+
+    If it fails the check and one of the new looks drew it, build the classic
+    version (looks off for this one build) and take that if it passes. Returns
+    (video, result) -- the version to publish and its check -- or (None, None)
+    when make() gives nothing. A video that still fails is returned anyway with
+    its result, so the caller decides (a shop slot can try another format)."""
+    import os
+    import cc_looks as LK
+    LK.draw.last = None
+    v = make()
+    if v is None:
+        return None, None
+    res = check(v.comp)
+    look = LK.draw.last if (LK.draw.last and not LK.draw.last.startswith("classic")) else None
+    if res["ok"]:
+        return v, res
+    log(f"  {name}: {summary(res, 8)}")
+    if not look:
+        return v, res
+    old = os.environ.get("CC_LOOKS")
+    os.environ["CC_LOOKS"] = "none"
+    try:
+        v2 = make()
+    finally:
+        if old is None:
+            os.environ.pop("CC_LOOKS", None)
+        else:
+            os.environ["CC_LOOKS"] = old
+    if v2 is None:
+        return v, res
+    res2 = check(v2.comp)
+    if res2["ok"]:
+        print(f"::warning::{name}: the {look} look put something under the apps' UI; using the classic look",
+              file=sys.stderr)
+        return v2, res2
+    return v, res
+
+
+def note(res: dict | None) -> dict:
+    """The check's result as a manifest field."""
+    if res is None:
+        return {"ok": None}
+    return {"ok": res["ok"], "violations": len(res["violations"]), "cover": len(res["cover"])}
+
+
 # ------------------------------------------------------------ app mock-ups
 
 # Approximate positions of each app's UI on a 1080x1920 frame: ("bar", x, y, w, h)
