@@ -232,8 +232,8 @@ class Comp:
         fonts = (_font_face("Anton", "Anton-Regular.ttf", "400")
                  + _font_face("Inter", "Inter-Variable.ttf", "100 900") + extra_fonts(self.fonts))
         body = "".join(self._layers)
-        if " data-trim" in body and "window.__ready" not in body:
-            # Art marked data-trim needs the crop script that runs before frame 0.
+        if (" data-trim" in body or " data-figure" in body) and "window.__ready" not in body:
+            # Art marked data-trim / data-figure needs the script that runs before frame 0.
             from cc_looks import PREP_JS
             body = PREP_JS + body
         return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
@@ -264,9 +264,16 @@ def tile_bg(colors: list, rarity: str = "", start: float = 0, rays: bool = True)
 IN_PLACE = {"hop", "thump", "punch", "none"}      # entrances that start already on screen
 
 
+def trim_for(item: dict):
+    """character()'s `trim` for an item's art: an outfit keeps only its figure."""
+    t = item.get("type")
+    t = t.get("value") if isinstance(t, dict) else t
+    return "figure" if str(t or "").lower() == "outfit" else True
+
+
 def character(uri: str, cx: float, cy: float, h: float, start: float,
               enter: str = "pop", enter_dur: float = .8, idle: str = "float",
-              rarity: str = "rare", label: str = "", maxw: float = 0, trim: bool = False) -> str:
+              rarity: str = "rare", label: str = "", maxw: float = 0, trim: bool | str = False) -> str:
     """A cosmetic render that ENTERS (pop/drop/fromL/fromR) and then idles
     (float or sway) with a breathing floor shadow, so it reads as alive rather
     than pasted in. Three nested wrappers keep the transforms independent.
@@ -274,10 +281,13 @@ def character(uri: str, cx: float, cy: float, h: float, start: float,
     `maxw` caps the width, so a wide item (a glider, a bundle's group shot)
     gets shorter instead of spreading into the apps' button rail. `trim` crops
     Fortnite's art (a square with wide transparent margins) to the cosmetic
-    itself before frame 0, so `h` is the cosmetic's height, not the square's."""
+    itself before frame 0, so `h` is the cosmetic's height, not the square's;
+    trim="figure" (trim_for an outfit) also drops a separate picture beside
+    the figure (cc_looks.PREP_JS)."""
     if uri:
         mw = maxw or W * .86
-        art = (f'<img class="art"{" data-trim" if trim else ""} data-name="{esc(label)}" src="{uri}" '
+        tr = ' data-trim="figure"' if trim == "figure" else (" data-trim" if trim else "")
+        art = (f'<img class="art"{tr} data-name="{esc(label)}" src="{uri}" '
                f'style="height:{h:.0f}px;max-width:{mw:.0f}px">')
     else:
         col = RARITY.get(rarity, "#777")

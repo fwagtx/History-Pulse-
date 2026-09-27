@@ -29,7 +29,7 @@ from datetime import date, datetime, timedelta, timezone
 from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RIGHT, RAIL_TOP, BADGE_H, BADGE_X, BADGE_Y,
                        SAFE_LEFT, SAFE_RIGHT_TOP, Comp, an, burst,
                        anton_em, character, code_badge, countdown, disclosure, esc, label, price_roll,
-                       progress, sticker, style_anim, tile_bg, words, EASE_BACK)
+                       progress, sticker, style_anim, tile_bg, trim_for, words, EASE_BACK)
 
 MIN_SECONDS = 62.0      # over TikTok's 1-minute Creator Rewards bar, with margin
 # The disclosure is the #EpicPartner tag, on screen and in every description, on
@@ -290,10 +290,10 @@ def _hook_scene(comp: Comp, ctx: Ctx, title: str, sub: str, stick: str, end: flo
     chars = ""
     if a_item:
         chars += character(ctx.art(a_item), HOOK_AX, HOOK_CY, HOOK_H, HOOK_WHOOSH_A, "hop", .45, "float",
-                           a_item["rarity"], a_item["name"], maxw=HOOK_MAXW, trim=True)
+                           a_item["rarity"], a_item["name"], maxw=HOOK_MAXW, trim=trim_for(a_item))
     if b_item:
         chars += character(ctx.art(b_item), HOOK_BX, HOOK_CY, HOOK_H, HOOK_WHOOSH_B, "hop", .45, "sway",
-                           b_item["rarity"], b_item["name"], maxw=HOOK_MAXW, trim=True)
+                           b_item["rarity"], b_item["name"], maxw=HOOK_MAXW, trim=trim_for(b_item))
     inner += f'<div class="full" style="filter:{SILHOUETTE}">{chars}</div>' if silhouette else chars
     inner += _code_stamp(comp, end)
     # The kicker (the date line) is for the thumbnail; it steps aside as the stamp
@@ -332,7 +332,7 @@ def _outro_scene(comp: Comp, ctx: Ctx, start: float, end: float, ask: str, items
     xs = [(mid - 265, 1010, 470, "float"), (mid + 265, 1010, 470, "sway"), (mid, 1040, 560, "float")]
     for (x, y, h, idle), it in zip(xs, items[:3]):
         inner += character(ctx.art(it), x, y, h, start + .2, "drop", .8, idle, it["rarity"], it["name"],
-                           maxw=300, trim=True)
+                           maxw=300, trim=trim_for(it))
     inner += label("USE CREATOR CODE", W / 2, 372, 44, start + .1, "#fff", 800, align="center",
                    spacing=".26em")
     inner += (f'<div class="abs d" style="left:0;right:0;top:428px;text-align:center;font-size:290px;'
@@ -483,7 +483,7 @@ def this_or_that(ctx: Ctx):
         # transparent margins; cropped to the cosmetic, it fills its column.
         for it, x, t, enter, idle in ((a, AX, t0 + .1, "fromL", "float"), (b, BX, t0 + .25, "fromR", "sway")):
             inner += character(ctx.art(it), x, cy, art_h, t, enter, .7, idle, it["rarity"], it["name"],
-                               maxw=ART_MAXW).replace('<img class="art"', '<img class="art" data-trim', 1)
+                               maxw=ART_MAXW, trim=trim_for(it))
         inner += sticker("A", SAFE_LEFT + LETTER_INSET, LETTER_Y, LETTER, t0 + .5, rot=-8)
         inner += sticker("B", b_left, LETTER_Y, LETTER, t0 + .6, bg="#ffffff", rot=7)
         # What both are (a pair is always one type), then the ask once the clock starts.

@@ -261,7 +261,12 @@ def diecut_filter(fid: str = "lkdiecut", radius: int = 14, color: str = "#fff") 
 # window.__ready):
 #   - img[data-trim]: Fortnite's art is a square with wide transparent margins;
 #     the image is cropped to the cosmetic itself (plus 1%), so sizes mean the
-#     cosmetic, not the square. Done first.
+#     cosmetic, not the square. Done first. data-trim="figure" (outfits) also
+#     drops any separate picture beside the figure: some old skins' art has the
+#     pack's icon next to the skin. The tallest shape is the figure; shapes
+#     that share columns with it stay (a halo above the head), shapes wholly
+#     beside it are cleared. img[data-figure] does the
+#     same without the crop, for layouts sized to the whole square.
 #   - img[data-bake="<css filter>"]: the filter (e.g. a die-cut border and a drop
 #     shadow) is drawn into the image once, instead of on every frame. SVG filters
 #     cost about three times the frame's own render time.
@@ -273,14 +278,82 @@ PREP_JS = """<script>window.__ready = (async () => {
     if (document.readyState === 'loading') {
       await new Promise(r => document.addEventListener('DOMContentLoaded', r, {once: true}));
     }
-    for (const img of document.querySelectorAll('img[data-trim]')) {
+    // data-trim="figure": clear the shapes that aren't the figure. Shapes are
+    // found on a grid of about 160 cells a side (a cell is on if any sampled
+    // pixel in it is); true when something was cleared.
+    const figureOnly = (px, w, h) => {
+      const S = Math.max(2, Math.ceil(Math.max(w, h) / 160)), q = Math.max(1, S >> 1);
+      const gw = Math.ceil(w / S), gh = Math.ceil(h / S), n = gw * gh;
+      const on = new Uint8Array(n), lab = new Int32Array(n).fill(-1), boxes = [];
+      for (let gy = 0; gy < gh; gy++) {
+        for (let gx = 0; gx < gw; gx++) {
+          let hit = 0;
+          for (let y = gy * S; y < Math.min(h, gy * S + S) && !hit; y += q) {
+            for (let x = gx * S; x < Math.min(w, gx * S + S); x += q) {
+              if (px[(y * w + x) * 4 + 3] > 16) { hit = 1; break; }
+            }
+          }
+          on[gy * gw + gx] = hit;
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        if (!on[i] || lab[i] >= 0) continue;
+        const id = boxes.length, b = {x0: gw, y0: gh, x1: -1, y1: -1}, st = [i];
+        lab[i] = id;
+        while (st.length) {
+          const j = st.pop(), x = j % gw, y = (j - x) / gw;
+          if (x < b.x0) b.x0 = x; if (x > b.x1) b.x1 = x; if (y < b.y0) b.y0 = y; if (y > b.y1) b.y1 = y;
+          for (const k of [x > 0 ? j - 1 : -1, x < gw - 1 ? j + 1 : -1, j - gw, j + gw]) {
+            if (k >= 0 && k < n && on[k] && lab[k] < 0) { lab[k] = id; st.push(k); }
+          }
+        }
+        boxes.push(b);
+      }
+      if (boxes.length < 2) return false;
+      let m = 0;
+      for (let i = 1; i < boxes.length; i++) {
+        if (boxes[i].y1 - boxes[i].y0 > boxes[m].y1 - boxes[m].y0) m = i;
+      }
+      const M = boxes[m];
+      const keep = boxes.map(b => b.x1 >= M.x0 - 1 && b.x0 <= M.x1 + 1);
+      if (keep.every(Boolean)) return false;
+      // Clear each dropped cell and the cells around it that aren't the figure's,
+      // so no edge pixels between the samples are left behind.
+      for (let gy = 0; gy < gh; gy++) {
+        for (let gx = 0; gx < gw; gx++) {
+          const l = lab[gy * gw + gx];
+          if (l < 0 || keep[l]) continue;
+          for (let cy = Math.max(0, gy - 1); cy <= Math.min(gh - 1, gy + 1); cy++) {
+            for (let cx = Math.max(0, gx - 1); cx <= Math.min(gw - 1, gx + 1); cx++) {
+              const k = lab[cy * gw + cx];
+              if (k >= 0 && keep[k]) continue;
+              for (let y = cy * S; y < Math.min(h, cy * S + S); y++) {
+                for (let x = cx * S; x < Math.min(w, cx * S + S); x++) px[(y * w + x) * 4 + 3] = 0;
+              }
+            }
+          }
+        }
+      }
+      return true;
+    };
+    for (const img of document.querySelectorAll('img[data-trim], img[data-figure]')) {
       try {
         if (img.decode) { await img.decode(); }
         const w = img.naturalWidth, h = img.naturalHeight;
         if (!w || !h) continue;
         const c = document.createElement('canvas'); c.width = w; c.height = h;
         const g = c.getContext('2d'); g.drawImage(img, 0, 0);
-        const d = g.getImageData(0, 0, w, h).data;
+        const im = g.getImageData(0, 0, w, h), d = im.data;
+        let src = img;
+        if ((img.dataset.trim === 'figure' || img.hasAttribute('data-figure')) && figureOnly(d, w, h)) {
+          g.putImageData(im, 0, 0);
+          src = c;
+        }
+        if (!img.hasAttribute('data-trim')) {
+          // data-figure alone: the strays are cleared, the image keeps its size.
+          if (src !== img) { img.src = c.toDataURL('image/png'); if (img.decode) { await img.decode(); } }
+          continue;
+        }
         let x0 = w, y0 = h, x1 = -1, y1 = -1;
         for (let y = 0; y < h; y += 2) {
           for (let x = 0; x < w; x += 2) {
@@ -294,9 +367,9 @@ PREP_JS = """<script>window.__ready = (async () => {
         x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
         x1 = Math.min(w - 1, x1 + pad + 1); y1 = Math.min(h - 1, y1 + pad + 1);
         const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
-        if (cw >= w - 2 && ch >= h - 2) continue;
+        if (cw >= w - 2 && ch >= h - 2 && src === img) continue;
         const c2 = document.createElement('canvas'); c2.width = cw; c2.height = ch;
-        c2.getContext('2d').drawImage(img, x0, y0, cw, ch, 0, 0, cw, ch);
+        c2.getContext('2d').drawImage(src, x0, y0, cw, ch, 0, 0, cw, ch);
         img.src = c2.toDataURL('image/png');
         if (img.decode) { await img.decode(); }
       } catch (e) {}

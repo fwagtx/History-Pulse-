@@ -81,13 +81,19 @@ def date_short(d: date) -> str:
 
 # ------------------------------------------------------------------ pictures
 
-def art_block(uri: str, x: float, y: float, h: float, t: float, rarity: str) -> str:
+def fig(kind: str) -> str:
+    """The <img> attribute that clears a separate picture beside an outfit's figure
+    (cc_looks.PREP_JS: some old skins' art has the pack's icon next to the skin)."""
+    return " data-figure" if kind == "outfit" else ""
+
+
+def art_block(uri: str, x: float, y: float, h: float, t: float, rarity: str, kind: str = "outfit") -> str:
     c = RARITY.get(rarity, "#3a3a44")
     stage = (f'<div class="abs" style="left:{x - h * .42:.0f}px;top:{y - h * .92:.0f}px;width:{h * .84:.0f}px;'
              f'height:{h * .98:.0f}px;border-radius:28px;background:radial-gradient(ellipse 90% 70% at 50% 35%,'
              f'{c} 0%,{hexcol("", "#101014")} 100%);box-shadow:0 30px 80px rgba(0,0,0,.55);'
              f'{style_anim(an("lvpop", t, .5))}"></div>')
-    img = (f'<img class="abs" src="{uri}" style="left:{x - h * .5:.0f}px;top:{y - h:.0f}px;width:{h:.0f}px;'
+    img = (f'<img class="abs"{fig(kind)} src="{uri}" style="left:{x - h * .5:.0f}px;top:{y - h:.0f}px;width:{h:.0f}px;'
            f'height:{h:.0f}px;object-fit:contain;object-position:50% 100%;'
            f'filter:drop-shadow(0 26px 34px rgba(0,0,0,.6));{style_anim(an("lvin", t + .12, .55))}">') if uri else ""
     return stage + img
@@ -177,7 +183,8 @@ def build(hist: R.History, day: date, kind: str, count: int, art, seed: int, exc
     # ---- cold open
     def draw_open(comp, s):
         (a, _), (b, _), (c, _) = s.lines_at[0], s.lines_at[1], s.lines_at[2]
-        inner = art_block(art(h_item), 1510, 960, 820, a, h_item["rarity"]["value"] if isinstance(h_item.get("rarity"), dict) else "")
+        inner = art_block(art(h_item), 1510, 960, 820, a, h_item["rarity"]["value"] if isinstance(h_item.get("rarity"), dict) else "",
+                          kind)
         once = "IN THE SHOP ONCE." if h_times == 1 else f"IN THE SHOP {h_times}×."
         inner += (f'<div class="abs d" style="left:{L.MARGIN}px;top:250px;font-size:124px;color:#fff;'
                   f'{style_anim(an("lvin", a, .5))}">{esc(once)}</div>')
@@ -289,7 +296,7 @@ def build(hist: R.History, day: date, kind: str, count: int, art, seed: int, exc
             t1, t2, t3 = s.lines_at[0][0], s.lines_at[1][0], s.lines_at[2][0]
             inner = (f'<div class="abs d" style="left:{L.MARGIN - 10}px;top:150px;font-size:300px;line-height:1;'
                      f'color:transparent;-webkit-text-stroke:4px {ACCENT};opacity:.9;{style_anim(an("lvpop", t1, .5))}">#{rank}</div>')
-            inner += art_block(art(item), 1530, 880, 720, t1 + .1, rar)
+            inner += art_block(art(item), 1530, 880, 720, t1 + .1, rar, kind)
             inner += (f'<div class="abs d" style="left:{L.MARGIN}px;top:470px;max-width:960px;font-size:{min(112, 1500 / (len(name) * .5 + 1)):.0f}px;line-height:.95;'
                       f'color:#fff;{style_anim(an("lvin", t1 + .2, .45))}">{esc(name.upper())}</div>')
             chips = [x for x in (item["type"]["displayValue"] if isinstance(item.get("type"), dict) else "", set_name,
@@ -312,7 +319,7 @@ def build(hist: R.History, day: date, kind: str, count: int, art, seed: int, exc
     def draw_ask(comp, s):
         a = s.lines_at[0][0]
         grid = "".join(
-            f'<img src="{art(p[0])}" style="width:230px;height:230px;object-fit:contain;'
+            f'<img{fig(kind)} src="{art(p[0])}" style="width:230px;height:230px;object-fit:contain;'
             f'filter:drop-shadow(0 12px 16px rgba(0,0,0,.6))">' for p in picks[:12] if art(p[0]))
         inner = (f'<div class="abs d" style="left:0;right:0;top:170px;text-align:center;font-size:130px;color:#fff;'
                  f'{style_anim(an("lvin", a, .45))}">WHICH ONE DO YOU WANT BACK?</div>'
@@ -340,7 +347,7 @@ def thumbnail(picks: list, art, day: date, kind: str, out: Path) -> Path:
     rar = lambda it: (it.get("rarity") or {}).get("value", "") if isinstance(it.get("rarity"), dict) else ""
     glow = lambda it, x: (f'<div class="abs" style="left:{x - 330}px;top:40px;width:660px;height:660px;border-radius:50%;'
                           f'background:radial-gradient(closest-side,{RARITY.get(rar(it), "#555")}cc,transparent)"></div>')
-    img = lambda it, x, h, z: (f'<img src="{art(it)}" style="position:absolute;left:{x - h / 2:.0f}px;top:{720 - h + 30:.0f}px;'
+    img = lambda it, x, h, z: (f'<img{fig(kind)} src="{art(it)}" style="position:absolute;left:{x - h / 2:.0f}px;top:{720 - h + 30:.0f}px;'
                                f'width:{h:.0f}px;height:{h:.0f}px;object-fit:contain;object-position:50% 100%;z-index:{z};'
                                f'filter:drop-shadow(0 18px 24px rgba(0,0,0,.7))">' if art(it) else "")
     inner = ('<div class="full" style="background:radial-gradient(ellipse 70% 90% at 75% 50%,#1d2410,#0A0A0B 70%)"></div>'

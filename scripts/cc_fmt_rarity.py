@@ -22,13 +22,14 @@ the longest", which is what the ranking is.
 """
 
 import os
+from collections import Counter
 from datetime import date
 
 import cc_rarity as R
 from cc_fmt_last_chance import _em, _fit, _from
 from cc_formats import Ctx, Video, _caption, _hashtags, _hook_scene, _outro_scene, _pad, num
 from cc_motion import (ACCENT, RARITY, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP, Comp, burst, character,
-                       code_badge, disclosure, label, price_roll, progress, sticker, tile_bg, words)
+                       code_badge, disclosure, label, price_roll, progress, sticker, tile_bg, trim_for, words)
 
 HOOK = 3.0
 SHOWN = {"Outfit", "Back Bling", "Pickaxe", "Glider", "Emote"}   # types with a cosmetic to show
@@ -115,7 +116,7 @@ def _arts(ctx: Ctx, items: list, cy: float, art_h: float, t0: float) -> str:
 
     def one(it, x, h, start, maxw):
         return character(ctx.art(it), x, cy + (art_h - h) / 2, h, start, "pop", .6, "float",
-                         it["rarity"], it["name"], maxw=maxw, trim=True)
+                         it["rarity"], it["name"], maxw=maxw, trim=trim_for(it))
     if len(items) == 1:
         return one(items[0], cx, art_h, t0 + .1, 700)
     if len(items) == 2:
@@ -192,12 +193,17 @@ def _close(comp: Comp, ctx: Ctx, content_end: float, ask: str, items: list):
 
 # ------------------------------------------------------------------ BACK AFTER
 
-def _group_title(hist: R.History, section: str, members: list) -> str:
+def _group_title(hist: R.History, members: list) -> str:
     """A comeback card's title when several items came back together: the shop
-    section when it names something (Resident Evil, not Front Page), else the
-    set they all share. Empty when neither does; the lead item names the card."""
-    if section.strip().lower() not in GENERIC_SECTIONS:
-        return section.strip()
+    section most of them are in, when it names something (Resident Evil, not
+    Front Page), else the set they all share. Empty when neither does; the lead
+    item names the card."""
+    named = Counter(s for s in ((m[0].get("section") or "").strip() for m in members)
+                    if s.lower() not in GENERIC_SECTIONS)
+    if named:
+        section, k = named.most_common(1)[0]
+        if 2 * k > len(members):
+            return section
     sets = {((hist.items.get(iid.lower()) or {}).get("set") or {}).get("value") or "" for _, iid, _ in members}
     return sets.pop() if len(sets) == 1 else ""
 
@@ -205,22 +211,22 @@ def _group_title(hist: R.History, section: str, members: list) -> str:
 def back_after(ctx: Ctx, min_days: int = 180, max_cards: int = 6, min_cards: int = 3):
     """Today's offers that came back after at least `min_days` away, one card per
     comeback, longest wait last. Items that were last in the shop the same day
-    and came back the same day in the same section are one comeback: one card
-    that shows up to three of them and names the rest. Fewer than `min_cards`
-    comebacks today: None (the slot makes something else)."""
+    and came back the same day (whatever section they're in now) are one
+    comeback: one card that shows up to three of them and names the rest.
+    Fewer than `min_cards` comebacks today: None (the slot makes something else)."""
     hist = history()
     groups, seen = {}, set()
     for row, iid, gone, last, times in R.back_in_shop(hist, ctx.shop, ctx.day, min_days):
         if row["name"].lower() in seen or row.get("type") not in SHOWN or not ctx.art(row):
             continue
         seen.add(row["name"].lower())
-        groups.setdefault((gone, last, row.get("section") or ""), []).append((row, iid, times))
+        groups.setdefault((gone, last), []).append((row, iid, times))
     if len(groups) < min_cards:
         return None
     cards = []            # (gone, last, members, title) -- longest wait first
-    for (gone, last, section), members in sorted(groups.items(), key=lambda g: (-g[0][0], g[0][1]))[:max_cards]:
+    for (gone, last), members in sorted(groups.items(), key=lambda g: (-g[0][0], g[0][1]))[:max_cards]:
         members.sort(key=lambda m: (TYPE_ORDER.get(m[0]["type"], 9), -int(m[0].get("price") or 0)))
-        cards.append((gone, last, members, _group_title(hist, section, members) if len(members) > 1 else ""))
+        cards.append((gone, last, members, _group_title(hist, members) if len(members) > 1 else ""))
     n = len(cards)
     top = cards[0][0]
     comp, content_end = _frame(ctx, n, f"BACK AFTER {top:,} DAYS", "RARE RETURNS IN TODAY'S SHOP",
