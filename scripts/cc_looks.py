@@ -266,7 +266,8 @@ def diecut_filter(fid: str = "lkdiecut", radius: int = 14, color: str = "#fff") 
 #     pack's icon next to the skin. The tallest shape is the figure; shapes
 #     that share columns with it stay (a halo above the head), shapes wholly
 #     beside it are cleared. img[data-figure] does the
-#     same without the crop, for layouts sized to the whole square.
+#     same without the crop, for layouts sized to the whole square: the figure
+#     is moved back to the middle of the square, in case it sat to one side.
 #   - img[data-bake="<css filter>"]: the filter (e.g. a die-cut border and a drop
 #     shadow) is drawn into the image once, instead of on every frame. SVG filters
 #     cost about three times the frame's own render time.
@@ -350,8 +351,20 @@ PREP_JS = """<script>window.__ready = (async () => {
           src = c;
         }
         if (!img.hasAttribute('data-trim')) {
-          // data-figure alone: the strays are cleared, the image keeps its size.
-          if (src !== img) { img.src = c.toDataURL('image/png'); if (img.decode) { await img.decode(); } }
+          // data-figure alone: the strays are cleared and what's left is centred
+          // across the square again (it sat to one side of them); same size.
+          if (src !== img) {
+            let a = w, b = -1;
+            for (let y = 0; y < h; y += 2) {
+              for (let x = 0; x < w; x += 2) {
+                if (d[(y * w + x) * 4 + 3] > 16) { if (x < a) a = x; if (x > b) b = x; }
+              }
+            }
+            const c3 = document.createElement('canvas'); c3.width = w; c3.height = h;
+            c3.getContext('2d').drawImage(c, b >= 0 ? Math.round((w - 1 - a - b) / 2) : 0, 0);
+            img.src = c3.toDataURL('image/png');
+            if (img.decode) { await img.decode(); }
+          }
           continue;
         }
         let x0 = w, y0 = h, x1 = -1, y1 = -1;
