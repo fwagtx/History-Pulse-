@@ -74,7 +74,10 @@ def main():
     report = {"day": day.isoformat(), "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
               "shorts": [], "long": None, "voices": []}
 
-    jobs = [("back_after", FR.back_after), ("rarest", lambda c: FR.rarest(c, "outfits")),
+    # BACK AFTER needs three comebacks of 180+ days; on a quiet day the sample
+    # drops to 90+ so there's still something to look at.
+    jobs = [("back_after", lambda c: FR.back_after(c) or FR.back_after(c, min_days=90)),
+            ("rarest", lambda c: FR.rarest(c, "outfits")),
             ("og", lambda c: FR.og_where(c, "1", "3"))]
     for i, (name, make) in enumerate(jobs, 1):
         if name in what:

@@ -2,7 +2,8 @@
 Rarity shorts for @usecodebad, from the Item Shop's own history (cc_rarity).
 
   back_after(ctx)          BACK AFTER N DAYS -- today's shop, the offers that came
-                           back after the longest time away (a shop slot)
+                           back after the longest time away (a shop slot); items
+                           that left and came back together share one card
   rarest(ctx, variant)     RAREST <KIND> RIGHT NOW -- the five gone the longest,
                            counting down (any day; variants by kind, series, chapter)
   og_where(ctx, season)    <CHAPTER 1 SEASON 3>: WHERE ARE THEY NOW? -- that
@@ -37,6 +38,17 @@ TOP_Y = 366
 TEXT_W = SAFE_RIGHT - SAFE_LEFT  # 840, beside the button rail
 INFO_BOTTOM = SAFE_BOTTOM - 16
 RED = "#ff5a5a"
+TYPE_ORDER = {"Outfit": 0, "Pickaxe": 1, "Glider": 2, "Back Bling": 3, "Emote": 4}   # which one leads a card
+# Shop sections that say where an item sits, not what it is: never a card's title.
+GENERIC_SECTIONS = {"", "front page", "fit check", "no sweat", "hype squad", "featured", "daily", "specials",
+                    "special offers", "bestsellers", "best sellers", "new", "just in", "top picks", "jam tracks",
+                    "trending", "spotlight", "picks for you", "kicks", "cars", "instruments", "gear", "emotes",
+                    "outfits", "bundles", "wraps", "lego", "lego kits", "sidekicks"}
+# Inter 800 widths in em (capitals, digits, the separators we use), for fitting info lines.
+_INTER = dict(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ·,.'-+&:!?()/", (
+    .77, .665, .744, .723, .61, .585, .752, .749, .286, .59, .738, .565, .943, .766, .773, .652, .782, .662,
+    .66, .677, .727, .77, 1.059, .761, .752, .679, .692, .441, .638, .657, .688, .634, .662, .588, .664, .662,
+    .219, .352, .352, .352, .355, .471, .686, .683, .352, .358, .579, .382, .382, .4)))
 
 _hist = None
 
@@ -79,11 +91,47 @@ def _scrim() -> str:
             'rgba(0,0,0,.66) 100%)"></div>')
 
 
+def _label_w(text: str, size: float) -> float:
+    """Rendered width of an info line (label(), Inter 800, upper case)."""
+    return sum(_INTER.get(ch, .8) for ch in text.upper()) * size
+
+
+def _names_line(names: list, size: float = 30, width: float = TEXT_W - 8) -> str:
+    """As many names as fit on one info line, then +N MORE."""
+    names = [nm.upper() for nm in names]
+    for keep in range(len(names), 0, -1):
+        more = len(names) - keep
+        text = " · ".join(names[:keep]) + (f" +{more} MORE" if more else "")
+        if _label_w(text, size) <= width:
+            return text
+    return f"{len(names)} ITEMS"
+
+
+def _arts(ctx: Ctx, items: list, cy: float, art_h: float, t0: float) -> str:
+    """The cosmetic, or up to three side by side, the first in the middle and in
+    front. They share the floor line (bottom at cy + art_h / 2) and stay between
+    SAFE_LEFT and SAFE_RIGHT."""
+    cx = (SAFE_LEFT + SAFE_RIGHT) / 2
+
+    def one(it, x, h, start, maxw):
+        return character(ctx.art(it), x, cy + (art_h - h) / 2, h, start, "pop", .6, "float",
+                         it["rarity"], it["name"], maxw=maxw, trim=True)
+    if len(items) == 1:
+        return one(items[0], cx, art_h, t0 + .1, 700)
+    if len(items) == 2:
+        return one(items[0], cx - 212, art_h * .9, t0 + .1, 400) + one(items[1], cx + 212, art_h * .9, t0 + .24, 400)
+    mid, left, right = items[:3]
+    return (one(left, cx - 290, art_h * .74, t0 + .1, 260) + one(right, cx + 290, art_h * .74, t0 + .22, 260)
+            + one(mid, cx, art_h * .96, t0 + .34, 340))
+
+
 def _card(comp: Comp, ctx: Ctx, it: dict, t0: float, k: int, n: int, head: str, days: int | None, info: list,
-          price: int = 0, tag: str = "", flag: str = "", counter_color: str = ACCENT, big: str = ""):
-    """One item's screen.
+          price: int = 0, tag: str = "", flag: str = "", counter_color: str = ACCENT, big: str = "",
+          title: str = "", arts: list = (), unit: str = "ITEM"):
+    """One item's screen (or one group's: `arts` up to three cosmetics, `title`
+    in place of the name).
       y 366-600   HEAD label, the days rolling up, DAYS (and the #N tag at the right)
-      y ...       the cosmetic, beside the button rail
+      y ...       the cosmetic(s), beside the button rail
       ...-1404    name, then `info` lines (30 px), then the price if any"""
     cols = it.get("tile_colors") or [RARITY.get(it["rarity"], "#3a3a44")]
     inner = tile_bg(cols, it["rarity"], t0) + _scrim()
@@ -99,15 +147,15 @@ def _card(comp: Comp, ctx: Ctx, it: dict, t0: float, k: int, n: int, head: str, 
         inner += sticker(tag, SAFE_RIGHT_TOP - 26 - tw, TOP_Y - 8, 104, t0 + .35, rot=7)
     head_bottom = TOP_Y + 44 + num_size * .95
 
-    size, lines = _fit(it["name"], TEXT_W, big=96, one_min=70, two_max=76, small=56)
+    name = title or it["name"]
+    size, lines = _fit(name, TEXT_W, big=96, one_min=70, two_max=76, small=56)
     info_h = size * .92 * lines + 14 + len(info) * 30 * 1.3 + (12 + 80 * .9 if price else 0)
     y_name = INFO_BOTTOM - info_h
     art_top = head_bottom + 30
     art_h = max(340, min(560, y_name - 20 - art_top))
     cy = y_name - 20 - art_h / 2
-    inner += character(ctx.art(it), (SAFE_LEFT + SAFE_RIGHT) / 2, cy, art_h, t0 + .1, "pop", .6, "float",
-                       it["rarity"], it["name"], maxw=700, trim=True)
-    inner += words(it["name"], SAFE_LEFT, y_name, size, t0 + .5, "#fff", .06, "slam", "left", TEXT_W)
+    inner += _arts(ctx, list(arts) or [it], cy, art_h, t0)
+    inner += words(name, SAFE_LEFT, y_name, size, t0 + .5, "#fff", .06, "slam", "left", TEXT_W)
     y = y_name + size * .92 * lines + 14
     for j, line in enumerate(info):
         inner += label(line.upper(), SAFE_LEFT + 4, y, 30, t0 + .7 + j * .15, "#fff", 800)
@@ -120,7 +168,7 @@ def _card(comp: Comp, ctx: Ctx, it: dict, t0: float, k: int, n: int, head: str, 
         fx, fy = SAFE_RIGHT_TOP - 20 - fw, head_bottom - fs * 1.4
         inner += _from(t0 + 1.7, burst(fx + fw / 2, fy + 30, t0 + 1.7, ctx.seed + k))
         inner += sticker(flag, fx, fy, fs, t0 + 1.7, rot=-5)
-    inner += progress(t0, t0 + R_LEN, k, n).replace(f"ROUND {k}/{n}", f"ITEM {k}/{n}")
+    inner += progress(t0, t0 + R_LEN, k, n).replace(f"ROUND {k}/{n}", f"{unit} {k}/{n}")
     comp.scene(t0, t0 + R_LEN + .3, inner, fade_in=.25, fade_out=.05)
     comp.cue(t0 + .1, "whoosh"); comp.cue(t0 + .25, "tick"); comp.cue(t0 + .5, "slam"); comp.cue(t0 + 1.45, "pop")
     if flag:
@@ -144,40 +192,74 @@ def _close(comp: Comp, ctx: Ctx, content_end: float, ask: str, items: list):
 
 # ------------------------------------------------------------------ BACK AFTER
 
-def back_after(ctx: Ctx, min_days: int = 180, max_items: int = 6, min_items: int = 3):
-    """Today's single offers that came back after at least `min_days` away."""
+def _group_title(hist: R.History, section: str, members: list) -> str:
+    """A comeback card's title when several items came back together: the shop
+    section when it names something (Resident Evil, not Front Page), else the
+    set they all share. Empty when neither does; the lead item names the card."""
+    if section.strip().lower() not in GENERIC_SECTIONS:
+        return section.strip()
+    sets = {((hist.items.get(iid.lower()) or {}).get("set") or {}).get("value") or "" for _, iid, _ in members}
+    return sets.pop() if len(sets) == 1 else ""
+
+
+def back_after(ctx: Ctx, min_days: int = 180, max_cards: int = 6, min_cards: int = 3):
+    """Today's offers that came back after at least `min_days` away, one card per
+    comeback, longest wait last. Items that were last in the shop the same day
+    and came back the same day in the same section are one comeback: one card
+    that shows up to three of them and names the rest. Fewer than `min_cards`
+    comebacks today: None (the slot makes something else)."""
     hist = history()
-    rows = R.back_in_shop(hist, ctx.shop, ctx.day, min_days)
-    picks, seen = [], set()
-    for row, iid, gone, last, times in rows:
+    groups, seen = {}, set()
+    for row, iid, gone, last, times in R.back_in_shop(hist, ctx.shop, ctx.day, min_days):
         if row["name"].lower() in seen or row.get("type") not in SHOWN or not ctx.art(row):
             continue
         seen.add(row["name"].lower())
-        picks.append((row, gone, last, times))
-        if len(picks) == max_items:
-            break
-    if len(picks) < min_items:
+        groups.setdefault((gone, last, row.get("section") or ""), []).append((row, iid, times))
+    if len(groups) < min_cards:
         return None
-    n = len(picks)
-    top = picks[0]
-    comp, content_end = _frame(ctx, n, f"BACK AFTER {top[1]:,} DAYS", "RARE RETURNS IN TODAY'S SHOP",
-                               "FINALLY!", picks[0][0], picks[1][0])
-    for k, (row, gone, last, times) in enumerate(reversed(picks), 1):
+    cards = []            # (gone, last, members, title) -- longest wait first
+    for (gone, last, section), members in sorted(groups.items(), key=lambda g: (-g[0][0], g[0][1]))[:max_cards]:
+        members.sort(key=lambda m: (TYPE_ORDER.get(m[0]["type"], 9), -int(m[0].get("price") or 0)))
+        cards.append((gone, last, members, _group_title(hist, section, members) if len(members) > 1 else ""))
+    n = len(cards)
+    top = cards[0][0]
+    comp, content_end = _frame(ctx, n, f"BACK AFTER {top:,} DAYS", "RARE RETURNS IN TODAY'S SHOP",
+                               "FINALLY!", cards[0][2][0][0], cards[1][2][0][0])
+    for k, (gone, last, members, title) in enumerate(reversed(cards), 1):
         t0 = HOOK + (k - 1) * R_LEN
-        info = [f"{row.get('rarity_label') or row['rarity']} {row['type']}",
-                f"LAST IN THE SHOP {_d(last)}",
-                f"IN THE ITEM SHOP {times}× BEFORE" if times > 1 else "IN THE ITEM SHOP ONCE BEFORE"]
+        row, _, times = members[0]
         flag = "LONGEST WAIT TODAY!" if k == n else ""
-        _card(comp, ctx, row, t0, k, n, "BACK AFTER", gone, info, price=int(row["price"]), flag=flag)
-    _close(comp, ctx, content_end, "WHICH ONE WERE YOU WAITING FOR?", [p[0] for p in picks])
-    body = "\n".join(f"{num(k)} {row['name']} · back after {gone:,} days (last in the shop {last:%b %-d, %Y})"
-                     f" · {int(row['price']):,} V-Bucks" for k, (row, gone, last, times) in enumerate(picks, 1))
-    tags = _hashtags("fortniteitemshop", "rareskins", top[0]["name"])
+        if len(members) == 1:
+            info = [f"{row.get('rarity_label') or row['rarity']} {row['type']}",
+                    f"LAST IN THE SHOP {_d(last)}",
+                    f"IN THE ITEM SHOP {times}× BEFORE" if times > 1 else "IN THE ITEM SHOP ONCE BEFORE"]
+            _card(comp, ctx, row, t0, k, n, "BACK AFTER", gone, info, price=int(row["price"]), flag=flag,
+                  unit="COMEBACK")
+            continue
+        names = [m[0]["name"] for m in members]
+        if title:
+            info = [f"{len(members)} ITEMS BACK TOGETHER", f"LAST IN THE SHOP {_d(last)}", _names_line(names)]
+        else:         # no name for the group: the lead item's card, and what came back with it
+            info = [f"+ {len(members) - 1} MORE BACK WITH IT", f"LAST IN THE SHOP {_d(last)}",
+                    _names_line(names[1:])]
+        _card(comp, ctx, row, t0, k, n, "BACK AFTER", gone, info, flag=flag, title=title,
+              arts=[m[0] for m in members[:3]], unit="COMEBACK")
+    _close(comp, ctx, content_end, "WHICH ONE WERE YOU WAITING FOR?", [c[2][0][0] for c in cards])
+
+    def line(k, gone, last, members, title):
+        when = f"back after {gone:,} days (last in the shop {last:%b %-d, %Y})"
+        if len(members) == 1:
+            row = members[0][0]
+            return f"{num(k)} {row['name']} · {when} · {int(row['price']):,} V-Bucks"
+        names = ", ".join(m[0]["name"] for m in members[:6]) + (f" +{len(members) - 6} more" if len(members) > 6 else "")
+        return f"{num(k)} {f'{title} ({len(members)} items): ' if title else ''}{names} · {when}"
+    body = "\n".join(line(k, *c) for k, c in enumerate(cards, 1))
+    tags = _hashtags("fortniteitemshop", "rareskins", cards[0][3] or cards[0][2][0][0]["name"])
     return Video(
         "back_after", comp,
-        title=f"Back After {top[1]:,} Days — Fortnite Item Shop, {ctx.day_label}",
-        yt_title=f"Back in the Fortnite Shop After {top[1]:,} Days: {ctx.day_label} #shorts",
-        caption=_caption(f"⏳ BACK AFTER {top[1]:,} DAYS — Fortnite Item Shop, {ctx.day_label}\n"
+        title=f"Back After {top:,} Days — Fortnite Item Shop, {ctx.day_label}",
+        yt_title=f"Back in the Fortnite Shop After {top:,} Days: {ctx.day_label} #shorts",
+        caption=_caption(f"⏳ BACK AFTER {top:,} DAYS — Fortnite Item Shop, {ctx.day_label}\n"
                          f"Today's rare returns, by how long they were gone (the Item Shop's own history) 👇",
                          body, "Which one were you waiting for?", tags),
         hashtags=tags)
@@ -192,7 +274,6 @@ VARIANTS = {
     "emotes": ("emote", None, "EMOTES", "emotes"),
     "gliders": ("glider", None, "GLIDERS", "gliders"),
     "backblings": ("backpack", None, "BACK BLINGS", "back blings"),
-    "marvel": ("outfit", lambda i: (i.get("series") or {}).get("value") == "MARVEL SERIES", "MARVEL SKINS", "Marvel skins"),
     "icon": ("outfit", lambda i: (i.get("series") or {}).get("value") == "Icon Series", "ICON SKINS", "Icon Series skins"),
     "ch1": ("outfit", lambda i: str((i.get("introduction") or {}).get("chapter")) == "1", "CHAPTER 1 SKINS", "Chapter 1 skins"),
 }
@@ -243,7 +324,9 @@ def rarest(ctx: Ctx, variant: str = "outfits", count: int = 5):
 
 def og_where(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 6):
     """One season's outfits: each one's days since it was last in the shop, or
-    IN THE SHOP TODAY when it's in today's shop."""
+    IN THE SHOP TODAY when it's in today's shop. Half are the ones gone the
+    longest, half the season's best known (legendary, then the most often
+    sold); shortest gap first, so the one gone the longest is the finale."""
     hist = history()
     today_ids = {i.lower() for row in ctx.shop.get("items", []) for i in R.shop_ids(row)}
     pool = []
@@ -262,9 +345,16 @@ def og_where(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 6):
         pool.append((it, past[-1], (ctx.day - past[-1]).days, len(R._runs(past)), key in today_ids))
     if len(pool) < count:
         return None
-    # the famous (legendary / most sold) first, then show them longest-gone last
-    pool.sort(key=lambda r: (-(r[0]["rarity"] == "legendary"), -r[3]))
-    picks = sorted(pool[:count], key=lambda r: (not r[4], r[2]))
+    longest, sets = [], set()
+    for r in sorted((r for r in pool if not r[4]), key=lambda r: -r[2]):
+        if r[0]["set"] and (r[0]["set"], r[1]) in sets:
+            continue          # a whole set that left together counts once
+        sets.add((r[0]["set"], r[1]))
+        longest.append(r)
+        if len(longest) == count // 2:
+            break
+    famous = sorted((r for r in pool if r not in longest), key=lambda r: (-(r[0]["rarity"] == "legendary"), -r[3]))
+    picks = sorted(longest + famous[:count - len(longest)], key=lambda r: (not r[4], r[2]))
     n = len(picks)
     title = f"CHAPTER {chapter} SEASON {season}"
     comp, content_end = _frame(ctx, n, title, "WHERE ARE THEY NOW?", "OG", picks[-1][0], picks[-2][0],
