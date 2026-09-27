@@ -77,16 +77,18 @@ LOOKS = {
                  dot=ACCENT, dot_ink=INK, hi=ACCENT, kicker=ACCENT),
 }
 
+# Keyframes, "ce"-prefixed: the card also goes inside every video (cc_end_card),
+# next to the looks' own animations.
 CSS = """
-@keyframes cardin{0%{opacity:0;transform:scale(.9)}60%{opacity:1;transform:scale(1.015)}100%{opacity:1;transform:none}}
-@keyframes cardout{from{opacity:1;transform:none}to{opacity:0;transform:scale(.94)}}
-@keyframes cardgone{from{opacity:1;transform:none}to{opacity:0;transform:scale(.4)}}
-@keyframes btnin{0%{opacity:0;transform:scale(.7)}60%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:none}}
-@keyframes press{0%,100%{transform:none;filter:none}35%{transform:translateY(7px) scale(.97);filter:brightness(.86)}}
-@keyframes blink{0%,49.9%{opacity:1}50%,100%{opacity:0}}
-@keyframes ptr{0%{transform:translate(320px,230px);opacity:0}25%{opacity:1}100%{transform:none;opacity:1}}
-@keyframes squish{0%,100%{transform:none}40%{transform:scale(.8)}}
-@keyframes drift{from{transform:translate(0,0) scale(1.04)}to{transform:translate(-70px,-30px) scale(1.04)}}
+@keyframes cecardin{0%{opacity:0;transform:scale(.9)}60%{opacity:1;transform:scale(1.015)}100%{opacity:1;transform:none}}
+@keyframes cecardout{from{opacity:1;transform:none}to{opacity:0;transform:scale(.94)}}
+@keyframes cecardgone{from{opacity:1;transform:none}to{opacity:0;transform:scale(.4)}}
+@keyframes cebtnin{0%{opacity:0;transform:scale(.7)}60%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:none}}
+@keyframes cepress{0%,100%{transform:none;filter:none}35%{transform:translateY(7px) scale(.97);filter:brightness(.86)}}
+@keyframes ceblink{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+@keyframes ceptr{0%{transform:translate(320px,230px);opacity:0}25%{opacity:1}100%{transform:none;opacity:1}}
+@keyframes cesquish{0%,100%{transform:none}40%{transform:scale(.8)}}
+@keyframes cedrift{from{transform:translate(0,0) scale(1.04)}to{transform:translate(-70px,-30px) scale(1.04)}}
 """
 
 POINTER = ('<svg width="56" height="80" viewBox="0 0 28 40"><path d="M2 2v30.5l7.6-7.3 5.2 12.3 '
@@ -154,27 +156,36 @@ def _dark(c: str, f: float = .22) -> str:
     return "#" + "".join(f"{int(int(c[i:i + 2], 16) * f):02x}" for i in (1, 3, 5))
 
 
-def shop_wall(w: int, h: int, art_dir: Path | None) -> str:
-    """The backdrop: a wall of item-shop tiles, blurred and dimmed so the card
-    reads first -- the card sits over the shop in the videos it comes from."""
-    items = []
+def wall_art(art_dir: Path | None) -> list:
+    """[(data URI, rarity)] from a folder of cut-outs with a meta.json."""
+    arts = []
     if art_dir and (art_dir / "meta.json").exists():
         for m in json.loads((art_dir / "meta.json").read_text()):
             f = art_dir / m.get("file", "")
             if f.is_file():
-                items.append((f, m.get("rarity", "")))
+                arts.append((data_uri(f), m.get("rarity", "")))
+    return arts
+
+
+def shop_wall(comp: M.Comp, w: int, h: int, arts: list) -> str:
+    """The backdrop: a wall of item-shop tiles, blurred and dimmed so the card
+    reads first -- the card sits over the shop in the videos it comes from.
+    arts: [(data URI, rarity)]; each picture goes into the page once, as a CSS
+    class the tiles share. Without any, plain rarity-coloured tiles."""
     tw, th, gap = 300, 430, 22
     cols, rows = (w + 260) // (tw + gap) + 1, (h + 260) // (th + gap) + 1
-    uris, tiles = {}, []
+    classes = []
+    for uri, _ in arts:
+        name = comp.uid("cew")
+        comp.css(f".{name}{{background:url({uri}) 50% 100%/auto 110% no-repeat}}")
+        classes.append(name)
+    tiles = []
     for r in range(rows):
         for col in range(cols):
             i = r * cols + col
-            if items:
-                f, rarity = items[(i * 7 + r * 3) % len(items)]
-                if f not in uris:
-                    uris[f] = data_uri(f)
-                art = (f'<img src="{uris[f]}" style="position:absolute;left:50%;bottom:-6%;height:110%;'
-                       f'transform:translateX(-50%)">')
+            if arts:
+                j = (i * 7 + r * 3) % len(arts)
+                rarity, art = arts[j][1], f'<div class="full {classes[j]}"></div>'
             else:
                 rarity, art = ("rare", "epic", "legendary", "uncommon", "icon")[i % 5], ""
             c = RARITY.get(rarity, "#3a3a44")
@@ -184,7 +195,7 @@ def shop_wall(w: int, h: int, art_dir: Path | None) -> str:
                          f'background:linear-gradient(transparent,rgba(0,0,0,.7))"></div></div>')
     grid = (f'<div class="abs" style="left:-130px;top:-130px;display:grid;'
             f'grid-template-columns:repeat({cols},{tw}px);gap:{gap}px;'
-            f'{style_anim(an("drift", 0, 14, "linear"))}">{"".join(tiles)}</div>')
+            f'{style_anim(an("cedrift", 0, 14, "linear"))}">{"".join(tiles)}</div>')
     return (f'<div class="full" data-safe="ignore" style="overflow:hidden;background:{INK}">'
             f'<div class="full" style="filter:blur(7px) brightness(.5) saturate(1.1)">{grid}</div>'
             f'<div class="full" style="background:radial-gradient(ellipse 70% 62% at 50% 48%,'
@@ -199,12 +210,15 @@ def outlined(text: str, css: str, stroke: float, shadow: bool) -> str:
             f'<div style="{css};color:#fff">{esc(text)}</div>')
 
 
-def card(L: dict, code: str, t: dict, x: float, y: float, k: float, shadow: bool, collapse: bool) -> str:
-    anims = [an("cardin", t["card"], .42)] if t["card"] > 0 else []
+def card(L: dict, code: str, t: dict, x: float, y: float, k: float, shadow: bool, collapse: bool,
+         field_px: int = 67) -> str:
+    """The card at (x, y), scaled by k. t: timeline(). collapse: shrink away at t['done']
+    (the confirmation takes its place). field_px: the typed code's size before scaling."""
+    anims = [an("cecardin", t["card"], .42)] if t["card"] > 0 else []
     if collapse:
-        anims.append(an("cardgone", t["done"], .25, "cubic-bezier(.5,0,1,1)", fill="forwards"))
+        anims.append(an("cecardgone", t["done"], .25, "cubic-bezier(.5,0,1,1)", fill="forwards"))
     elif t["out"] < t["end"]:
-        anims.append(an("cardout", t["out"], .35, "ease-in", fill="forwards"))
+        anims.append(an("cecardout", t["out"], .35, "ease-in", fill="forwards"))
 
     head = (f'<div class="abs" style="left:0;top:0;width:{CARD_W}px;height:{HEAD_H}px;'
             f'background:{L["head"]};border-radius:6px 6px 0 0"></div>')
@@ -229,9 +243,9 @@ def card(L: dict, code: str, t: dict, x: float, y: float, k: float, shadow: bool
         show = [an("fadein", start, .001, "linear")] if i else []
         hide = [an("fadeout", t["keys"][i], .001, "linear", fill="forwards")] if i < len(code) else []
         caret = (f'<i style="display:inline-block;width:4px;height:60px;margin-left:5px;vertical-align:-9px;'
-                 f'background:{L["ink"]};{style_anim(an("blink", start, 1.06, "linear", "infinite"), *(click if i == len(code) else []))}"></i>')
+                 f'background:{L["ink"]};{style_anim(an("ceblink", start, 1.06, "linear", "infinite"), *(click if i == len(code) else []))}"></i>')
         layers.append(f'<div class="abs" style="left:22px;top:0;height:{FIELD_H}px;{style_anim(*show) if show else ""}">'
-                      f'<div style="font:{L["weight"]} 67px/{FIELD_H}px \'Liberation Sans\',Arial,sans-serif;'
+                      f'<div style="font:{L["weight"]} {field_px}px/{FIELD_H}px \'Liberation Sans\',Arial,sans-serif;'
                       f'color:{L["ink"]};white-space:pre;{style_anim(*hide) if hide else ""}">{esc(code[:i])}{caret}</div></div>')
     ring = (f'<div class="abs" style="left:{FIELD_X - 7}px;top:{FIELD_Y - 7}px;width:{FIELD_W + 14}px;'
             f'height:{FIELD_H + 14}px;border:5px solid {L["ring"]};border-radius:5px;'
@@ -242,9 +256,9 @@ def card(L: dict, code: str, t: dict, x: float, y: float, k: float, shadow: bool
     epic = outlined("#EpicPartner", f"position:absolute;left:{FIELD_X}px;top:{EPIC_TOP}px;"
                     f"font:700 82px/82px 'Liberation Sans',Arial,sans-serif;letter-spacing:.012em;white-space:nowrap", 9, shadow)
 
-    press = [an("press", t["click"], .22, "ease-out")] if "click" in t else []
+    press = [an("cepress", t["click"], .22, "ease-out")] if "click" in t else []
     accept = (f'<div class="abs" style="left:{ACC_X}px;top:{ACC_Y}px;width:{ACC_W}px;height:{ACC_H}px;'
-              f'{style_anim(an("btnin", t["accept"], .45))}">'
+              f'{style_anim(an("cebtnin", t["accept"], .45))}">'
               f'<div class="full" style="background:{L["btn"]};border:6px solid {L["btn_edge"]};'
               f'border-radius:{L["radius"]}px;{L["btn_shadow"] if shadow else ""}display:flex;align-items:center;'
               f'justify-content:center;font:{L["btn_weight"]} 68px/1 \'Liberation Sans\',Arial,sans-serif;'
@@ -255,8 +269,8 @@ def card(L: dict, code: str, t: dict, x: float, y: float, k: float, shadow: bool
         tipx, tipy = ACC_X + ACC_W * .83, ACC_Y + ACC_H * .74      # right of the word, not on it
         drop = "filter:drop-shadow(0 5px 6px rgba(0,0,0,.5));" if shadow else ""
         pointer = (f'<div class="abs" style="left:{tipx - 4:.0f}px;top:{tipy - 4:.0f}px;z-index:5;{drop}'
-                   f'{style_anim(an("ptr", t["accept"] + .25, .8, "cubic-bezier(.3,.1,.2,1)"))}">'
-                   f'<div style="transform-origin:4px 4px;{style_anim(an("squish", t["click"] - .02, .2, "ease-out"))}">'
+                   f'{style_anim(an("ceptr", t["accept"] + .25, .8, "cubic-bezier(.3,.1,.2,1)"))}">'
+                   f'<div style="transform-origin:4px 4px;{style_anim(an("cesquish", t["click"] - .02, .2, "ease-out"))}">'
                    f'{POINTER}</div></div>')
 
     look = "box-shadow:0 26px 70px rgba(0,0,0,.6),0 6px 0 rgba(0,0,0,.28);" if shadow else ""
@@ -269,9 +283,9 @@ def card(L: dict, code: str, t: dict, x: float, y: float, k: float, shadow: bool
 
 def confirmation(code: str, t: dict, cx: float, cy: float, s: float, with_epic: bool, shadow: bool) -> str:
     """SUPPORT-A-CREATOR: BAD -- what the shop's button reads once the code is in."""
-    anims = [an("btnin", t["pill"], .5)]
+    anims = [an("cebtnin", t["pill"], .5)]
     if t["out"] < t["end"]:
-        anims.append(an("cardout", t["out"], .35, "ease-in", fill="forwards"))
+        anims.append(an("cecardout", t["out"], .35, "ease-in", fill="forwards"))
     sh = "box-shadow:0 10px 0 rgba(0,0,0,.35),0 30px 60px rgba(0,0,0,.45);" if shadow else ""
     epic = outlined("#EpicPartner", f"position:absolute;left:0;top:0;font:700 {50 * s:.0f}px/1 "
                     f"'Liberation Sans',Arial,sans-serif;white-space:nowrap", 7 * s, shadow)
@@ -313,7 +327,7 @@ def compose(look: str, size: str, mode: str, code: str = CODE, art_dir: Path | N
     c.css(CSS)
     shadow = mode != "green"            # soft shadows would leave a dark fringe after keying
     if mode == "wall":
-        c.add(shop_wall(w, h, art_dir))
+        c.add(shop_wall(c, w, h, wall_art(art_dir)))
     if vertical:
         k, x, y = V_SCALE, V_X, V_Y
     else:

@@ -14,6 +14,12 @@ off the frames and the card was rebuilt:
 - **Liberation Sans** (a free Arial twin, `assets/fonts/LiberationSans-OFL.txt`) sets the text
   box and the button.
 
+## In every video
+
+The owner picked the **lime 16:9** version. Every daily video now ends on it: shop and quiz, all
+formats and all looks (see `LOOKS.md`). It is sized for the vertical frame, beside the button
+rail and under the corner badge, which stays on screen. `scripts/cc_end_card.py` adds it.
+
 ## The two looks
 
 | Look | What it does |

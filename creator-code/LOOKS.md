@@ -8,6 +8,21 @@ captions and the posting are exactly the same as before.
 **USE CODE: BAD** is on screen in every frame of every look, in the channel's lime, and it
 is big: "BAD" is at least 110 px tall in a 1920 px video.
 
+## Every video ends on the code-entry card
+
+From Sep 28, 2026, every video gets about 5 more seconds after its own ending, whatever its
+look. The **CREATOR CODE** card pops in over a blurred wall of that video's cosmetics. It is
+the lime one from `CODE_ENTRY.md`, the one the owner picked:
+1. BAD is typed in.
+2. A pointer clicks Accept.
+3. The card turns into **SUPPORT-A-CREATOR: BAD** with #EpicPartner.
+
+The lime USE CODE: BAD badge stays in the top-left corner through the card too, so the code is
+on screen in every frame. The card sits beside the button rail and passes the safe-zone check.
+Videos are now about 67–73 s, still under Facebook Reels' 90 s. The code is in
+`scripts/cc_end_card.py`, and every build goes through it. To leave it off for one run, set
+`CC_END_CARD=0`.
+
 ## Which looks are live
 
 | Look | Video type | Switch in `looks.json` | Status |

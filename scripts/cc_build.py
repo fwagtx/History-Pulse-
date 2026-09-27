@@ -32,6 +32,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import cc_end_card as E
 import cc_formats as F
 import cc_safe as S
 from cc_common import OUT_DIR, load_config, log, today_stamp, write_json
@@ -225,8 +226,9 @@ def build_all(shop: dict, art, day: date, only: list | None) -> list:
                 continue
             try:
                 # Held to the apps' safe box (cc_safe); a look that fails it falls
-                # back to the classic version of the format.
-                video, safe = S.gate(lambda: fn(ctx), f"slot {slot['slot']} {name}", log)
+                # back to the classic version of the format. Every video ends on
+                # the code-entry card (cc_end_card).
+                video, safe = S.gate(lambda: E.finish(fn, ctx), f"slot {slot['slot']} {name}", log)
             except Exception as e:  # noqa: BLE001 - one bad format must not sink the day
                 log(f"  slot {slot['slot']}: {name} crashed: {e!r}")
                 video = None

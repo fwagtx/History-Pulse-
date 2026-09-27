@@ -92,6 +92,7 @@ def build_video(fmt: str, day_s: str | None, series: str, shop_path: str | None,
     format from a saved shop.json. `looks` sets CC_LOOKS when given."""
     if looks:
         os.environ["CC_LOOKS"] = looks
+    import cc_end_card as E
     from cc_formats import Ctx
     art = stand_in_art(art_dir)
     if shop_path:
@@ -100,7 +101,7 @@ def build_video(fmt: str, day_s: str | None, series: str, shop_path: str | None,
         day = date.fromisoformat(shop["shop_day"])
         ctx = Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
         fn = builder(fmt)
-        v = fn(ctx) if fn else None
+        v = E.finish(fn, ctx) if fn else None
     else:
         import cc_quiz as Q
         plan = json.loads(PLAN.read_text())
@@ -110,7 +111,7 @@ def build_video(fmt: str, day_s: str | None, series: str, shop_path: str | None,
         if not spec:
             raise SystemExit(f"No {fmt} {series} on {day_s} in the plan.")
         ctx = Ctx(shop={"items": []}, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
-        v = Q.build(spec, plan["items"], ctx)
+        v = E.finish(lambda c: Q.build(spec, plan["items"], c), ctx)
     if v is None:
         raise SystemExit("The format returned nothing for this data (it would fall back).")
     v.day = day

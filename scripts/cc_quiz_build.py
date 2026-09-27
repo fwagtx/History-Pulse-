@@ -28,6 +28,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import cc_end_card as E  # noqa: E402
 import cc_quiz as Q  # noqa: E402
 import cc_safe as S  # noqa: E402
 from cc_build import COVER_T, REPO, _render_one, post_problems  # noqa: E402
@@ -87,7 +88,8 @@ def main():
         try:
             # Held to the apps' safe box (cc_safe): a look that puts something
             # under TikTok/Instagram/YouTube/Facebook UI falls back to the classic.
-            v, safe = S.gate(lambda: Q.build(spec, items, ctx), name, log)
+            # Every video ends on the code-entry card (cc_end_card).
+            v, safe = S.gate(lambda: E.finish(lambda c: Q.build(spec, items, c), ctx), name, log)
         except Exception as e:  # noqa: BLE001 - one bad video must not sink the day
             log(f"  {name} crashed: {e!r}")
             continue
