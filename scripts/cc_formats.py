@@ -37,6 +37,10 @@ MIN_SECONDS = 62.0      # over TikTok's 1-minute Creator Rewards bar, with margi
 # owner dropped the longer "I get a commission..." sentence on 2026-09-23.
 DISCLOSE = "#EpicPartner"
 CODE_CREDIT = "💚 Creator Code: BAD"
+# Epic's Fan Content Policy asks for this notice on fan content that uses its
+# material (legal.epicgames.com/epicgames/fan-art-policy); every caption carries it.
+EPIC_NOTE = ("Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. "
+             "All rights reserved by Epic. This material is not official and is not endorsed by Epic.")
 # TikTok's API takes captions up to 2,200 UTF-16 units (an emoji counts as 2);
 # YouTube descriptions allow 5,000. Stay under the smaller with room to spare.
 CAPTION_MAX = 2150
@@ -150,12 +154,13 @@ def _caption(hook: str, body: str, ask: str, tags: list) -> str:
         <body: short lines, one item per line>
         💬 <the ask>
         💚 Creator Code: BAD · #EpicPartner
+        <Epic's fan-content notice>
         #hashtags
 
     Blank lines between the blocks. If it's ever too long, whole lines drop from
     the end of the body -- never the ask, the code, the disclosure or the tags."""
     ask = ask if ask.startswith("💬") else f"💬 {ask}"
-    foot = f"{CODE_CREDIT} · {DISCLOSE}\n\n" + " ".join("#" + t for t in tags)
+    foot = f"{CODE_CREDIT} · {DISCLOSE}\n{EPIC_NOTE}\n\n" + " ".join("#" + t for t in tags)
     lines = [ln.rstrip() for ln in body.strip().split("\n")]
 
     def build(ls, cut):

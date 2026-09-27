@@ -23,12 +23,20 @@ on:
           videos go to preview-quiz-DATE releases that nothing schedules.
         required: false
         default: ""
+      sample:
+        description: >-
+          Optional: instead of quiz videos, render the approval samples of new
+          formats (scripts/cc_samples.py), e.g. "all" or "long,voices". They go
+          to a samples-DATE release that nothing schedules.
+        required: false
+        default: ""
 
 permissions:
   contents: write           # needed to publish the releases that host the videos
 
 jobs:
   days:
+    if: ${{ !inputs.sample }}
     runs-on: ubuntu-latest
     outputs:
       list: ${{ steps.list.outputs.list }}
@@ -124,3 +132,55 @@ jobs:
           [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "false" ] || { echo "::error::release $TAG is still a draft"; exit 1; }
           curl -fsSL -o /dev/null "https://github.com/${{ github.repository }}/releases/download/$TAG/manifest.json"
           echo "Public: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+
+  # Approval samples: new formats with real art and today's data, plus a long
+  # video excerpt with narration (free, open-source Kokoro TTS). Nothing
+  # schedules them; they're for the owner to watch before anything goes live.
+  samples:
+    if: ${{ inputs.sample }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/creator-code-bad-automation-0jjc1k
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ffmpeg, Chromium, Python deps (and the free TTS)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q playwright==1.56.0 numpy pillow kokoro-onnx soundfile
+          python -m playwright install --with-deps chromium
+
+      - name: Render the samples
+        env:
+          SAMPLE: ${{ inputs.sample }}
+        run: |
+          set -e
+          [[ "$SAMPLE" =~ ^[a-z_,]+$ ]] || { echo "::error::sample must look like all or long,voices"; exit 1; }
+          python3 scripts/cc_samples.py --out creator-code/out/samples --what "$SAMPLE"
+          ls -la creator-code/out/samples
+          cat creator-code/out/samples/samples.json
+
+      - name: Publish to a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          DIR="creator-code/out/samples"
+          TAG="samples-$(date -u +%F)"
+          shopt -s nullglob
+          FILES=("$DIR"/sample-*.mp4 "$DIR"/sample-*-cover.png "$DIR"/sample-*-qa.jpg "$DIR"/sample-*-thumbnail.* \
+                 "$DIR"/voice-*.m4a "$DIR/samples.json")
+          NOTES="Approval samples of new formats. Nothing schedules these."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+          else
+            gh release create "$TAG" --title "Samples $TAG" --notes "$NOTES" "${FILES[@]}"
+          fi
+          echo "https://github.com/${{ github.repository }}/releases/tag/$TAG"
+
