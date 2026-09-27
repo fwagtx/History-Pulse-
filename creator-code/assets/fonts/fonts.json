@@ -148,5 +148,17 @@
   "style": "normal",
   "weight": "700",
   "file": "Kalam-normal-700.woff2"
+ },
+ {
+  "family": "Liberation Sans",
+  "style": "normal",
+  "weight": "400",
+  "file": "LiberationSans-Regular.ttf"
+ },
+ {
+  "family": "Liberation Sans",
+  "style": "normal",
+  "weight": "700",
+  "file": "LiberationSans-Bold.ttf"
  }
 ]
