@@ -209,22 +209,64 @@ def build(hist: R.History, day: date, kind: str, count: int, art, seed: int, exc
         a = s.lines_at[0][0]
         inner = (f'<div class="abs d" style="left:{L.MARGIN}px;top:230px;font-size:120px;color:#fff;'
                  f'{style_anim(an("lvin", a, .45))}">HOW THIS WORKS</div>'
-                 f'<div class="abs" style="left:{L.MARGIN}px;top:400px;width:1300px;font:600 46px/1.35 Inter;'
+                 f'<div class="abs" style="left:{L.MARGIN}px;top:400px;width:1200px;font:600 46px/1.35 Inter;'
                  f'color:rgba(255,255,255,.88);{style_anim(an("lvin", a + .3, .45))}">Ranked by the days since each '
                  f'{esc(one)} was last in the Item Shop, from Epic\'s shop history. Every lime tick is a time it was for sale.</div>')
         runs = hist.runs(h_item["id"], until=day)
         inner += timeline(runs, day, L.MARGIN + 40, 840, L.W - 2 * L.MARGIN - 180, s.lines_at[1][0], h_last)
+        if len(s.lines_at) > 2:
+            c = s.lines_at[2][0]
+            inner += (f'<div class="abs" style="left:1420px;top:250px;width:420px;{style_anim(an("lvpop", c, .5))}">'
+                      f'<div class="d" style="font-size:170px;line-height:.9;color:{ACCENT}">{five:,}</div>'
+                      f'<div style="font:800 30px/1.3 Inter;color:#fff;letter-spacing:.06em">OF {len(sold):,} {esc(many.upper())} '
+                      f'EVER SOLD</div><div style="font:800 30px/1.3 Inter;color:#ff5a5a;letter-spacing:.06em">'
+                      f'GONE 5+ YEARS</div></div>')
         comp.scene(s.t0, s.t1, f'<div class="full">{inner}</div>', fade_in=.2, fade_out=.25, z=5)
 
+    # A number nobody else has, from the records: how many of this kind the Item
+    # Shop has ever sold, and how few have been gone for five years or more.
+    sold = [k for k, d in hist.days.items() if (hist.items[k].get("type") or {}).get("value") == kind
+            and any(x < day for x in d)]
+    five = sum(1 for k in sold if max(x for x in hist.days[k] if x < day) <= date(day.year - 5, day.month, min(day.day, 28))
+               and hist.days[k][-1] < day)
     lv.segment(["Here's how this works. Every pick is ranked by how long it's been since it was last for sale.",
-                "Each lime mark is a time it was in the shop, and the red line is how long it's been gone."],
+                "Each lime mark is a time it was in the shop, and the red line is how long it's been gone.",
+                f"Out of {words(len(sold))} {many} the Item Shop has ever sold, only {words(five)} have been gone "
+                f"for five years or more."],
                draw_how, chapter="How it works")
+
+    # ---- the code break: the lime card, typing BAD, over the countdown so far
+    def draw_break(comp, s):
+        import cc_code_entry as CE
+        a = s.lines_at[1][0]
+        t = {"card": s.t0 + .1}
+        t["keys"] = [round(a + .2 + i * .24, 3) for i in range(3)]
+        t["accept"] = t["keys"][-1] + .42
+        t["click"] = t["accept"] + .9
+        t["done"] = t["click"] + .22
+        t["pill"] = t["done"] + .22
+        t["out"] = t["end"] = s.t1
+        L_ = CE.LOOKS["lime"]
+        inner = (CE.card(L_, "BAD", t, (L.W - CE.CARD_W * .9) / 2, (L.H - CE.CARD_H * .9) / 2, .9, True, True)
+                 + CE.confirmation("BAD", t, L.W / 2, L.H / 2, 1.1, True, True))
+        comp.scene(s.t0, s.t1, f'<div class="full" style="background:rgba(10,10,11,.55)">{inner}</div>',
+                   fade_in=.2, fade_out=.25, z=6)
+        for k in t["keys"]:
+            comp.cue(k, "tick")
+        comp.cue(t["click"], "click")
+        comp.cue(t["pill"], "ding")
 
     # ---- the countdown
     order = list(reversed(list(enumerate(picks, 1))))
     if excerpt:
         order = order[:excerpt]
-    for rank, (item, last, days, times, others) in order:
+    half = len(order) // 2 if not excerpt and len(order) >= 8 else -1
+    for i_pick, (rank, (item, last, days, times, others)) in enumerate(order):
+        if i_pick == half:
+            lv.segment([rnd.choice(["Quick one before the top half.", "Quick break before we keep going."]),
+                        "If you're buying anything in the Item Shop, use code BAD. Hashtag Epic Partner. "
+                        "It's the easiest way to support the channel."],
+                       draw_break, chapter="", min_len=6.5, cue="whoosh")
         rar = item["rarity"]["value"] if isinstance(item.get("rarity"), dict) else ""
         intro = (item.get("introduction") or {}).get("text", "").replace("Introduced in ", "").rstrip(".")
         set_name = (item.get("set") or {}).get("value", "") if isinstance(item.get("set"), dict) else ""

@@ -156,6 +156,22 @@ jobs:
           pip install -q playwright==1.56.0 numpy pillow kokoro-onnx soundfile
           python -m playwright install --with-deps chromium
 
+      # Same as the shop build: the shop comes from a keyless mirror; the
+      # official API is the fallback, with FORTNITE_API_KEY if that is set.
+      - name: Write config
+        env:
+          FORTNITE_API_KEY: ${{ secrets.FORTNITE_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          cfg = json.loads(pathlib.Path("creator-code/config.example.json").read_text())
+          cfg["fortnite_api_key"] = os.environ.get("FORTNITE_API_KEY", "")
+          cfg["telegram_bot_token"] = ""
+          cfg["telegram_chat_id"] = ""
+          cfg["video_out_dir"] = ""
+          pathlib.Path("creator-code/config.json").write_text(json.dumps(cfg, indent=2))
+          PY
+
       - name: Render the samples
         env:
           SAMPLE: ${{ inputs.sample }}
