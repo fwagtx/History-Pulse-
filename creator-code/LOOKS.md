@@ -10,7 +10,7 @@ is big: "BAD" is at least 110 px tall in a 1920 px video.
 
 ## Every video ends on the code-entry card
 
-From Sep 28, 2026, every video gets about 5 more seconds after its own ending, whatever its
+From Sep 27, 2026, every video gets about 5 more seconds after its own ending, whatever its
 look. The **CREATOR CODE** card pops in over a blurred wall of that video's cosmetics. It is
 the lime one from `CODE_ENTRY.md`, the one the owner picked:
 1. BAD is typed in.
