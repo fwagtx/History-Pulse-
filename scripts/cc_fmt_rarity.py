@@ -79,8 +79,8 @@ def _scrim() -> str:
             'rgba(0,0,0,.66) 100%)"></div>')
 
 
-def _card(comp: Comp, ctx: Ctx, it: dict, t0: float, k: int, n: int, head: str, days: int, info: list,
-          price: int = 0, tag: str = "", flag: str = "", counter_color: str = ACCENT):
+def _card(comp: Comp, ctx: Ctx, it: dict, t0: float, k: int, n: int, head: str, days: int | None, info: list,
+          price: int = 0, tag: str = "", flag: str = "", counter_color: str = ACCENT, big: str = ""):
     """One item's screen.
       y 366-600   HEAD label, the days rolling up, DAYS (and the #N tag at the right)
       y ...       the cosmetic, beside the button rail
@@ -89,8 +89,11 @@ def _card(comp: Comp, ctx: Ctx, it: dict, t0: float, k: int, n: int, head: str, 
     inner = tile_bg(cols, it["rarity"], t0) + _scrim()
     inner += label(head, SAFE_LEFT, TOP_Y, 32, t0, ACCENT, 800, anim="none", spacing=".16em")
     num_size = 150
-    inner += _from(t0 + .25, price_roll(days, SAFE_LEFT, TOP_Y + 44, num_size, t0 + .25, 1.2, counter_color,
-                                        suffix="DAYS"))
+    if big:           # words instead of a count, e.g. TODAY
+        inner += words(big, SAFE_LEFT, TOP_Y + 44, num_size, t0 + .25, counter_color, .06, "slam", "left", 700)
+    else:
+        inner += _from(t0 + .25, price_roll(days, SAFE_LEFT, TOP_Y + 44, num_size, t0 + .25, 1.2, counter_color,
+                                            suffix="DAY" if days == 1 else "DAYS"))
     if tag:
         tw = (_em(tag) + .84) * 104
         inner += sticker(tag, SAFE_RIGHT_TOP - 26 - tw, TOP_Y - 8, 104, t0 + .35, rot=7)
@@ -261,7 +264,7 @@ def og_where(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 6):
         return None
     # the famous (legendary / most sold) first, then show them longest-gone last
     pool.sort(key=lambda r: (-(r[0]["rarity"] == "legendary"), -r[3]))
-    picks = sorted(pool[:count], key=lambda r: r[2])
+    picks = sorted(pool[:count], key=lambda r: (not r[4], r[2]))
     n = len(picks)
     title = f"CHAPTER {chapter} SEASON {season}"
     comp, content_end = _frame(ctx, n, title, "WHERE ARE THEY NOW?", "OG", picks[-1][0], picks[-2][0],
@@ -270,9 +273,13 @@ def og_where(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 6):
         t0 = HOOK + (k - 1) * R_LEN
         info = [f"{it['rarity_label']} {it['type']}", f"LAST IN THE SHOP {_d(last)}",
                 f"IN THE ITEM SHOP {times}× SO FAR" if times > 1 else "IN THE ITEM SHOP ONLY ONCE"]
-        flag = "IN THE SHOP TODAY!" if now else ("GONE THE LONGEST!" if k == n else "")
-        _card(comp, ctx, it, t0, k, n, "LAST SEEN", days, info, flag=flag,
-              counter_color=ACCENT if days < 365 else RED)
+        flag = "" if now else ("GONE THE LONGEST!" if k == n else "")
+        if now:
+            info[1] = "BACK IN THE ITEM SHOP RIGHT NOW"
+            _card(comp, ctx, it, t0, k, n, "IN THE ITEM SHOP", None, info, big="TODAY")
+        else:
+            _card(comp, ctx, it, t0, k, n, "LAST SEEN", days, info, flag=flag,
+                  counter_color=ACCENT if days < 365 else RED)
     _close(comp, ctx, content_end, "WHICH ONE DID YOU OWN?", [p[0] for p in picks])
     body = "\n".join(f"{num(k)} {it['name']} · last in the Item Shop {last:%b %-d, %Y} ({days:,} days ago)"
                      for k, (it, last, days, times, now) in enumerate(picks, 1))
