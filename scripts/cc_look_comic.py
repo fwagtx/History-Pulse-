@@ -358,7 +358,7 @@ def _row(years: list, cur: int, t_on=None) -> str:
                        f'style="font-size:{size:.0f}px;line-height:1;letter-spacing:.02em">{y}</span></div>')
         out.append(f'<div class="abs" style="left:{X0 + i * step:.0f}px;top:{ROW_Y}px;width:{w:.0f}px;'
                    f'height:{ROW_H}px;{anim}">'
-                   + (f'<div class="cm-sh" style="transform:translate(6px,6px)"></div>' if on else "")
+                   + ('<div class="cm-sh" style="transform:translate(6px,6px)"></div>' if on else "")
                    + f'<div class="abs" style="inset:0;background:{fill};border:{5 if on else 4}px solid {INK};'
                      f'display:flex;align-items:center;justify-content:center">'
                      f'<span class="cm-o" style="font-size:{size:.0f}px;line-height:1;color:{col};'
@@ -524,8 +524,8 @@ def _page_origin(bday: dict, t0: float, years: list, r: float, when: str, still:
             # the splash's title tab, on the panel's top edge
             f'<div class="abs" style="left:{X0 + 6}px;top:{PY - 30}px;--r:-2deg;transform:rotate(-2deg);'
             f'{_a("cmplace", T(.25), .34)}">'
-            + _box(f'<div class="cm-a" style="font-size:44px;line-height:1.1;color:#fff;letter-spacing:.04em">'
-                   f'ORIGIN STORY</div>', INK, "position:relative", "6px 20px 4px", 8, 5) + '</div>',
+            + _box('<div class="cm-a" style="font-size:44px;line-height:1.1;color:#fff;letter-spacing:.04em">'
+                   'ORIGIN STORY</div>', INK, "position:relative", "6px 20px 4px", 8, 5) + '</div>',
             f'<div class="abs" style="left:{X0}px;top:716px;width:{XR - X0}px;display:flex;flex-direction:column;'
             f'align-items:center;gap:0;transform:rotate(-2deg)">{title}</div>',
             f'<div class="abs" style="left:{X0}px;top:1030px;width:{XR - X0}px;display:flex;'
@@ -554,7 +554,7 @@ def _cover(ctx, lead: list, years: list, when_short: str, bday, copy: bool = Fal
     logo = (f'<div class="abs" style="left:{X0 + 20}px;top:302px;transform:rotate(-4deg) skewX(-8deg);'
             f'transform-origin:0 0">'
             + _block("ON THIS", 118, CAP, 16, 12, grad=face)
-            + f'<div style="margin-top:-18px;margin-left:34px">' + _block("DAY", 208, CAP, 18, 14, grad=face)
+            + '<div style="margin-top:-18px;margin-left:34px">' + _block("DAY", 208, CAP, 18, 14, grad=face)
             + '</div></div>')
     html = [_panel_bg(BLUE, PX, PY, PW, PH, (470, 900), None, 0, lines=.8, tint=.72),
             _figure(ctx, b, 612, 1230, 360, 640, key="c1", copy=copy),
@@ -571,12 +571,12 @@ def _cover(ctx, lead: list, years: list, when_short: str, bday, copy: bool = Fal
         html.append(_note("one outfit from this date, every year!", None))
         sub = ""
     ban = (f'<div class="abs" style="left:{BAN_X}px;bottom:{1920 - BAN_BOTTOM}px;width:{BAN_W}px">'
-           + (f'<div style="display:flex;justify-content:flex-start;margin-bottom:-12px;position:relative;z-index:2;'
-              f'padding-left:22px"><div style="transform:rotate(-1.5deg)">'
+           + ('<div style="display:flex;justify-content:flex-start;margin-bottom:-12px;position:relative;z-index:2;'
+              'padding-left:22px"><div style="transform:rotate(-1.5deg)">'
               + _box(f'<div class="cm-k" data-fit="{BAN_W - 120}" style="font-size:36px;white-space:nowrap">'
                      f'{esc(sub)}</div>', CAP, "position:relative", "6px 16px 2px", 6, 4) + '</div></div>'
               if sub else "")
-           + f'<div style="transform:skewX(-9deg);transform-origin:0 100%">'
+           + '<div style="transform:skewX(-9deg);transform-origin:0 100%">'
            + _box(f'<div style="transform:skewX(9deg);display:flex;align-items:baseline;gap:22px;'
                   f'justify-content:center">'
                   f'<span class="cm-n" style="font-size:96px;color:#fff;-webkit-text-stroke:10px {INK};'
