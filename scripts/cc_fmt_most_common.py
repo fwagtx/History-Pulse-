@@ -772,7 +772,7 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
         flag = "TIED FOR #1!" if r.get("tied") else "MOST COMMON!"
         fs = 54
         fw = (anton_em(flag) - .18 + .84) * fs
-        inner += (f'<div class="abs" style="left:{SAFE_RIGHT_TOP - 18 - fw:.0f}px;top:{KICK_Y + 104}px;--r:-6deg;'
+        inner += (f'<div class="abs" style="left:{SAFE_RIGHT_TOP - 18 - fw:.0f}px;top:{KICK_Y + 78}px;--r:-6deg;'
                   f'{style_anim(_a("mcpop", t_land + .8, .5, "cubic-bezier(.34,1.56,.64,1)"))}">'
                   f'<div class="d" style="background:#fff;color:#111;font-size:{fs}px;padding:.16em .42em .1em;'
                   f'border-radius:8px;box-shadow:0 10px 0 rgba(0,0,0,.35)">{esc(flag)}</div></div>')
