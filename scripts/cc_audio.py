@@ -656,7 +656,7 @@ def track_audio(track: dict, duration: float, seed: int) -> np.ndarray:
 def mix_track(duration: float, cues: list, track: dict, seed: int, music_lufs: float = -15.0) -> np.ndarray:
     """An edit's soundtrack: the track at a steady loudness, the effects on top
     (EDIT_GAINS), the music dipping under the big hits (DUCK), then the whole
-    mix brought to LUFS and peak-limited to -1 dBFS."""
+    mix brought to LUFS and peak-limited to -1.5 dBFS."""
     n = int(duration * SR)
     bed = track_audio(track, duration, seed)[:n]
     bed *= 10 ** ((music_lufs - loudness(bed)) / 20)
@@ -681,7 +681,8 @@ def mix_track(duration: float, cues: list, track: dict, seed: int, music_lufs: f
             duck[s:s + m] = np.minimum(duck[s:s + m], env)
     out = bed * duck[:, None] + fx
     out *= 10 ** ((LUFS - loudness(out)) / 20)
-    return limit(out, .89)
+    # -1.5 dBFS: AAC encoding adds up to about half a dB to the peaks.
+    return limit(out, .84)
 
 
 def write_wav(samples: np.ndarray, path: Path) -> Path:
