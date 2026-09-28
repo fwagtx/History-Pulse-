@@ -94,7 +94,7 @@ def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int =
     word, cap, one = KINDS[kind]
     n = len(rows)
 
-    beat = ED.music_for(ctx.seed, "hype", day=ctx.day)
+    beat = ED.music_for(ctx.seed, "hype", day=ctx.day, salt="most_common")
     u = beat.unit
     # Units per item: the fewest that make the video long enough.
     for k in (16, 20, 24, 28, 32):
@@ -140,6 +140,7 @@ def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int =
                          weight=700, width=820)
             + ED.caption("wait for #1 👀", 480, 720, 48, u(4), style="dark", weight=800, width=820))
     cam.push(0, t_items, 1.0, 1.05, 480, 1050)
+    ed.cue(0, "impact")
     cam.punch(u(4), .06)
     ed.cue(u(4), "impact")
 

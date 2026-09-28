@@ -115,10 +115,14 @@ class Beat:
         return self.unit(4 * i)
 
 
-def music_for(seed: int, mood: str = "hype", want: str = "", avoid: tuple = (), day=None) -> Beat:
+def music_for(seed: int, mood: str = "hype", want: str = "", avoid: tuple = (), day=None, salt: str = "") -> Beat:
     """A library track for a video, with its beat grid starting on a downbeat;
     where the library can't be had, the synthesized bed's own grid. `day`
-    lets a Christmas or Halloween track play in its month."""
+    lets a Christmas or Halloween track play in its month; `salt` (the
+    format's name) gives two formats on the same day different tracks."""
+    if salt:
+        import zlib
+        seed = (seed + zlib.crc32(salt.encode())) % (2 ** 31)
     tr = cc_music.pick(mood, seed, want, avoid, day)
     if tr:
         grid = cc_music.beat_grid(tr["beats"], tr["cut"], 240.0)

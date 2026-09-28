@@ -55,9 +55,10 @@ TOPICS = {"higher_lower": ("cc_fmt_higher_lower", "build", {"pool": "ch1"}),
           "tier_list": ("cc_fmt_tier_list", "build", {}),
           "battle_pass": ("cc_fmt_battle_pass", "build", {})}
 # The same formats cut as edits to real music (cc_edit.py): name -> (module, builder, kwargs).
+# ("look": a look for On This Day, drawn through the quiz plan's episode like STYLES.)
 EDITS = {"most_common": ("cc_edit_most_common", "build", {}),
          "higher_lower": ("cc_edit_higher_lower", "build", {"pool": "ch1"}),
-         "on_this_day": ("cc_edit_on_this_day", "build", {})}
+         "on_this_day": ("cc_edit_on_this_day", "look", {})}
 
 
 def short(name, make, ctx, out, seed, index, stem="") -> dict:
@@ -78,7 +79,7 @@ def short(name, make, ctx, out, seed, index, stem="") -> dict:
     return rep
 
 
-def style(name, module, day, art, out, seed) -> dict:
+def style(name, module, day, art, out, seed, kind: str = "style") -> dict:
     """The day's On This Day, drawn by a new look that is switched on for this
     process only. A look that fails is reported, never swapped for the classic."""
     import cc_looks as LK
@@ -86,21 +87,21 @@ def style(name, module, day, art, out, seed) -> dict:
     plan = json.loads((CC_DIR / "quiz" / "plan.json").read_text())
     spec = next((s for s in plan["videos"] if s["date"] == day.isoformat() and s["format"] == "on_this_day"), None)
     if spec is None:
-        log(f"style {name}: no On This Day on {day} in the quiz plan")
-        return {"name": f"style_{name}", "built": False}
+        log(f"{kind} {name}: no On This Day on {day} in the quiz plan")
+        return {"name": f"{kind}_{name}", "built": False}
     LK.LOOKS["on_this_day"] = module
     os.environ["CC_LOOKS"] = "on_this_day"
     ctx = Ctx(shop={"items": []}, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
     LK.draw.last = None
     try:
-        rep = short(f"style_{name}", lambda c: Q.build(spec, plan["items"], c), ctx, out, seed, 0,
-                    stem=f"sample-style-{name.replace('_', '-')}")
+        rep = short(f"{kind}_{name}", lambda c: Q.build(spec, plan["items"], c), ctx, out, seed, 0,
+                    stem=f"sample-{kind}-{name.replace('_', '-')}")
     except Exception as e:  # noqa: BLE001 - one broken sample must not cost the others
-        log(f"style {name}: failed: {e!r}")
-        return {"name": f"style_{name}", "built": False, "error": repr(e)}
+        log(f"{kind} {name}: failed: {e!r}")
+        return {"name": f"{kind}_{name}", "built": False, "error": repr(e)}
     rep["look"] = LK.draw.last
     if LK.draw.last != module:
-        log(f"::warning::style {name}: drawn by {LK.draw.last}, not {module}")
+        log(f"::warning::{kind} {name}: drawn by {LK.draw.last}, not {module}")
     return rep
 
 
@@ -169,7 +170,10 @@ def main():
             report["topics"].append(topic(name, spec, ctx, out, seed + 40 + i))
     for i, (name, spec) in enumerate(EDITS.items()):
         if f"edit_{name}" in what:
-            rep = topic(name, spec, ctx, out, seed + 60 + i, kind="edit")
+            if spec[1] == "look":
+                rep = style(name, spec[0], day, art, out, seed + 60 + i, kind="edit")
+            else:
+                rep = topic(name, spec, ctx, out, seed + 60 + i, kind="edit")
             report["edits"].append(rep)
 
     if "long" in what:
