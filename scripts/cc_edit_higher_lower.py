@@ -28,7 +28,7 @@ import math
 import cc_edit as ED
 from cc_fmt_higher_lower import POOLS, pick
 from cc_formats import Ctx, Video, _caption, _hashtags, num
-from cc_motion import trim_for
+from cc_motion import FPS, trim_for
 
 MIN_CONTENT = 57.0              # + the 5.1 s end card = 62.1 s
 MAX_CONTENT = 84.0
@@ -49,6 +49,9 @@ COUNT_Y = TY + TH - 38          # the counts sit across the tiles' bottom edge
 BTN_Y, BTN_SIZE = 1334, 46
 TOP_R = 1010                    # right edge of the round label, beside the code sticker
 CD_SIZE = 200                   # the 3-2-1
+# A caption that hands its place to another goes a frame early, so the two
+# never show at once (the new one still pops in on the beat).
+FRAME = 1 / FPS
 
 
 def _w(text: str, size: float) -> float:
@@ -205,8 +208,8 @@ def build(ctx: Ctx, pool: str = "all", **_):
             + name_cap(0, 0, -1, -2) + name_cap(1, 1, -1, 2)
             + count_cap(f"{chain[0][1]:,} times", 0, -1, rot=-2)
             + count_cap("? times", 1, -1, rot=2)
-            + ED.caption("which was in the item shop more? 🛒", MID_X, BTN_Y + 4, 40, -1, u(4), style="dark",
-                         width=820, weight=800)
+            + ED.caption("which was in the item shop more? 🛒", MID_X, BTN_Y + 4, 40, -1, u(4) - FRAME,
+                         style="dark", width=820, weight=800)
             + ED.caption(f"can you get all {n} right? 👀", MID_X, BTN_Y, BTN_SIZE, u(4), width=820,
                          weight=800, rot=2))
     cam.push(0, t_game, 1.0, 1.05, MID_X, CAM_Y)
@@ -244,21 +247,21 @@ def build(ctx: Ctx, pool: str = "all", **_):
         over += name_cap(r - 1, 0, start - 1) + name_cap(r, 1, start - 1)
         # the count you know, and the one you don't
         over += count_cap(f"{a:,} times", 0, start - 1)
-        over += count_cap("? times", 1, start - 1, t_roll)
+        over += count_cap("? times", 1, start - 1, t_roll - FRAME)
         over += count_cap(f"{ED.counter(b, t_roll, t_land - t_roll)} times", 1, t_roll, raw=True)
         # the question, then what it was
-        over += slot(questions[r - 1], t_q, t_v1, rot=rnd.choice([-2, -1.5, 1.5, 2]))
-        over += slot(one, t_v1, t_v2, 54, rot=rnd.choice([-3, -2, 2, 3]))
+        over += slot(questions[r - 1], t_q, t_v1 - FRAME, rot=rnd.choice([-2, -1.5, 1.5, 2]))
+        over += slot(one, t_v1, None if t_v2 is None else t_v2 - FRAME, 54, rot=rnd.choice([-3, -2, 2, 3]))
         if t_v2 is not None:
             over += slot(two, t_v2, None, 54, rot=rnd.choice([-3, -2, 2, 3]))
         # higher ▲ / lower ▼, until the reveal
-        over += ED.caption(_answer(True), MID_X - 14, BTN_Y, BTN_SIZE, t_hi, t_land, align="right",
+        over += ED.caption(_answer(True), MID_X - 14, BTN_Y, BTN_SIZE, t_hi, t_land - FRAME, align="right",
                            width=400, weight=800, rot=-2, raw=True)
-        over += ED.caption(_answer(False), MID_X + 14, BTN_Y, BTN_SIZE, t_lo, t_land, align="left",
+        over += ED.caption(_answer(False), MID_X + 14, BTN_Y, BTN_SIZE, t_lo, t_land - FRAME, align="left",
                            width=400, weight=800, rot=2, raw=True)
         # 3, 2, 1 between the two tiles
         for j, word in enumerate("321"):
-            over += ED.caption(word, MID_X, CAM_Y - CD_SIZE / 2, CD_SIZE, bu(cd + j), bu(cd + j + 1),
+            over += ED.caption(word, MID_X, CAM_Y - CD_SIZE / 2, CD_SIZE, bu(cd + j), bu(cd + j + 1) - FRAME,
                                style="outlm" if word == "1" else "out", width=320, weight=900, lh=1.0,
                                anim="edslam")
         ed.over(start, end, over)
