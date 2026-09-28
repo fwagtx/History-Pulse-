@@ -358,7 +358,8 @@ def counter(value: int, start: float, dur: float, steps: int = 0) -> str:
             f'steps({steps},end) {start:.3f}s 1 normal both,{_anim("edhide", start + dur, .01, "linear", "forwards")}"></span>')
     final = (f'<span style="opacity:0;animation:{_anim("fadein", start + dur, .01, "linear")},'
              f'{_anim("edbeat", start + dur, .3)}">{int(value):,}</span>')
-    return f'<span style="position:relative;display:inline-block">{roll}{final}</span>'
+    # tabular digits: a rolling 69 is no wider than the 77 it lands on
+    return f'<span style="position:relative;display:inline-block;font-variant-numeric:tabular-nums">{roll}{final}</span>'
 
 
 def tile_colors(item: dict) -> tuple:

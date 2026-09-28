@@ -68,7 +68,7 @@ def _every(r: dict, day: date) -> str:
     return f"about once every {round(per / 30.4)} months"
 
 
-def _react(r: dict, rank: int, n: int, day: date, rnd) -> str:
+def _react(r: dict, rank: int, rows: list, day: date, rnd) -> str:
     """One line about the item, true to the data."""
     last_days = (day - r["last"]).days
     lines = [f"that's {_every(r, day)} 👀"]
@@ -78,7 +78,9 @@ def _react(r: dict, rank: int, n: int, day: date, rnd) -> str:
     if rank == 1:
         return "tied for the most in fortnite 🤝" if r.get("tied") else "no skin has been in the shop more 👑"
     if r.get("tied"):
-        lines.append("tied on times 🤝 (more days in the shop wins)")
+        other = next((o for o in rows if o is not r and o["times"] == r["times"]), None)
+        if other:
+            return f"tied with {other['item']['name']} on {r['times']} 🤝"
     return lines[rnd.randrange(len(lines))]
 
 
@@ -197,7 +199,7 @@ def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int =
         over += ED.caption(fact1, 480, 1164, 40, f1, f2, style="dark", width=780, weight=700)
         over += ED.caption(f"last seen: {_ago(r['last'], ctx.day)}", 480, 1164, 40, f2, rx, style="dark",
                            width=780, weight=700)
-        over += ED.caption(_react(r, rank, n, ctx.day, rnd), 480, 1060, 50, rx, width=780, weight=800,
+        over += ED.caption(_react(r, rank, rows, ctx.day, rnd), 480, 1060, 50, rx, width=780, weight=800,
                            rot=rnd.choice([-3, -2, 2, 3]))
         for tt in (f1, f2, rx):
             ed.cue(tt, "pop2")
