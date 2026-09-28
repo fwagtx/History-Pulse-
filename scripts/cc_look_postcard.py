@@ -529,9 +529,11 @@ def _album(ctx, slots: list, fills: list, marks: list, t_end: float) -> str:
                    f'font-family:Oswald,sans-serif;font-weight:500;font-size:26px;line-height:1.1;letter-spacing:.04em;'
                    f'color:#8d7f6c;{_a("pcink", marks[i], .3, "linear")}">{year}</div>')
         t_on, t_off = marks[i], (marks[i + 1] if i + 1 < len(marks) else t_end)
-        d, L = rough_line(cx - 30, 1420, cx + 30, 1419, seed=year, bow=.06)
+        # the pen's underline, in its own small box (a full-frame SVG per year costs every frame)
+        d, L = rough_line(6, 8, 66, 7, seed=year, bow=.06)
         L = int(L) + 4
-        out.append(f'<svg class="abs" data-safe="ignore" width="1080" height="1920" style="left:0;top:0;overflow:visible">'
+        out.append(f'<svg class="abs" data-safe="ignore" width="72" height="16" viewBox="0 0 72 16" '
+                   f'style="left:{cx - 36:.1f}px;top:1412px;overflow:visible">'
                    f'<path d="{d}" fill="none" stroke="{PEN}" stroke-width="4.5" stroke-linecap="round" '
                    f'style="stroke-dasharray:{L};stroke-dashoffset:{L};animation:lkdraw .3s ease-out {t_on:.3f}s 1 '
                    f'normal both,lkout .15s linear {t_off:.3f}s 1 normal both"/></svg>')

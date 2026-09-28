@@ -44,16 +44,19 @@ y 285-740), the cosmetic, the banner, the rarity box and the row of years in
 the column beside the button rail (x 60-900, down to y 1420). The panels, the
 dots and focus lines, the paper and the page shadows run to the edges.
 
-Render cost: the paper, the dots and the lines are committed textures
-(cc_tex_comic.py) set once as CSS classes; each cosmetic's ink outline and
-shadow are baked into its image once before frame 0 (FIG_JS). The only
-full-frame motion is the page turn, a compositor transform.
+Render cost (about the scrapbook's per frame): the paper, the dots and the
+lines are committed textures (cc_tex_comic.py) set once as CSS classes, and the
+panel art holds still; each cosmetic's ink outline and shadow are baked into
+its image once before frame 0 (FIG_JS). A page with a pending 3D animation
+costs every frame it's on screen, so each page is a still scene and its turn
+is a separate still copy that's only on screen for the 0.56 s it turns (its
+cosmetic borrows the page's baked picture, so the art is embedded once).
 """
 
 import math
 import random
 
-from cc_looks import KIT_CSS, LIME, PREP_JS, diecut_filter, pad_to, rough_line, stroke_svg, tex
+from cc_looks import KIT_CSS, LIME, PREP_JS, diecut_filter, pad_to, tex
 from cc_motion import RARITY, SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP, Comp, anton_em, esc, trim_for
 from cc_safe import COVER_TOP
 
@@ -119,8 +122,6 @@ CSS = """
   45%{opacity:1;transform:scale(.9) rotate(calc(var(--r,0deg) + 3deg))}
   72%{transform:scale(1.035) rotate(var(--r,0deg))}100%{opacity:1;transform:scale(1) rotate(var(--r,0deg))}}
 @keyframes cmthump{0%,100%{transform:scale(1)}35%{transform:scale(1.05)}}
-@keyframes cmshake{0%,100%{transform:none}20%{transform:translate(-6px,4px)}45%{transform:translate(5px,-3px)}
-  70%{transform:translate(-2px,2px)}}
 """
 
 

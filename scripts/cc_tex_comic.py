@@ -13,8 +13,6 @@ are committed, so nothing here runs at render time:
     comic-lines.png       ink focus lines as a mask: tapered strokes aimed at the
                           middle, stopping short of it, drawn by hand-ish
                           (uneven widths, lengths and spacing)
-    comic-grain.png       the paper's fibres and grain alone, mostly white, for
-                          multiplying over printed colour (ink soaks in unevenly)
 
 Everything is deterministic (fixed seeds).
 """
@@ -90,16 +88,6 @@ def newsprint(w=1080, h=1920, seed=7):
                                                                  optimize=True, progressive=True)
 
 
-def grain(w=512, h=512, seed=11):
-    """Fibres and grain on white, tileable enough at this scale for a multiply overlay."""
-    rs = np.random.RandomState(seed)
-    t = (_blur_noise(rs, w, h, .8) * 10 + _blur_noise(rs, w, h, 10, 2) * 5
-         + _fibres(w, h, rs, 900, 5, 22, 1.0) * 34)
-    v = np.clip(246 + t, 200, 255)
-    rgb = np.stack([v, v - 2, v - 6], -1)
-    Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).save(OUT / "comic-grain.png", optimize=True)
-
-
 def dots(size=1300, pitch=16.0, seed=3):
     """A 45-degree halftone screen as an alpha mask: dot radius grows from the
     centre outwards (and a little with a slow wobble, like uneven inking)."""
@@ -156,11 +144,9 @@ def lines(size=1300, n=200, seed=5):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    which = set(sys.argv[1:]) or {"newsprint", "grain", "dots", "lines"}
+    which = set(sys.argv[1:]) or {"newsprint", "dots", "lines"}
     if "newsprint" in which:
         newsprint()
-    if "grain" in which:
-        grain()
     if "dots" in which:
         dots()
     if "lines" in which:
