@@ -116,16 +116,22 @@ class Beat:
         return self.unit(4 * i)
 
 
+_USED = {}                       # day -> track ids this process has handed out (one build = one day)
+
+
 def music_for(seed: int, mood: str = "hype", want: str = "", avoid: tuple = (), day=None, salt: str = "") -> Beat:
     """A library track for a video, with its beat grid starting on a downbeat;
     where the library can't be had, the synthesized bed's own grid. `day`
     lets a Christmas or Halloween track play in its month; `salt` (the
-    format's name) gives two formats on the same day different tracks."""
+    format's name) gives two formats on the same day different tracks, and a
+    track already given to another video of the same day isn't used again."""
     if salt:
         import zlib
         seed = (seed + zlib.crc32(salt.encode())) % (2 ** 31)
-    tr = cc_music.pick(mood, seed, want, avoid, day)
+    used = _USED.setdefault(str(day), set())
+    tr = cc_music.pick(mood, seed, want, tuple(avoid) + tuple(sorted(used)), day)
     if tr:
+        used.add(tr["id"])
         grid = cc_music.beat_grid(tr["beats"], tr["cut"], 240.0)
         down = cc_music.downbeat(tr)
         grid = grid[down:]
