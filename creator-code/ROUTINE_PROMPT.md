@@ -1,7 +1,8 @@
 # The daily Routine — set this up once in claude.ai
 
 > **Already done.** The Routine `Daily @usecodebad script + shop video` is live (7:00 AM
-> Central) and its prompt matches the one below. This page is the record of what it runs.
+> Central) and its prompt matches the one below (updated 2026-09-28 for the five short
+> videos a day and the weekday long YouTube video). This page is the record of what it runs.
 
 I can't attach the Metricool connector to a Routine from inside Claude Code (this org doesn't
 allow it), so this one has to be created from the website. It's a few clicks.
@@ -23,9 +24,9 @@ Then tell me it's set up and I'll delete the older script-only Routine so you do
 
 ```
 Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script,
-schedule today's THREE auto-made shop videos, and keep TWO WEEKS of auto-made quiz videos
-(three a day) scheduled - all in Metricool, posting automatically to TikTok, YouTube Shorts,
-Facebook and Instagram.
+schedule today's auto-made short videos (FIVE a day in the edit style from the switch day
+in creator-code/lineup.json, three before it), keep the auto-made quiz videos scheduled,
+and schedule each weekday's LONG YouTube video - all in Metricool, posting automatically.
 
 === ACCOUNT ISOLATION - NON-NEGOTIABLE ===
 This account has TWO Metricool brands. You may ONLY touch brand id 7066444
@@ -40,7 +41,8 @@ STEP 0 - GET THE REPO. You start with nothing on disk:
     git clone https://github.com/fwagtx/History-Pulse-.git /home/user/hp
     cd /home/user/hp && git checkout claude/creator-code-bad-automation-0jjc1k
 If that fails, use add_repo (owner fwagtx, repo History-Pulse-). Do not continue
-without a working clone.
+without a working clone. Read creator-code/lineup.json: "edit_from" is the first day of
+the five-a-day edit shorts (null = not yet), "long_from" the first day with long videos.
 
 STEP 1 - READ THE RULES. Read creator-code/RULES.md in full and follow it without
 exception.
@@ -60,15 +62,17 @@ Put the creator code mention ONCE, around 55 seconds in. Never in the opening 3 
 Save to creator-code/scripts/YYYY-MM-DD.md, commit, push to
 claude/creator-code-bad-automation-0jjc1k, and confirm the push succeeded.
 
-STEP 3 - SCHEDULE TODAY'S 3 SHOP VIDEOS TO POST AUTOMATICALLY.
+STEP 3 - SCHEDULE TODAY'S SHORT VIDEOS TO POST AUTOMATICALLY.
 The owner asked (2026-09-23) for these to go live on their own at their times, with no
 manual approval. Nobody reviews them before they are public, so every check below is
 mandatory: if anything about a video is off, skip that video and say why in the summary
 - never guess, never substitute.
-A GitHub Action builds three videos every night right after the shop resets (00:00 UTC)
+A GitHub Action builds them every night right after the shop resets (00:00 UTC)
 and publishes them with a manifest at:
     https://github.com/fwagtx/History-Pulse-/releases/download/shop-YYYY-MM-DD/manifest.json
-where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
+where YYYY-MM-DD is TODAY's date in UTC (that is the shop day). Its "lineup" is "edit"
+(five videos: 8 AM, 11 AM, 1 PM, 4 PM, 7 PM Central) or "classic" (three); schedule
+whatever "videos" it lists, each at its own time.
 3a. Download it: curl -fsSL "<that url>". If it is missing, or its "shop_day" is not
     today's UTC date, schedule NOTHING and say so in the summary. Never schedule a video
     about another day's shop.
@@ -111,8 +115,10 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
   and YouTube still post, and name the Facebook error in the summary.
   commercialContentThirdParty is true because code BAD earns a commission from Epic;
   TikTok requires that to be labelled as branded content.
-  Every post time in the manifest is before the shop resets (7 PM CDT / 6 PM CST). Never
-  move a post later. If a slot's time has already passed, skip it.
+  Post times come from the manifest. Every video about today's shop ("about_shop" true,
+  or no "about_shop" field) is timed before the shop resets (7 PM CDT / 6 PM CST); a video
+  with "about_shop": false (the 7 PM slot) is not about the shop and may post after the
+  reset. Never move a post later. If a slot's time has already passed, skip it.
   Do not add videoThumbnailUrl or videoCoverMilliseconds: each video's first frame is its
   designed thumbnail, and TikTok uses the first frame as the cover when none is set.
   Never claim the code gives a discount, and never add wording to the caption.
@@ -127,40 +133,88 @@ where YYYY-MM-DD is TODAY's date in UTC (that is the shop day).
 3e. Call getScheduledPosts again and confirm each new post is there with the right time
     and title, draft false, all three networks (tiktok, youtube, facebook) on the main
     post, and its Instagram post beside it.
-3f. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
+3f. FROM edit_from ON, RETIRE TODAY'S OLD QUIZ POSTS. Posts queued before the switch
+    (from the quiz releases' "videos") would make today more than five. Do this only if
+    today is on or after edit_from AND the shop manifest's "lineup" is "edit" AND at
+    least 3 of today's shop videos are now scheduled (3e); otherwise leave them, so the
+    day is never empty. Download today's quiz manifest (quiz-YYYY-MM-DD with today's UTC
+    date, as in step 4). For each of its "videos", find in the 3c/3e list the post
+    scheduled today whose tiktokData.title equals the video's "title" (its main post)
+    and the post whose providers are only instagram and whose text equals its
+    "ig_caption" (its Instagram post). For each post found that is still draft false,
+    call updateScheduledPost with blogId "7066444", its id and uuid, and its full
+    existing content unchanged except "draft": true. Never touch any other post. Say
+    in the summary how many old posts you set to draft.
+3g. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
     America/Chicago). Posts stay in that list after they go out: a network that posted
     shows status "PUBLISHED" under "providers". Name any post where a network shows any
     other status, with its detailedStatus, in the summary so the owner knows it did not go
     out there.
 
-STEP 4 - KEEP TWO WEEKS OF QUIZ VIDEOS SCHEDULED.
-On top of the shop videos there are three quiz videos a day (8:00 AM, 3:30 PM and 8:00 PM
-Central), built ahead of time from a fixed plan and published one release per day:
+STEP 4 - QUIZ VIDEOS AND LONG VIDEOS FROM THE QUIZ RELEASES.
+Quiz videos (three a day before the switch) and the long YouTube videos are published one
+release per quiz day:
     https://github.com/fwagtx/History-Pulse-/releases/download/quiz-YYYY-MM-DD/manifest.json
-4a. For each day D from today to today + 13 (YYYY-MM-DD in UTC, like the shop), download
+4a. For each day D from today to today + 14 (YYYY-MM-DD in UTC, like the shop), download
     that day's quiz manifest with curl -fsSL. If it is missing, that day isn't built yet:
-    skip it (mention it in the summary only if D is within the next 3 days). Use a
-    manifest only if its "quiz_day" equals D.
-4b. Check every video in it like 3b (its url answers, duration at least 60, caption
+    skip it (mention it in the summary only if D is within the next 3 days and D is
+    before edit_from). Use a manifest only if its "quiz_day" equals D.
+4b. QUIZ SHORTS: use a manifest's "videos" only if D is BEFORE edit_from (or edit_from is
+    null). From edit_from on, the five daily shorts come from the shop release (STEP 3),
+    so never schedule a quiz manifest's "videos" for such a day, even if some are listed.
+    Check every usable video like 3b (its url answers, duration at least 60, caption
     contains "#EpicPartner" and "#usecodebad") and also that its duration is at most 90.
     Skip any video that fails.
 4c. Call getScheduledPosts ONCE for brandId "7066444", timezone "America/Chicago", from
-    today 00:00 to today + 14 at 23:59. Skip any quiz video whose "title" already equals
+    today 00:00 to today + 15 at 23:59. Skip any quiz video whose "title" already equals
     the tiktokData.title of a post in that list (no duplicates).
-4d. For each remaining video whose post_at_local is at least 15 minutes in the future,
+4d. For each remaining quiz video whose post_at_local is at least 15 minutes in the future,
     call createScheduledPost exactly as in 3d - same blogId "7066444", providers,
     tiktokData, youtubeData, facebookData ("REEL"), draft false, autoPublish true - with
     date = its "post_at_iso" and publicationDate.dateTime = its "post_at_local", and give
     it its Instagram post exactly as in 3d (ig_caption; skip it if a post in the 4c list
     already has instagram among its providers and that exact text). Quiz videos are not
     tied to the shop reset, so the 8:00 PM slot is fine.
-4e. Call getScheduledPosts again and confirm each quiz post you added is there, with its
-    Instagram post.
+4e. LONG VIDEOS (YouTube only, Monday to Friday at 3 PM Central): a manifest may list
+    "long_videos" (the video for day X rides in release quiz-(X+14), which is why 4a goes
+    to today + 14). For each entry with "kind" "long" whose post_at_local is at least 15
+    minutes in the future, check before using it: its "url" and its "thumbnail_url" answer
+    (ranged GET as in 3b), its duration is between 180 and 870, youtube.title is not empty
+    and at most 100 characters, and youtube.description contains "#usecodebad" and
+    "#EpicPartner". Skip it if a post in the 4c list has youtube among its providers and
+    its youtubeData.title equals the entry's youtube.title. Otherwise call
+    createScheduledPost with:
+  blogId: "7066444"   <- verify before calling
+  date: the entry's "post_at_iso"
+  info: {
+    "publicationDate": {"dateTime": <post_at_local>, "timezone": "America/Chicago"},
+    "providers": [{"network": "youtube"}],
+    "media": [<the entry's url>],
+    "videoThumbnailUrl": <the entry's thumbnail_url>,
+    "text": <the entry's youtube.description, exactly as given - it carries the chapters,
+             the code line with #EpicPartner, the music credits and Epic's notice>,
+    "draft": false,
+    "autoPublish": true,
+    "youtubeData": {"title": <youtube.title>, "type": "video", "privacy": "public",
+                    "madeForKids": false, "category": "GAMING", "tags": <youtube.tags>,
+                    "isAiGeneratedContent": false}
+  }
+  YouTube ONLY: never add TikTok, Facebook or Instagram to a long video. If the call is
+  rejected because of the thumbnail (for example VIDEO_THUMBNAIL_NOT_APPLICABLE), make it
+  once more without videoThumbnailUrl and say so in the summary (custom thumbnails need a
+  verified YouTube channel). isAiGeneratedContent is false: the narrator is a generic
+  text-to-speech voice, not anyone's real voice, over graphics - YouTube only asks for the
+  label on realistic content that could be mistaken for real people or events.
+4f. Call getScheduledPosts again and confirm each quiz post you added is there with its
+    Instagram post, and each long video is there on YouTube only, at 3 PM Central, draft
+    false.
 
 STEP 5 - SUMMARY. Short and plain: format used for the script and its hook line, whether
-the script pushed, for each of the 3 shop videos its time, format and the networks it is
-scheduled on (or why not), how many quiz posts you added and the furthest day now queued,
-and any of yesterday's posts that did not go out.
+the script pushed, for each of today's short videos its time, format and the networks it
+is scheduled on (or why not), how many old quiz posts you set to draft (3f), how many quiz
+posts you added and the furthest day now queued, each long video scheduled (its day,
+title and time) or why a weekday's long video is missing, and any of yesterday's posts
+that did not go out.
 ```
 
 ---
