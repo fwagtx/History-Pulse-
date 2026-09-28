@@ -568,7 +568,7 @@ def _make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: i
                                 f"The {n} Rarest {text} Item Shop Skins: Where Are They Now? (Fortnite)"), day=day)
         hook = _hook("fewest", rows[0])
         these = two("the {n} rarest", n=n) if not every else ("the", "the")
-        open_(lv, f"{text}\nwhere are they now?", f"{n} item shop skins from {text.lower()}",
+        open_(lv, f"{text}\nwhere are\nthey now?", f"{n} item shop skins from {text.lower()}",
               [(f"{text}. These are {these[0]} skins from that season that have been sold in the Item Shop.",
                 f"{text}. These are {these[1]} skins from that season that have been sold in the Item Shop."),
                "For each one: how many separate times it's been in the shop, and when it was last there.",
