@@ -540,7 +540,7 @@ def _beat_average(comp: Comp, S: dict, t0: float, k: int):
     q, core = _mult_parts(a1 / a0)
     size = min(88, 340 / anton_em(f"{core} MORE"))       # the stamp stays clear of NOW's squares (x 484)
     inner += _stamp(([(q, 30, False)] if q else []) + [(f"{core} MORE", size, True)], L + 6, 1080, t0 + 3.0, rot=-4)
-    inner += _foot(f"Different skins (outfits) in the Item Shop each day, averaged over the year"
+    inner += _foot("Different skins (outfits) in the Item Shop each day, averaged over the year"
                    + _so_far(S), t0)
     comp.scene(t0, t0 + BEAT + .3, inner, fade_in=.3, fade_out=.3)
     comp.cue(t0 + .05, "whoosh"); comp.cue(t0 + .3, "pop")
@@ -627,7 +627,7 @@ def _beat_new(comp: Comp, S: dict, t0: float, k: int, g: dict):
         inner += _roll(p, lambda v: f"{round(v)}%", x, col_top - 126, 88, t_lab, .8, align=align)
         inner += _t(f"{S['new'][y]:,} OF {S['distinct'][y]:,}", x, col_top - 40, 26, t_lab + .7, color=MUTED,
                     align=align, spacing=".06em")
-    inner += _foot(f"Brand-new = its first time in the Item Shop (records start Oct 30, 2017) · skins = outfits", t0)
+    inner += _foot("Brand-new = its first time in the Item Shop (records start Oct 30, 2017) · skins = outfits", t0)
     comp.scene(t0, t0 + BEAT + .3, inner, fade_in=.3, fade_out=.3)
     comp.cue(t0 + .3, "pop"); comp.cue(t_go + .1, "whoosh"); comp.cue(t_lab, "flap"); comp.cue(t_lab + .8, "slam")
 
