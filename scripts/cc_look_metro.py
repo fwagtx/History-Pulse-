@@ -230,7 +230,7 @@ def _line_svg(comp: Comp, st: list, fill_anim: str, t_arr: list, flash: list) ->
     """The line: its black casing, a pale core the train paints lime, the
     terminus bar, and a disc per station that fills in when the train gets there."""
     L = LINE_LEN + 20
-    parts = [f'<svg class="abs" width="1080" height="1920" viewBox="0 0 1080 1920" style="left:0;top:0;overflow:visible">',
+    parts = ['<svg class="abs" width="1080" height="1920" viewBox="0 0 1080 1920" style="left:0;top:0;overflow:visible">',
              f'<path d="{LINE_D}" fill="none" stroke="{INK}" stroke-width="{CASE_W}" stroke-linejoin="round"/>',
              f'<path d="{LINE_D}" fill="none" stroke="#fbf9f3" stroke-width="{CORE_W}" stroke-linejoin="round"/>',
              f'<path d="{LINE_D}" fill="none" stroke="{LIME}" stroke-width="{CORE_W}" stroke-linejoin="round" '
