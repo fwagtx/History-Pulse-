@@ -35,7 +35,6 @@ x 60-1020 above y 740, x 60-900 below, y 230-1420, and from y 285 on frame 0.
 The wall, the desk and the stand's wood run to the edges.
 """
 
-import math
 import random
 from datetime import date
 
@@ -626,7 +625,6 @@ def _standee(ctx, it: dict, cx: float, h: float, w: float, anim: str) -> str:
 # ------------------------------------------------------------------ the video
 
 def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp:
-    day = ctx.day
     years = ([bday["year"]] if bday else []) + [rd["year"] for rd, _, _ in rounds]
     n = len(years)
     r = max(R, (62.0 - 7.5 - HOOK) / n)
