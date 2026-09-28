@@ -630,9 +630,9 @@ def _picture_card(ctx, lead: list, when_short: str, span: str, bday) -> str:
                       + ["11px 11px 0 #2a1810", "14px 18px 16px rgba(0,0,0,.28)"])
     html = [f'<div style="position:absolute;inset:0;background:#f5efe2 url({tex("postcard-card.jpg")}) 0 0/600px"></div>',
             f'<div style="{pic}"></div>',
-            f'<div class="abs" style="left:18px;right:18px;top:52px;text-align:center;font-family:\'Playfair Display\','
-            f'serif;font-style:italic;font-weight:700;font-size:62px;line-height:1.1;color:#fff8ea;'
-            f'text-shadow:2px 2px 0 #183a4c,3px 3px 0 #183a4c,5px 7px 8px rgba(0,0,0,.25)">Greetings from the</div>',
+            '<div class="abs" style="left:18px;right:18px;top:52px;text-align:center;font-family:\'Playfair Display\','
+            'serif;font-style:italic;font-weight:700;font-size:62px;line-height:1.1;color:#fff8ea;'
+            'text-shadow:2px 2px 0 #183a4c,3px 3px 0 #183a4c,5px 7px 8px rgba(0,0,0,.25)">Greetings from the</div>',
             f'<div class="abs pc-big" style="left:0;right:0;top:128px;font-size:176px;text-shadow:{shadow}">ITEM</div>',
             f'<div class="abs pc-big" style="left:0;right:0;top:282px;font-size:176px;text-shadow:{shadow}">SHOP!</div>']
     rib = f"ON THIS DAY · {when_short} · {span}"
@@ -669,7 +669,7 @@ def _bday_card(bday: dict, t0: float) -> tuple:
     card = [_card_frame(),
             '<div class="abs pc-print" style="left:0;right:0;top:44px;text-align:center;font-size:28px;'
             'padding-left:.42em">POST CARD</div>',
-            f'<div class="pc-rule" style="left:60px;width:530px;top:92px"></div>',
+            '<div class="pc-rule" style="left:60px;width:530px;top:92px"></div>',
             f'<div class="abs" style="left:92px;top:118px;--r:-5deg;{_a("pcslam", t_hand, .2, "cubic-bezier(.3,.7,.4,1)")}">'
             + _handstamp(f"{bday['age']} YEARS", "TODAY", 470, 196, 96, 40) + '</div>',
             f'<div class="abs pc-pen" data-fit="560" style="left:46px;top:890px;font-size:62px;transform:rotate(-2deg);'
@@ -709,7 +709,7 @@ def _outro_card(ctx, picks: list, when_short: str, span: str, t: float) -> tuple
     html = [_card_frame(),
             '<div class="abs pc-print" style="left:0;right:0;top:40px;text-align:center;font-size:28px;'
             'padding-left:.42em">POST CARD</div>',
-            f'<div class="pc-rule" style="left:60px;width:530px;top:86px"></div>']
+            '<div class="pc-rule" style="left:60px;width:530px;top:86px"></div>']
     for i, line in enumerate(("Which year had", "the best shop?")):
         html.append(_centred(line, 100 + i * 86, 560, "pc-pen", "font-size:88px", -2,
                              write_on(t + .08 + i * .55, .55, 14)))
