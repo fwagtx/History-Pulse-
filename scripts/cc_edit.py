@@ -72,7 +72,8 @@ CSS = f"""
 .ed-code-a{{font-size:40px;font-weight:800;line-height:1.05;letter-spacing:.02em}}
 .ed-code-b{{font-size:128px;font-weight:900;line-height:.86;letter-spacing:-.01em;margin:2px 0 0 -4px}}
 .ed-tag{{margin:16px 0 0 8px;font:700 25px/1 {FAMILY};color:#fff;-webkit-text-stroke:6px #000;paint-order:stroke fill}}
-.ed-flash{{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0;z-index:90}}
+.ed-flash{{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0;z-index:35}}
+.codebadge,.codetag{{display:none !important}}
 @keyframes edpop{{0%{{transform:scale(.62);opacity:0}}45%{{transform:scale(1.07);opacity:1}}
   70%{{transform:scale(.98)}}100%{{transform:none;opacity:1}}}}
 @keyframes edslam{{0%{{transform:scale(1.9);opacity:0}}55%{{transform:scale(.95);opacity:1}}100%{{transform:none;opacity:1}}}}
@@ -298,9 +299,11 @@ def caption(text: str, x: float, y: float, size: float, start: float, end: float
     text = text if raw else esc(text)
     cls = {"box": "ed-box", "dark": "ed-dark", "lime": "ed-lime", "out": "ed-out", "outlm": "ed-out lm"}[style]
     left = {"center": x - width / 2, "right": x - width}.get(align, x)
-    anims = [_anim(anim, start, .34 if anim == "edpop" else .3)]
+    # fadein first: an entrance without an opacity keyframe (edin, edbeat) would
+    # otherwise show the caption before its start.
+    anims = [_anim("fadein", start, .001, "linear"), _anim(anim, start, .34 if anim == "edpop" else .3)]
     if end is not None:
-        anims.append(_anim("edhide", end, .04, "linear", "forwards"))
+        anims.append(_anim("edhide", end, .001, "linear", "forwards"))   # gone as the next one pops
     nm = f' data-name="{esc(name)}"' if name else ""
     return (f'<div class="ed-cap"{nm} style="left:{left:.0f}px;top:{y:.0f}px;width:{width:.0f}px;text-align:{align};'
             f'transform:rotate({rot:.2f}deg);line-height:{lh}">'
@@ -308,12 +311,38 @@ def caption(text: str, x: float, y: float, size: float, start: float, end: float
             f'<span class="{cls}">{text}</span></div></div>')
 
 
+def outline(text: str, x: float, top: float, size: float, start: float, end: float | None = None,
+            align: str = "right", lime: bool = False, width: float = 640, pulses: tuple = (),
+            anim: str = "edslam") -> str:
+    """Big text in the app's outline style (white or lime, a black edge) as SVG
+    text, whose edge has round joins: CSS's text stroke mitres a spike off
+    every sharp corner of a digit at this size (the top of a 4). x is the
+    right edge, centre or left edge per `align`; `top` the top of its line
+    box (TikTok Sans: digits sit about .27-.99 em down). It slams in at
+    `start` and gives a little on each of `pulses` (bars)."""
+    left = {"center": x - width / 2, "right": x - width}.get(align, x)
+    tx, anchor_ = {"center": (width / 2, "middle"), "right": (width, "end")}.get(align, (0, "start"))
+    est = .56 * size * len(text)
+    ox = {"center": 50.0, "right": max(10.0, 100 - 50 * est / width)}.get(align, min(90.0, 50 * est / width))
+    anims = ([_anim("fadein", start, .001, "linear"), _anim(anim, start, .3)]
+             + [_anim("edbeat", t, .3, fill="none") for t in pulses])
+    if end is not None:
+        anims.append(_anim("edhide", end, .001, "linear", "forwards"))
+    h = 1.3 * size
+    return (f'<div class="ed-cap" style="left:{left:.0f}px;top:{top:.0f}px;width:{width:.0f}px;height:{h:.0f}px">'
+            f'<div style="height:100%;transform-origin:{ox:.0f}% 50%;animation:{",".join(anims)}">'
+            f'<svg width="{width:.0f}" height="{h:.0f}" style="display:block;overflow:visible">'
+            f'<text x="{tx:.0f}" y="{size:.1f}" text-anchor="{anchor_}" font-family="TikTok Sans" font-weight="900" '
+            f'font-size="{size:.0f}" fill="{LIME if lime else "#fff"}" stroke="#000" stroke-width="{.15 * size:.1f}" '
+            f'stroke-linejoin="round" paint-order="stroke">{esc(text)}</text></svg></div></div>')
+
+
 def emoji(ch: str, cx: float, cy: float, size: float, start: float, end: float | None = None,
           rot: float = 0.0) -> str:
     """A big emoji sticker, popped on (decoration: the checker ignores it)."""
     anims = [_anim("edpop", start, .36)]
     if end is not None:
-        anims.append(_anim("edhide", end, .04, "linear", "forwards"))
+        anims.append(_anim("edhide", end, .001, "linear", "forwards"))
     return (f'<div class="ed-emo" data-safe="ignore" style="left:{cx - size / 2:.0f}px;top:{cy - size / 2:.0f}px;'
             f'font-size:{size:.0f}px;transform:rotate({rot:.1f}deg)"><div style="animation:{",".join(anims)}">'
             f"{ch}</div></div>")
@@ -325,7 +354,7 @@ def counter(value: int, start: float, dur: float, steps: int = 0) -> str:
     steps = steps or min(int(value), 40)
     k = f"edc{int(start * 1000)}_{int(value)}"
     roll = (f"<style>@keyframes {k}{{from{{--n:0}}to{{--n:{int(value)}}}}}</style>"
-            f'<span class="count" style="position:absolute;left:0;right:0;animation:{k} {dur:.3f}s '
+            f'<span class="count" style="position:absolute;left:0;right:0;text-align:right;animation:{k} {dur:.3f}s '
             f'steps({steps},end) {start:.3f}s 1 normal both,{_anim("edhide", start + dur, .01, "linear", "forwards")}"></span>')
     final = (f'<span style="opacity:0;animation:{_anim("fadein", start + dur, .01, "linear")},'
              f'{_anim("edbeat", start + dur, .3)}">{int(value):,}</span>')
@@ -409,8 +438,10 @@ PREP = """<script>window.__ready = (async (prev) => {
 def code(x: float = SAFE_LEFT + 6, y: float = COVER_TOP + 2, rot: float = -3.0) -> str:
     """USE CODE: BAD on the channel's lime, in a box like the app's own text
     boxes, #EpicPartner under it. On screen and at rest in every frame (it
-    sits outside the camera); inside the safe box, below the cover crop line."""
-    return (f'<div class="abs" data-safe="key" data-name="code" style="left:{x:.0f}px;top:{y:.0f}px;z-index:60">'
+    sits outside the camera); inside the safe box, below the cover crop line.
+    It stays on top through the end card too (z 110; the edit's CSS hides the
+    card's own corner badge), so the code never fades under another badge."""
+    return (f'<div class="abs" data-safe="key" data-name="code" style="left:{x:.0f}px;top:{y:.0f}px;z-index:110">'
             f'<div class="ed-code" style="transform:rotate({rot:.1f}deg)"><div class="ed-code-a">USE CODE:</div>'
             f'<div class="ed-code-b">BAD</div></div><div class="ed-tag">#EpicPartner</div></div>')
 

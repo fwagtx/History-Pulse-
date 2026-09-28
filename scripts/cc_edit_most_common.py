@@ -173,8 +173,8 @@ def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int =
         ed.scene(start, end, ED.canvas(iid, ED.tile_colors(it), 1.25, .45) + main)
         cam.push(start, end, 1.0, 1.05, TILE_CX, 920)
 
-        over = (ED.caption(f"#{rank}", TOP_R, 280, 170, start, style="out" if rank > 1 else "outlm",
-                           align="right", width=520, weight=900, anim="edslam", lh=1.0)
+        over = (ED.outline(f"#{rank}", TOP_R - 8, 250, 176, start, lime=rank == 1, width=520,
+                           pulses=tuple(bu(b) for b in range(4, k, 4)))
                 + ED.caption(it["name"], TOP_R, 462, _fit(it["name"], 600, 58), bu(1), align="right",
                              width=600, weight=800))
         if r.get("tied") and rank > 1:

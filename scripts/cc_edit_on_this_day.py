@@ -21,9 +21,9 @@ as the classic format (cc_series.on_this_day).
           day 🛒", then "N years ago today 👀", then its rarity and type. A whip
           or a zoom through every cut (alternating) with a swoosh into it and a
           hit on it; the camera pushes in slowly across each screen.
-  build   a bar (two on a quick track) over the newest skin's silhouette, "and
-          last year… 🥁", a riser into the drop: flash, boom, shake, the newest
-          year in lime.
+  build   a bar or two (whichever makes the length) over the newest skin's
+          silhouette, "and last year… 🥁", a riser into the drop: flash, boom,
+          shake, the newest year in lime.
   outro   the years lined up on small tiles, their years ticked off on the
           eighth notes, "which year had the best shop? 👇", "use code BAD in the
           item shop 💚". (`third` isn't needed: every year is on it.)

@@ -332,7 +332,7 @@ def build(ctx: Ctx, pool: str = "all", **_):
             ed.cue(at, "pop2")
     ed.scene(t_out, content_end, ED.canvas(first, ED.tile_colors(chain[0][0]), 1.0, .6) + tiles)
     ed.over(t_out, content_end,
-            ED.caption("counts since the records began in 2017 📅", TOP_R, 300, 30, t_out - 1, style="dark",
+            ED.caption("counts since the records began in 2017 🗓️", TOP_R, 300, 30, t_out - 1, style="dark",
                        align="right", width=440, weight=700)
             + ED.caption("how many did you get right? 👇", 540, 548, 58, t_out, width=900, weight=800, rot=-1.5)
             + labels
