@@ -192,25 +192,24 @@ def _perf_path(w: float, h: float, r: float, pitch: float) -> str:
 
 
 def _wreath(size: float, color: str) -> str:
-    """A laurel wreath with a star: the commemorative stamp's picture."""
+    """A laurel wreath round a star: the commemorative stamp's picture."""
     cx = cy = size / 2
     rr = size * .36
     parts = []
     for side in (-1, 1):
+        pts = []
         for i in range(10):
-            a = math.radians(96 + i * 15.5)
-            x, y = cx + side * rr * math.cos(a) * -1, cy + rr * math.sin(a)
-            x = cx - side * rr * math.cos(math.radians(180) - a) if False else cx + side * -rr * math.cos(a)
+            a = math.radians(98 + i * 15)             # from the bottom, up one side
+            x = cx - rr * math.cos(a) if side > 0 else cx + rr * math.cos(a)
+            y = cy + rr * math.sin(a)
+            pts.append((x, y))
             ang = math.degrees(a) + 90
             ang = ang if side < 0 else 180 - ang
-            off = 7 if i % 2 else -7
-            parts.append(f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{size * .07:.1f}" ry="{size * .026:.1f}" '
+            off = 16 if i % 2 else -16
+            parts.append(f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{size * .075:.1f}" ry="{size * .028:.1f}" '
                          f'fill="{color}" transform="rotate({ang + off:.1f} {x:.1f} {y:.1f})"/>')
-        a0, a1 = math.radians(96), math.radians(96 + 9 * 15.5)
-        x0, y0 = cx - side * rr * math.cos(a0), cy + rr * math.sin(a0)
-        x1, y1 = cx - side * rr * math.cos(a1), cy + rr * math.sin(a1)
-        parts.append(f'<path d="M{x0:.1f},{y0:.1f} A{rr:.1f},{rr:.1f} 0 0 {1 if side < 0 else 0} {x1:.1f},{y1:.1f}" '
-                     f'fill="none" stroke="{color}" stroke-width="{size * .012:.1f}"/>')
+        parts.append(f'<polyline points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}" fill="none" '
+                     f'stroke="{color}" stroke-width="{size * .014:.1f}"/>')
     star = []
     for k in range(10):
         rad = size * (.2 if k % 2 == 0 else .085)
@@ -594,6 +593,12 @@ def _picture_card(ctx, lead: list, when_short: str, span: str, bday) -> str:
     else:
         html.append('<div class="abs pc-pen" data-fit="580" style="left:0;right:0;top:978px;text-align:center;'
                     'font-size:48px;transform:rotate(-1.5deg)">one outfit from this date, every year</div>')
+        # the pen comes back and underlines "every year"
+        d, L = rough_line(458, 1022, 618, 1017, seed=5, bow=.05)
+        html.append(f'<svg class="abs" data-safe="ignore" width="{CW}" height="{CH}" style="left:0;top:0;overflow:visible">'
+                    f'<path d="{d}" fill="none" stroke="{PEN}" stroke-width="5" stroke-linecap="round" '
+                    f'style="stroke-dasharray:{int(L) + 4};stroke-dashoffset:{int(L) + 4};'
+                    f'animation:lkdraw .35s ease-out .95s 1 normal both"/></svg>')
     return "".join(html)
 
 
@@ -635,9 +640,10 @@ def _bday_card(bday: dict, t0: float) -> tuple:
            f'font-family:\'Playfair Display\',serif;font-style:italic;font-weight:700;font-size:38px;color:{NAVY}">'
            f'PC · PlayStation 4 · Xbox One</div>'
            f'<div class="abs" style="left:614px;top:36px;width:196px;height:256px;transform:rotate(1.5deg)">{stamp}</div>'
-           f'<div class="abs" style="left:{600 - 98}px;top:{262 - 98}px;width:{196 + 170}px;height:196px;--r:-6deg;'
+           f'<div class="abs" style="left:{612 - 98}px;top:{268 - 98}px;width:{196 + 130}px;height:196px;--r:-6deg;'
            f'transform-origin:98px 98px;{_a("pcslam", t_pm, .2, "cubic-bezier(.3,.7,.4,1)")}">'
-           + _postmark("FIRST DAY OF ISSUE", "★ ★ ★", "SEP 26", str(bday["year"]), d=196, wave=170, wy=-6, seed=26)
+           + _postmark("FIRST DAY OF ISSUE", "BATTLE ROYALE", "SEP 26", str(bday["year"]), d=196, wave=130, wy=-62,
+                       seed=26)
            + '</div></div>')
     sounds = [(t_pm, "stamp"), (t_hand, "stamp"), (t0 + 2.45, "pen")]
     return "".join(card), env, sounds, t0 + 2.95
@@ -724,14 +730,6 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     hook = _place(_picture_card(ctx, lead, when_short, span, bday),
                   outer=_a("pcflipout", t_flip, .28, "cubic-bezier(.55,0,.9,.4)"),
                   enter=_a("pcnudge", .3, .55, "ease-in-out"))
-    if not bday:
-        # the pen underlines "every year"
-        d, L = rough_line(CX + 432, CY + 1040, CX + 606, CY + 1036, seed=5, bow=.05)
-        hook += (f'<svg class="abs" data-safe="ignore" width="1080" height="1920" style="left:0;top:0;overflow:visible">'
-                 f'<path d="{d}" fill="none" stroke="{PEN}" stroke-width="5" stroke-linecap="round" '
-                 f'style="stroke-dasharray:{int(L) + 4};stroke-dashoffset:{int(L) + 4};'
-                 f'animation:lkdraw .35s ease-out .95s 1 normal both,lkout .05s linear {t_flip:.2f}s 1 normal both"/>'
-                 f'</svg>')
     comp.scene(0, t_flip + .3, f'<div class="full">{hook}</div>', fade_in=.01, fade_out=.02, z=12)
     comp.cue(.3, "paper")
     if not bday:
