@@ -51,11 +51,17 @@ ZONE = {"left": LEFT, "top": TOP, "rightTop": RIGHT_TOP, "rail": RAIL_TOP, "righ
         "bottom": BOTTOM, "minAlpha": .35, "textTol": .02, "imgTol": .12, "keyTol": .01}
 COVER = dict(ZONE, top=COVER_TOP)
 
+# The long videos (1920x1080, YouTube): the player's controls and progress bar
+# cover the bottom ~10% while shown, fullscreen and the phone app put the
+# title and buttons across the top ~8%, and the edges get 5%.
+LONG = {"left": 96, "top": 100, "rightTop": 1824, "rail": 1e9, "right": 1824, "bottom": 960,
+        "minAlpha": .35, "textTol": .02, "imgTol": .12, "keyTol": .01, "W": 1920, "H": 1080}
+
 STEP = .25                       # seconds between samples
 MIN_HOLD = .6                    # outside the box for at least this long = a violation
 
 CHECK_JS = r"""(z) => {
-  const W = 1080, H = 1920, out = [];
+  const W = z.W || 1080, H = z.H || 1920, out = [];
   const inside = (x, y) => x >= z.left && y >= z.top && y <= z.bottom &&
                            x <= (y < z.rail ? z.rightTop : z.right);
   // Share of the on-frame part of a box that falls outside the safe box
@@ -169,29 +175,33 @@ def _spans(samples: list, step: float) -> list:
     return done + list(spans.values())
 
 
-def check(comp, step: float = STEP, min_hold: float = MIN_HOLD) -> dict:
+def check(comp, step: float = STEP, min_hold: float = MIN_HOLD, zone: dict | None = None,
+          cover_zone: dict | None = COVER) -> dict:
     """Seek through the composition and report what sits outside the safe box.
 
     Returns {"ok": bool, "violations": [...], "cover": [...]}. A violation is an
     element outside the box for at least `min_hold` seconds (entrances and exits
     that cross the edge on their way in or out don't count); `cover` lists text
-    outside Instagram's 4:5 grid crop on frame 0."""
+    outside Instagram's 4:5 grid crop on frame 0. Another frame size (the long
+    videos' 16:9, see LONG) passes its own `zone` and cover_zone=None."""
     from playwright.sync_api import sync_playwright
     from cc_motion import CHROME_ARGS, READY_JS, SEEK_JS, SETTLE_JS
 
+    zone = zone or ZONE
     n = int(comp.duration / step)
     times = [round(i * step, 3) for i in range(n + 1) if i * step < comp.duration - .02]
     samples = []
     with sync_playwright() as p:
         browser = p.chromium.launch(args=CHROME_ARGS)
-        page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+        page = browser.new_page(viewport={"width": zone.get("W", W), "height": zone.get("H", H)},
+                                device_scale_factor=1)
         page.set_content(comp.document(), wait_until="load")
         page.evaluate(READY_JS)
         page.evaluate(SETTLE_JS, 0)
-        cover = [h for h in page.evaluate(CHECK_JS, COVER) if h["kind"] == "text"]
+        cover = [h for h in page.evaluate(CHECK_JS, cover_zone) if h["kind"] == "text"] if cover_zone else []
         for t in times:
             page.evaluate(SEEK_JS, t * 1000)
-            samples.append((t, page.evaluate(CHECK_JS, ZONE)))
+            samples.append((t, page.evaluate(CHECK_JS, zone)))
         browser.close()
     spans = [s for s in _spans(samples, step) if s["end"] - s["start"] + step >= min_hold - 1e-6]
     spans.sort(key=lambda s: (s["start"], s["key"]))

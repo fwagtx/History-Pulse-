@@ -13,6 +13,12 @@ A video is left out, never swapped for another, if its artwork won't download,
 it runs under 62 s (TikTok's one-minute bar) or over 90 s (Facebook's Reel
 limit), or its words wouldn't post cleanly.
 
+From creator-code/lineup.json's "edit_from" day on, the shop job's daily
+lineup (cc_lineup.py) makes all five shorts, so a quiz day from then on builds
+no shorts here. From its "long_from" day on, the nightly run (quiz day = today
++ 14) also makes today's long YouTube video (cc_long_build.py), listed under
+"long_videos" in the same manifest.
+
 It never posts anything itself.
 """
 
@@ -31,7 +37,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cc_end_card as E  # noqa: E402
 import cc_quiz as Q  # noqa: E402
 import cc_safe as S  # noqa: E402
-from cc_build import COVER_T, REPO, _render_one, post_problems  # noqa: E402
+import cc_long_build as LB  # noqa: E402
+from cc_build import COVER_T, REPO, _render_one, edit_lineup, post_problems  # noqa: E402
 from cc_common import CC_DIR, OUT_DIR, log, write_json  # noqa: E402
 from cc_formats import MIN_SECONDS, Ctx, ig_caption  # noqa: E402
 
@@ -74,10 +81,14 @@ def main():
     plan = json.loads(PLAN.read_text())
     day = date.fromisoformat(args.date)
     entries = sorted((v for v in plan["videos"] if v["date"] == args.date), key=lambda v: v["at"])
-    if not entries:
+    if entries and edit_lineup(day):
+        log(f"{args.date} is in the edit lineup: the shop job makes its shorts; no quiz shorts here.")
+        entries = []
+    long_day = LB.due(day)
+    if not entries and not long_day:
         # Past the end of the plan: nothing to do, and not an error for the
         # nightly run. Extend the plan with cc_quiz_plan.py.
-        log(f"The plan has nothing for {args.date}; nothing to build.")
+        log(f"Nothing to build for {args.date}.")
         return
     items = plan["items"]
     ctx = Ctx(shop={"items": []}, art=art_fn(args.art), day=day, seed=int(day.strftime("%Y%m%d")))
@@ -108,7 +119,7 @@ def main():
             continue
         log(f"  {name}: {v.comp.duration:.1f}s, safe zones {'OK' if safe['ok'] else 'NOT OK'}")
         built.append((spec, v, safe))
-    if not built:
+    if entries and not built and not long_day:
         raise SystemExit("No quiz video could be built for this day.")
 
     out = OUT_DIR / f"quiz-{day.isoformat()}"
@@ -125,7 +136,9 @@ def main():
 
     workers = max(1, min(len(jobs), args.jobs or (os.cpu_count() or 2) // 2))
     log(f"Rendering {len(jobs)} quiz videos, {workers} at a time")
-    if workers == 1:
+    if not jobs:
+        pass
+    elif workers == 1:
         for j in jobs:
             _render_one(j)
     else:
@@ -158,6 +171,18 @@ def main():
             "hashtags": v.hashtags,
             "safe_zones": S.note(safe),
         })
+    longs = []
+    if long_day:
+        try:
+            entry = LB.make(long_day, out, base, ctx.art, args.no_video)
+        except Exception as e:  # noqa: BLE001 - the shorts still publish
+            print(f"::error::long video {long_day} failed: {e!r}", file=sys.stderr)
+            entry = None
+        if entry:
+            longs.append(entry)
+    if not videos and not longs:
+        log("Nothing was built.")
+        return
     manifest = {
         "kind": "quiz",
         "quiz_day": day.isoformat(),
@@ -165,11 +190,14 @@ def main():
         "release": tag,
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "videos": videos,
+        "long_videos": longs,
     }
     write_json(out / "manifest.json", manifest)
-    log(f"Wrote {out / 'manifest.json'} with {len(videos)} videos")
+    log(f"Wrote {out / 'manifest.json'} with {len(videos)} videos and {len(longs)} long video(s)")
     for v in videos:
         log(f"  {v['post_at_local']}  {v['format']:<13} {v['title']}")
+    for v in longs:
+        log(f"  {v['post_at_local']}  YouTube (long)  {v['youtube']['title']}")
 
 
 if __name__ == "__main__":

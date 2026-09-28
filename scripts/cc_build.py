@@ -267,6 +267,24 @@ def build_all(shop: dict, art, day: date, only: list | None) -> list:
     return chosen
 
 
+LINEUP = Path(__file__).resolve().parent.parent / "creator-code" / "lineup.json"
+
+
+def edit_lineup(day: date) -> bool:
+    """Whether this day is built as the five edit-style shorts (cc_lineup.py)
+    rather than the three classic shop videos: from creator-code/lineup.json's
+    "edit_from" day on. CC_LINEUP=edit or classic overrides it (previews)."""
+    env = os.environ.get("CC_LINEUP", "").strip().lower()
+    if env in ("edit", "classic"):
+        return env == "edit"
+    try:
+        import json
+        start = json.loads(LINEUP.read_text()).get("edit_from")
+    except (OSError, ValueError):
+        return False
+    return bool(start) and day >= date.fromisoformat(start)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--art", help="use PNGs in this folder as stand-in art (offline QA)")
@@ -293,7 +311,28 @@ def main():
     log(f"Shop {day}: {shop['item_count']} offers, {shop['bundle_count']} bundles")
 
     only = [s.strip() for s in args.only.split(",")] if args.only else None
-    chosen = build_all(shop, art_fn(args.art), day, only)
+    edit = edit_lineup(day)
+    art = art_fn(args.art)
+    chosen = []
+    if edit:
+        # The five edit-style shorts (cc_lineup.py): real music, emoji captions.
+        import cc_bootstrap
+        import cc_lineup
+        import cc_plan_keeper
+        if cc_bootstrap.ensure_emoji_font():
+            plan = cc_plan_keeper.load_plan(extend_to=day + timedelta(days=45))
+            lineup = cc_lineup.build_day(shop, art, day, plan, only, post_problems)
+            chosen = [({"slot": slot["slot"], "name": slot["name"], "at": slot["at"], "shop": slot["shop"]}, v, safe)
+                      for slot, v, safe in lineup]
+        else:
+            print("::error::the emoji font couldn't be installed; no edit-style shorts today", file=sys.stderr)
+        if not chosen:
+            # Never a day with nothing: the classic three about today's shop.
+            print("::error::the edit lineup made nothing today; falling back to the classic shop videos",
+                  file=sys.stderr)
+            edit = False
+    if not edit:
+        chosen = build_all(shop, art, day, only)
     if not chosen:
         raise SystemExit("No video could be built today.")
 
@@ -322,10 +361,16 @@ def main():
 
     videos = []
     for (slot, v, safe), (_, _, stem, *_rest) in zip(chosen, jobs):
-        post = slot_time(day, slot["at"])
+        if edit:
+            import cc_lineup
+            post = cc_lineup.slot_time(day, slot)
+        else:
+            post = slot_time(day, slot["at"])
         videos.append({
             "slot": slot["slot"],
             "slot_name": slot["name"],
+            "kind": "short",
+            "about_shop": bool(slot.get("shop", True)),
             "format": v.format,
             "file": f"{stem}.{ext}",
             "url": base + f"{stem}.{ext}",
@@ -346,6 +391,7 @@ def main():
 
     manifest = {
         "shop_day": day.isoformat(),
+        "lineup": "edit" if edit else "classic",
         "timezone": "America/Chicago",
         "rotation_utc": rot.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rotation_local": rot.astimezone(LOCAL_TZ).strftime("%Y-%m-%dT%H:%M:%S"),

@@ -28,7 +28,8 @@ import json
 import os
 import subprocess
 import sys
-from datetime import date, datetime, timezone
+import time
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -151,7 +152,8 @@ def main():
     ctx = Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
     seed = int(day.strftime("%Y%m%d")) * 10
     report = {"day": day.isoformat(), "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-              "shorts": [], "long": None, "voices": [], "styles": [], "topics": [], "edits": []}
+              "shorts": [], "long": None, "voices": [], "styles": [], "topics": [], "edits": [],
+              "long_series": None}
 
     # BACK AFTER needs three comebacks of 180+ days; on a quiet day the sample
     # drops to 90+ so there's still something to look at.
@@ -195,6 +197,24 @@ def main():
                                                        "days": p[2], "times": p[3], "same_day_set": p[4]}
                                                       for p in picks]}
 
+    if "long_series" in what:
+        # A whole weekday long video exactly as the nightly job makes it
+        # (cc_long_build.py): the sample day's series, or Monday's at a weekend.
+        import cc_long_build as LB
+        d = day
+        while d.weekday() > 4:
+            d += timedelta(days=1)
+        t0 = time.time()
+        entry = LB.make(d, out / "long", "", art)
+        if entry:
+            stem = f"sample-long-{d.isoformat()}-{entry['series']}"
+            for src, dst in ((entry["file"], f"{stem}.mp4"), (entry["thumbnail"], f"{stem}-thumbnail.png"),
+                             (entry["file"].replace(".mp4", "-qa.jpg"), f"{stem}-qa.jpg")):
+                (out / "long" / src).rename(out / dst)
+            entry.update(file=f"{stem}.mp4", thumbnail=f"{stem}-thumbnail.png", seconds_to_build=round(time.time() - t0),
+                         megabytes=round((out / f"{stem}.mp4").stat().st_size / 1e6, 1))
+        report["long_series"] = entry
+
     if "voices" in what:
         import cc_voice as V
         for voice in VOICES:
@@ -206,11 +226,13 @@ def main():
 
     # Runs for styles and topics can publish to the same release at once: each
     # keeps its own report.
-    parts = [k for k in ("styles", "topics", "edits") if report[k]]
+    parts = [k for k in ("styles", "topics", "edits") if report[k]] + (
+        [f"long-{report['long_series']['day']}"] if report["long_series"] else [])
     name = f"samples-{'-'.join(parts)}.json" if parts else "samples.json"
     (out / name).write_text(json.dumps(report, indent=1, ensure_ascii=False))
     log(f"samples: {[s.get('file') for s in report['shorts'] + report['styles'] + report['topics'] + report['edits']]} "
-        f"long={bool(report['long'])} voices={len(report['voices'])}")
+        f"long={bool(report['long'])} voices={len(report['voices'])} "
+        f"long_series={(report['long_series'] or {}).get('file')}")
 
 
 if __name__ == "__main__":

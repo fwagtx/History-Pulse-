@@ -149,15 +149,17 @@ def _smooth(p: float) -> float:
 class Camera:
     """One transform for everything inside the camera, sampled on every frame."""
 
-    def __init__(self, duration: float, fps: int = FPS, seed: int = 0):
+    def __init__(self, duration: float, fps: int = FPS, seed: int = 0, w: int = W, h: int = H):
         self.duration, self.fps = duration, fps
+        self.w, self.h = w, h                     # the frame (16:9 for the long videos)
         self.pushes, self.punches, self.shakes, self.whips, self.zooms = [], [], [], [], []
         self.flashes = []
         self.rnd = random.Random(seed)
 
-    def push(self, t0: float, t1: float, s0: float = 1.0, s1: float = 1.06, fx: float = W / 2, fy: float = H / 2):
-        """A slow zoom from s0 to s1 between t0 and t1 around (fx, fy)."""
-        self.pushes.append((t0, t1, s0, s1, fx, fy))
+    def push(self, t0: float, t1: float, s0: float = 1.0, s1: float = 1.06, fx: float | None = None,
+             fy: float | None = None):
+        """A slow zoom from s0 to s1 between t0 and t1 around (fx, fy) (default: the frame's centre)."""
+        self.pushes.append((t0, t1, s0, s1, self.w / 2 if fx is None else fx, self.h / 2 if fy is None else fy))
 
     def punch(self, t: float, amount: float = .07, dur: float = .32):
         """A zoom-in hit on a beat that eases back out."""
@@ -179,7 +181,7 @@ class Camera:
         self.flashes.append((t, strength, dur))
 
     def sample(self, t: float) -> tuple:
-        s, fx, fy, tx, ty, rot, blur = 1.0, W / 2, H / 2, 0.0, 0.0, 0.0, 0.0
+        s, fx, fy, tx, ty, rot, blur = 1.0, self.w / 2, self.h / 2, 0.0, 0.0, 0.0, 0.0
         for t0, t1, s0, s1, px, py in self.pushes:
             if t0 <= t < t1:
                 s = s0 + (s1 - s0) * _smooth((t - t0) / max(1e-6, t1 - t0))

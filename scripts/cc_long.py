@@ -206,11 +206,11 @@ def mix(comp, segs: list, path: Path, seed: int) -> Path:
 # ------------------------------------------------------------------ render
 
 def _render_chunk(args):
-    doc, w, h, a, b, fps, out = args
+    doc, w, h, a, b, fps, out, enc = args
     from playwright.sync_api import sync_playwright
     ff = M.find_ffmpeg() or "ffmpeg"
     cmd = [ff, "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(fps), "-i", "-",
-           "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-r", str(fps), str(out)]
+           "-c:v", "libx264", "-preset", "medium", *enc, "-pix_fmt", "yuv420p", "-r", str(fps), str(out)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     with sync_playwright() as p:
         browser = p.chromium.launch(args=M.CHROME_ARGS)
@@ -230,12 +230,13 @@ def _render_chunk(args):
     return str(out)
 
 
-def render(comp, out: Path, wav: Path, workers: int = 3, fps: int = FPS) -> Path:
-    """Render in `workers` parallel chunks, join them, add the soundtrack."""
+def render(comp, out: Path, wav: Path, workers: int = 3, fps: int = FPS, enc: tuple = ("-crf", "18")) -> Path:
+    """Render in `workers` parallel chunks, join them, add the soundtrack.
+    `enc`: the x264 rate options (quality, and a bitrate cap for big videos)."""
     n = int(round(comp.duration * fps))
     doc = comp.document()
     step = -(-n // workers)
-    parts = [(doc, comp.w, comp.h, a, min(n, a + step), fps, out.parent / f".{out.stem}.part{k}.mp4")
+    parts = [(doc, comp.w, comp.h, a, min(n, a + step), fps, out.parent / f".{out.stem}.part{k}.mp4", tuple(enc))
              for k, a in enumerate(range(0, n, step))]
     log(f"Rendering {out.name}: {n} frames in {len(parts)} parts")
     with mp.get_context("spawn").Pool(len(parts)) as pool:
