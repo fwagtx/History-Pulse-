@@ -256,7 +256,15 @@ def mix(comp, segs: list, path: Path, seed: int, day=None) -> Path:
         fx[s0:e] += sig[:e - s0]
     out = music * gain[:, None] + voice[:, None] * 1.0 + fx
     out *= 10 ** ((-14 - A.loudness(out)) / 20)
-    return A.write_wav(A.limit(out, .84), path)
+    # The limiter takes some loudness off the narrator's peaks: measure after it
+    # and make up the difference (YouTube plays everything at -14 LUFS at most).
+    for _ in range(6):
+        final = A.limit(out, .84)
+        gap = -14 - A.loudness(final)
+        if abs(gap) < .2:
+            break
+        out *= 10 ** (gap * 1.2 / 20)
+    return A.write_wav(final, path)
 
 
 def check(comp) -> dict:

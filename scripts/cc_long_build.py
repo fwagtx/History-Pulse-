@@ -39,7 +39,7 @@ from cc_common import CC_DIR, log  # noqa: E402
 LINEUP = CC_DIR / "lineup.json"
 LOCAL_TZ = ZoneInfo("America/Chicago")
 MIN_S, MAX_S = 180.0, 870.0
-ENC = ("-crf", "21", "-maxrate", "4500k", "-bufsize", "9000k")     # about 330 MB at most for 10 minutes
+ENC = ("-crf", "19", "-maxrate", "6000k", "-bufsize", "12000k")    # ~100 MB for 8 minutes, 450 MB at most
 
 
 def long_from() -> date | None:
