@@ -54,6 +54,20 @@ def load(path: str | None = None, fresh: bool = False) -> list:
     return load(str(cache))
 
 
+# Days the records list items that weren't on sale. 2023-12-06 (Chapter 5's
+# launch): 58 items show up for that one day only, every one of them for the
+# first time -- the default Recruit outfits, test placeholders (Set_01_OA/PA),
+# Battle Pass and pack skins. On a day listed here an item counts as in the
+# shop only when it was also in the shop the day before or the day after.
+BAD_DAYS = {date(2023, 12, 6)}
+
+
+def _clean(days: set) -> list:
+    """The item's shop days without its lone appearances on BAD_DAYS."""
+    return sorted(d for d in days
+                  if d not in BAD_DAYS or (d - timedelta(days=1)) in days or (d + timedelta(days=1)) in days)
+
+
 def _runs(days: list) -> list:
     """Consecutive days grouped into (first, last) runs."""
     runs = []
@@ -74,9 +88,12 @@ class History:
             h = r.get("shopHistory") or []
             if not r.get("id") or not h:
                 continue
+            days = _clean({date.fromisoformat(d[:10]) for d in h})
+            if not days:
+                continue
             key = r["id"].lower()
             self.items[key] = r
-            self.days[key] = sorted({date.fromisoformat(d[:10]) for d in h})
+            self.days[key] = days
         self.latest = max((d[-1] for d in self.days.values()), default=None)
 
     def has(self, item_id: str) -> bool:
