@@ -359,16 +359,26 @@ def _year(y: int, color: str, t) -> str:
             + _block(str(y), YEAR_SIZE, color, 16, 12, extra="transform:skewX(-7deg)") + '</div>')
 
 
+BAN_TW = BAN_W - 64                                      # the banner's room for the name
+
+
+def _name_fit(name: str) -> tuple:
+    """(font size, lines) for a name on the banner: one line down to 70 px,
+    then two balanced lines (PREP_JS's data-fit trims what's left over)."""
+    one = min(104, BAN_TW / max(anton_em(name) - .1, .1))
+    if one >= 70:
+        return one, 1
+    return min(86, 2.05 * BAN_TW / max(anton_em(name), .1)), 2
+
+
 def _banner(name: str, kind: str, rarity_col: str, t) -> str:
     """The name on a red title banner (bottom-anchored, one or two lines, as
     wide as the name needs), its rarity and type in a small box on its top edge."""
-    tw = BAN_W - 64
-    one = min(104, tw / max(anton_em(name) - .1, .1))
-    if one >= 70:
-        size = one
+    tw = BAN_TW
+    size, lines = _name_fit(name)
+    if lines == 1:
         wrap = 'style="display:inline-block;white-space:nowrap;'
     else:
-        size = min(86, 2.05 * tw / max(anton_em(name), .1))
         wrap = f'data-lines="2" style="width:{tw}px;text-wrap:balance;'
     slide = _a("cmslide", t, .5, "cubic-bezier(.22,.9,.3,1)") if t is not None else ""
     pop = _a("cmpop", t + .32, .3, "cubic-bezier(.3,1.5,.5,1)") if t is not None else ""
@@ -455,8 +465,11 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list, r: float, w
     col = _rarity(it)
     kind = " ".join(x for x in (it.get("rarity_label") or "", it.get("type") or "") if x).strip()
     rev = t0 - TURN_LEAD                                    # this page starts to show
+    # a two-line name makes the banner taller: the cosmetic stands on it, a bit smaller
+    lift = 0 if _name_fit(it["name"])[1] == 1 else 86
     html = [_panel_bg(col, PX, PY, PW, PH, FOCUS, rev, r + TURN_LEAD),
-            _figure(ctx, it, FIG_CX, FIG_BOTTOM, FIG_W, FIG_H, _a("cmrise", t0 - .05, .55, "cubic-bezier(.25,.8,.3,1)")),
+            _figure(ctx, it, FIG_CX, FIG_BOTTOM - lift, FIG_W, FIG_H - lift,
+                    _a("cmrise", t0 - .05, .55, "cubic-bezier(.25,.8,.3,1)")),
             _caption(f"{when.upper()}, {y} —", X0, CAP_Y, -1.5, t0 + .02),
             _year(y, col, t0 + .2),
             _banner(it["name"], kind.upper(), col, t0 + .55),

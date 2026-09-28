@@ -61,7 +61,7 @@ def _grain(h, w, rnd, sigma=2.0, blur=.6):
 # ------------------------------------------------------------------ the room
 
 WALL_BOTTOM = 1338          # where the desk top meets the wall (frame px)
-DESK_EDGE = 1756            # the desk's rounded front edge
+DESK_EDGE = 1668            # the desk's rounded front edge
 
 
 def _rings(n, rnd, lo=5.0, hi=16.0):

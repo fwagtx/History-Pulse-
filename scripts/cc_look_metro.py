@@ -139,6 +139,10 @@ CSS = """
 .mt-circ{position:absolute;border-radius:50%%}
 .mt-fig{position:absolute;display:flex;justify-content:center;align-items:flex-end}
 .mt-fig img{display:block;object-fit:contain;object-position:50%% 100%%}
+.mt-stack{display:flex;flex-direction:column;padding:24px 26px 22px}
+.mt-figbox{position:relative;flex:1 1 0;min-height:0}
+.mt-figbox .in{position:absolute;inset:0;display:flex;justify-content:center;align-items:flex-end}
+.mt-figbox img{display:block;height:100%%;object-fit:contain;object-position:50%% 100%%}
 .mt-rule{height:6px;background:%(ink)s}
 .mt-name{font-family:Inter,sans-serif;font-weight:900;letter-spacing:-.02em;line-height:1;color:%(ink)s}
 .mt-kind{display:flex;align-items:center;gap:12px;margin-top:10px;font-size:30px;letter-spacing:.06em;color:%(ink)s}
@@ -373,23 +377,28 @@ def _slide(board: str, t_in, t_out) -> str:
 
 def _figure(ctx, it: dict, h: float, maxw: float) -> str:
     uri = ctx.art(it)
+    hh = f"{h:.0f}px" if h else "100%"
     if uri:
         tr = ' data-trim="figure"' if trim_for(it) == "figure" else " data-trim"
         return (f'<img{tr} data-name="{esc(it["name"])}" src="{uri}" '
-                f'style="height:{h:.0f}px;max-width:{maxw:.0f}px">')
+                f'style="height:{hh};max-width:{maxw:.0f}px">')
+    h = h or 540
     return (f'<div class="mt-mono" style="width:{min(maxw, h * .55):.0f}px;height:{h * .8:.0f}px;display:flex;'
             f'align-items:center;justify-content:center;text-align:center;padding:18px;font-size:26px;color:#5a564e;'
             f'border:3px dashed #b9b3a6;border-radius:24px;overflow-wrap:anywhere">{esc(it["name"])}</div>')
 
 
 def _poster_station(ctx, it: dict, debut: bool, top: float, t_arr: float) -> str:
+    """A year's poster: the outfit over a disc of its rarity's colour, a rule,
+    its name (up to two lines), rarity and type, and what that day was. The
+    words take the room they need at the foot; the outfit gets the rest."""
     col = _col(it)
     note = "its first day in the Item Shop" if debut else "in the Item Shop that day"
     w = IW - 52
-    html = (f'<div class="mt-poster" style="top:{top:.0f}px">'
+    html = (f'<div class="mt-poster mt-stack" style="top:{top:.0f}px">'
             f'<div class="mt-circ" style="left:{IW / 2 - 190:.0f}px;top:96px;width:380px;height:380px;background:{col}"></div>'
-            f'<div class="mt-fig" style="left:20px;right:20px;top:24px;height:552px">{_figure(ctx, it, 552, IW - 48)}</div>'
-            f'<div class="abs" style="left:26px;top:588px;width:{w}px">'
+            f'<div class="mt-figbox"><div class="in">{_figure(ctx, it, 0, IW - 48)}</div></div>'
+            f'<div style="flex:none;position:relative;margin-top:12px">'
             f'<div class="mt-rule"></div>'
             f'<div class="mt-name" data-fit="{w}" data-lines="2" style="width:{w}px;font-size:56px;margin-top:12px">'
             f'{esc(it["name"])}</div>'
@@ -397,7 +406,7 @@ def _poster_station(ctx, it: dict, debut: bool, top: float, t_arr: float) -> str
             f'<span data-fit="{w - 32}" style="display:inline-block">{esc(_kind(it).upper())}</span></div>'
             f'<div class="mt-note mt-mono">{esc(note)}</div></div>')
     if debut:
-        html += (f'<div class="mt-badge" style="left:16px;top:16px;'
+        html += (f'<div class="mt-badge" style="position:absolute;left:16px;top:16px;'
                  f'{_a("mtbadge", t_arr + .45, .36, "cubic-bezier(.3,1.3,.5,1)")}">'
                  f'<span class="a">NEW</span><span class="b">THAT DAY</span></div>')
     return html + "</div>"
@@ -461,7 +470,7 @@ def _poster_outro(ctx, picks: list, top: float) -> str:
     html = [f'<div class="mt-poster" style="top:{top:.0f}px">']
     for i, (yr, it) in enumerate(picks):
         cx = cxs[i]
-        html.append(f'<div class="mt-circ" style="left:{cx - d / 2:.0f}px;top:{205 - d / 2 + (i % 2) * 36:.0f}px;'
+        html.append(f'<div class="mt-circ" style="left:{cx - d / 2:.0f}px;top:{300 - d / 2:.0f}px;'
                     f'width:{d:.0f}px;height:{d:.0f}px;background:{_col(it)}"></div>')
     for i, (yr, it) in enumerate(picks):
         cx = cxs[i]

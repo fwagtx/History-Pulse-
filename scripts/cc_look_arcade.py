@@ -242,7 +242,7 @@ GLYPHS = {
     "K": ["##..##", "##.##.", "####..", "###...", "####..", "##.##.", "##..##"],
     "L": ["##....", "##....", "##....", "##....", "##....", "##....", "######"],
     "M": ["##...##", "###.###", "#######", "##.#.##", "##...##", "##...##", "##...##"],
-    "N": ["##..##", "###.##", "######", "######", "##.###", "##..##", "##..##"],
+    "N": ["##...##", "###..##", "####.##", "##.####", "##..###", "##...##", "##...##"],
     "O": [".####.", "##..##", "##..##", "##..##", "##..##", "##..##", ".####."],
     "P": ["#####.", "##..##", "##..##", "#####.", "##....", "##....", "##...."],
     "Q": [".####.", "##..##", "##..##", "##..##", "##.###", "##..##", ".###.#"],
@@ -693,7 +693,7 @@ def _stage(ctx, tr: _Tracks, k: int, rd: dict, it: dict, debut: bool, t0: float,
     feet = 1010
     html.append(_floor(pcx, feet - 6, 250))
     html.append(_sprite(tr, f"acs{k}", ctx.art(it), it, pcx, feet, 630, px1 - px0 - 56,
-                        [(t_sharp, t1 - .3)], mos))
+                        [(t_sharp, t1 - .3)], mos, extra=_anim(_a("achop", t0 + 3.5, .36, "steps(6,end)"))))
     # rarity and type, then the banner
     kind = _kind(it)
     ks, klines = _fit(kind, px1 - px0 - 60, 34, 2, 22)
@@ -721,7 +721,9 @@ def _stage(ctx, tr: _Tracks, k: int, rd: dict, it: dict, debut: bool, t0: float,
     # the year, and the name typed into the right-hand column
     rx0, rx1 = RCOL
     html.append(_year_drop(y, rx0, YEAR_Y, YEAR_S, t0, clear, tr))
-    ns, nlines = _fit(it["name"].upper(), rx1 - rx0, NAME_S, 2, 30)
+    ns, nlines = _fit(it["name"].upper(), rx1 - rx0, NAME_S, 1, 56)
+    if len(nlines) > 1 or ns < 56:
+        ns, nlines = _fit(it["name"].upper(), rx1 - rx0, NAME_S, 2, 30)
     t_type, dt = typing
     t_line = t_type
     for j, line in enumerate(nlines):
@@ -746,38 +748,48 @@ def _table(tr: _Tracks, rows: list, when_short: str, on: list, done_from: list, 
     width = rx1 - rx0
     hdr = f"HIGH SCORES · {when_short}"
     out = [_t(hdr, rx0, TABLE_Y, 36, CYAN, _anim(tr.vis(on)))]
-    y_col = 4 * EM * ROW_S + 16                                   # the name column starts here
-    name_w = width - y_col - 6
-    layout = []
-    for year, name, a, b, typing in rows:
-        s, lines = _fit(name.upper(), name_w, ROW_S, 1, 30)
-        if s < 30 or len(lines) > 1:
-            s, lines = _fit(name.upper(), name_w, ROW_S, 2, 22)
-        layout.append((s, lines))
-    n_lines = sum(len(ls) for _, ls in layout)
     top = TABLE_Y + 50
-    pitch = min(48.0, (FLOOR - top) / max(n_lines, 1))
+
+    def lay(size):
+        y_col = 4 * EM * size + 16                                # the name column starts here
+        name_w = width - y_col - 6
+        layout = []
+        for year, name, a, b, typing in rows:
+            s, lines = _fit(name.upper(), name_w, size, 1, 30)
+            if s < 30 or len(lines) > 1:
+                s, lines = _fit(name.upper(), name_w, size, 2, 22)
+            layout.append((s, lines))
+        n_lines = sum(len(ls) for _, ls in layout)
+        return y_col, name_w, layout, min(54.0, (FLOOR - top) / max(n_lines, 1))
+
+    ROW = 40.0                                                    # as big as the room allows (36-40 px)
+    for _ in range(4):
+        y_col, name_w, layout, pitch = lay(ROW)
+        if ROW <= pitch * .8 or ROW <= 30:
+            break
+        ROW = max(30.0, round(pitch * .8))
+    y_col, name_w, layout, pitch = lay(ROW)
     y = top
     t_end_all = max(w[1] for w in on) if on else 0
     for (year, name, a, b, typing), (s, lines) in zip(rows, layout):
         h = pitch * len(lines)
-        ry = y + (pitch - ROW_S) / 2
+        ry = y + (pitch - ROW) / 2
         past = [(max(b, on[0][0]), t_end_all)]
         future = [w for w in ((on[0][0], a),) if w[1] > w[0]]
         # still to come: dashes
-        out.append(_t("----", rx0, ry, ROW_S, DIM, _anim(tr.vis(_clip(future, on)))))
-        out.append(_t("." * min(14, int(name_w / (EM * ROW_S))), rx0 + y_col, ry, ROW_S, DIM,
+        out.append(_t("----", rx0, ry, ROW, DIM, _anim(tr.vis(_clip(future, on)))))
+        out.append(_t("." * min(14, int(name_w / (EM * ROW))), rx0 + y_col, ry, ROW, DIM,
                       _anim(tr.vis(_clip(future, on)))))
         # its stage: a lime bar, the year and the name typed in with a cursor
         if typing:
             live = _clip([(a, b)], on)
             out.append(f'<div class="abs" style="left:{rx0 - 8}px;top:{y + 2:.0f}px;width:{width + 12}px;'
                        f'height:{h - 4:.0f}px;background:{LIME};{_anim(tr.vis(live))}"></div>')
-            out.append(_t(str(year), rx0, ry, ROW_S, INK, _anim(tr.vis(live))))
+            out.append(_t(str(year), rx0, ry, ROW, INK, _anim(tr.vis(live))))
             t_type, dt = typing
             tl = t_type
             for j, line in enumerate(lines):
-                ly = ry + j * pitch + (ROW_S - s) * .5
+                ly = ry + j * pitch + (ROW - s) * .5
                 t_done = tl + len(line) * dt
                 last = j == len(lines) - 1
                 cur = [(tl, t_done)] + (_blink(t_done, b - .12, .3, .22) if last else [])
@@ -785,9 +797,9 @@ def _table(tr: _Tracks, rows: list, when_short: str, on: list, done_from: list, 
                                   cursor=INK, cur_vis=tr.vis(_clip(cur, on))))
                 tl = t_done + dt
         # in the table
-        out.append(_t(str(year), rx0, ry, ROW_S, CYAN, _anim(tr.vis(_clip(past, on)))))
+        out.append(_t(str(year), rx0, ry, ROW, CYAN, _anim(tr.vis(_clip(past, on)))))
         for j, line in enumerate(lines):
-            out.append(_t(line, rx0 + y_col, ry + j * pitch + (ROW_S - s) * .5, s, WHITE,
+            out.append(_t(line, rx0 + y_col, ry + j * pitch + (ROW - s) * .5, s, WHITE,
                           _anim(tr.vis(_clip(past, on)))))
         y += h
     return "".join(out)

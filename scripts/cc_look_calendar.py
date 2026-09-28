@@ -45,7 +45,7 @@ from cc_motion import Comp, esc
 HOOK = 3.0
 R = 6.5
 TEAR = 1.0                  # lift .42 s, rip, tossed away by 1.0 s
-T_RIP = .44                 # the rip, into the tear
+T_RIP = .42                 # the rip, into the tear
 FONTS = ("Oswald", "Old Standard TT", "Special Elite", "Caveat")
 
 # The calendar's print
@@ -99,16 +99,16 @@ CSS = """
   75%%{transform:translate(-201px,-29px)}}
 @keyframes caltear{
   0%%{transform:translate(0,0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
-    animation-timing-function:cubic-bezier(.42,0,.5,1)}
-  44%%{transform:translate(0,0) rotateX(36deg) rotateY(-10deg) rotateZ(1.4deg);
-    animation-timing-function:cubic-bezier(.2,0,.4,1)}
-  52%%{transform:translate(-16px,10px) rotateX(42deg) rotateY(-7deg) rotateZ(-4deg);
-    animation-timing-function:cubic-bezier(.3,.1,.6,1)}
-  74%%{transform:translate(-520px,-30px) rotateX(58deg) rotateY(16deg) rotateZ(-17deg);
-    animation-timing-function:cubic-bezier(.4,0,.9,.7)}
-  100%%{transform:translate(-1260px,430px) rotateX(96deg) rotateY(34deg) rotateZ(-38deg)}}
-@keyframes calshine{0%%{opacity:0}44%%{opacity:1}74%%{opacity:.8}100%%{opacity:.5}}
-@keyframes callift{0%%{opacity:0}44%%{opacity:1}56%%{opacity:.75}80%%{opacity:0}100%%{opacity:0}}
+    animation-timing-function:cubic-bezier(.45,0,.55,1)}
+  40%%{transform:translate(0,0) rotateX(50deg) rotateY(-13deg) rotateZ(2deg);
+    animation-timing-function:cubic-bezier(.25,0,.45,1)}
+  49%%{transform:translate(-22px,28px) rotateX(57deg) rotateY(-8deg) rotateZ(-5deg);
+    animation-timing-function:cubic-bezier(.3,.15,.6,1)}
+  72%%{transform:translate(-470px,150px) rotateX(66deg) rotateY(18deg) rotateZ(-16deg);
+    animation-timing-function:cubic-bezier(.45,0,.9,.65)}
+  100%%{transform:translate(-1260px,560px) rotateX(104deg) rotateY(36deg) rotateZ(-40deg)}}
+@keyframes calshine{0%%{opacity:0}40%%{opacity:1}72%%{opacity:.8}100%%{opacity:.5}}
+@keyframes callift{0%%{opacity:0}40%%{opacity:1}55%%{opacity:.7}78%%{opacity:0}100%%{opacity:0}}
 @keyframes calout{0%%{transform:translate(0,0) rotate(0deg)}
   100%%{transform:translate(-760px,18px) rotate(-7deg)}}
 @keyframes calin{0%%{transform:translate(-760px,18px) rotate(-7deg)}
@@ -128,10 +128,15 @@ FIX_JS = """<script>(() => {
     if (prev) { await prev; }
     for (const img of document.querySelectorAll('img[data-calfix]')) {
       try {
-        const st = img.style, ml = parseFloat(st.marginLeft) || 0, mt = parseFloat(st.marginTop) || 0;
-        if (!ml && !mt) continue;
-        st.marginRight = ((parseFloat(st.marginRight) || 0) - 2 * ml) + 'px';
-        st.marginBottom = ((parseFloat(st.marginBottom) || 0) - 2 * mt) + 'px';
+        const st = img.style, P = +(img.dataset.pad || 60);
+        const bwMax = +img.dataset.bw, bh = +img.dataset.bh;
+        const W = img.naturalWidth - 2 * P, H = img.naturalHeight - 2 * P;
+        if (st.filter !== 'none' || W <= 0 || H <= 0 || !bwMax || !bh) continue;   // not baked
+        const bw = Math.min(bwMax, bh * W / H), s = Math.min(bw / W, bh / H);
+        const dw = (W + 2 * P) * s, dh = (H + 2 * P) * s;
+        const ml = (bw - W * s) / 2 - P * s, mt = (bh - H * s) - P * s;
+        st.width = dw + 'px'; st.height = dh + 'px';
+        st.margin = `${mt}px ${bw - dw - ml}px ${bh - dh - mt}px ${ml}px`;
       } catch (e) {}
     }
   })();
@@ -194,7 +199,8 @@ def _picture(art: str, it: dict, box_w: float, box_h: float, bake: str, pad: int
         trim = _trim(it)
         tr = f' data-trim="{trim}"' if trim else " data-trim"
         return (f'<div style="position:absolute;inset:0;display:flex;justify-content:center;align-items:flex-end">'
-                f'<img{tr} data-calfix data-bake="{bake}" data-pad="{pad}" data-name="{esc(it["name"])}" '
+                f'<img{tr} data-calfix data-bw="{box_w:.0f}" data-bh="{box_h:.0f}" data-bake="{bake}" '
+                f'data-pad="{pad}" data-name="{esc(it["name"])}" '
                 f'src="{art}" style="display:block;height:{box_h:.0f}px;max-width:{box_w:.0f}px;object-fit:contain;'
                 f'filter:{bake}"></div>')
     # a printed figure silhouette over the name, in the paper's own ink
@@ -307,7 +313,7 @@ def _binding() -> str:
             + "".join(stubs)
             + f'<div class="abs" style="left:{x0}px;top:{y0}px;width:{x1 - x0}px;height:{y1 - y0}px;'
               f'background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 2px,rgba(0,0,0,.06) 2px 3px,'
-              f'rgba(0,0,0,0) 3px 5px),linear-gradient(180deg,#7a1f1b,#8e2621 30%,#6f1a17 80%,#4c100e);'
+              f'rgba(0,0,0,0) 3px 5px),linear-gradient(180deg,#2c221d,#3a2d26 30%,#271e19 80%,#15100d);'
               f'box-shadow:0 3px 4px rgba(30,10,5,.35)"></div>')
 
 
@@ -411,13 +417,13 @@ def _band(text: str, size: float = 50, spacing: float = .34) -> str:
             f'background:repeating-linear-gradient(90deg,rgba(80,60,40,.28) 0 3px,rgba(0,0,0,0) 3px 7px)"></div>')
 
 
-def _date_block(day: date, year: int, top: float = 470) -> str:
+def _date_block(day: date, year: int, top: float = 464) -> str:
     """The right-hand column: the huge day, the weekday that date fell on, the year."""
     col = RED if _weekend(day, year) else INK
     lx = RX0 - SX
     w = RX1 - RX0
     num = str(day.day)
-    size = min(272, (w - 4) / (.52 * len(num)))
+    size = min(254, (w - 4) / (.52 * len(num)))
     wd = _weekday(day, year)
     wsize = min(38, (w - 10) / (max(len(wd), 1) * .62))
     return (f'<div class="abs cal-num" style="left:{lx}px;top:{top - SY:.0f}px;width:{w}px;text-align:center;'
@@ -428,7 +434,7 @@ def _date_block(day: date, year: int, top: float = 470) -> str:
             f'<div class="abs" style="left:{lx + 40}px;top:{top - SY + size * .98 + wsize + 26:.0f}px;'
             f'width:{w - 80}px;height:2px;background:rgba(35,29,24,.55)"></div>'
             f'<div class="abs cal-num" style="left:{lx}px;top:{top - SY + size * .98 + wsize + 34:.0f}px;'
-            f'width:{w}px;text-align:center;font-size:136px;color:{INK};opacity:.95">{year}</div>')
+            f'width:{w}px;text-align:center;font-size:130px;color:{INK};opacity:.95">{year}</div>')
 
 
 def _stamp(lines: list, w: float, h: float, rot: float, t: float) -> str:
@@ -459,7 +465,7 @@ def _page_year(ctx, rd: dict, it: dict, debut: bool, t0: float) -> tuple:
             + _picture(ctx.art(it), it, LX1 - LX0 - 8, FIG_Y1 - FIG_Y0, PRINT_BAKE, 40) + '</div>',
             # a hairline between the columns, as printed calendars have
             f'<div class="abs" style="left:{RX0 - SX - 12}px;top:{FIG_Y0 - SY + 10}px;width:1.5px;'
-            f'height:{BLOCK[1] - FIG_Y0 - 40}px;background:rgba(35,29,24,.18)"></div>',
+            f'height:{905 - FIG_Y0}px;background:rgba(35,29,24,.18)"></div>',
             _date_block(day, y)]
     kx, ky = _L(LX0 + 4, KICK_Y)
     kind = _kind(it)
@@ -467,16 +473,16 @@ def _page_year(ctx, rd: dict, it: dict, debut: bool, t0: float) -> tuple:
                 f'font-size:25px;letter-spacing:.2em;color:{MUTED}">{esc(kind.upper())}</div>')
     nx, ny = _L(LX0 + 2, NAME_Y)
     html.append(f'<div class="abs cal-type" data-fit="{LX1 - LX0 - 6}" data-lines="2" style="left:{nx}px;top:{ny}px;'
-                f'width:{LX1 - LX0 - 6}px;font-size:60px;line-height:1.02;color:{INK}">{esc(it["name"])}</div>')
+                f'width:{LX1 - LX0 - 6}px;font-size:74px;line-height:1.0;color:{INK}">{esc(it["name"])}</div>')
     sounds = []
     if debut:
-        sx, sy = _L(RX0 + 8, 948)
+        sx, sy = _L(RX0 + 20, 918)
         html.append(f'<div class="abs" style="left:{sx}px;top:{sy}px">'
-                    + _stamp([("NEW", 76, 700, .08), ("THAT DAY", 30, 500, .26)], 258, 132, -7, t0 + .75)
+                    + _stamp([("NEW", 66, 700, .08), ("THAT DAY", 27, 500, .26)], 236, 116, -6, t0 + .75)
                     + '</div>')
         sounds.append((t0 + .75, "stamp"))
     else:
-        lx, ly = _L(RX0, 962)
+        lx, ly = _L(RX0, 934)
         html.append(f'<div class="abs cal-old" style="left:{lx}px;top:{ly}px;width:{RX1 - RX0}px;text-align:center;'
                     f'font-style:italic;font-size:36px;line-height:1.1;color:{MUTED}">in the Item Shop<br>that day</div>')
     return "".join(html), sounds
@@ -515,8 +521,8 @@ def _page_cover(ctx, span: str, bday) -> str:
                     f'transform:rotate(-3deg)">Fortnite turns {bday["age"]}!</div>')
     else:
         html.append(f'<div class="abs cal-old" data-fit="{LX1 - LX0 - 10}" data-lines="2" style="left:{lx}px;'
-                    f'top:{ly}px;width:{LX1 - LX0 - 10}px;font-style:italic;font-size:50px;line-height:1.08;'
-                    f'color:{INK}">…in the Fortnite Item Shop</div>')
+                    f'top:{ly}px;width:{LX1 - LX0 - 10}px;font-style:italic;font-size:54px;line-height:1.08;'
+                    f'color:{INK}">…in the Fortnite<br>Item Shop</div>')
     rx, ry = _L(RX0, 486)
     w = RX1 - RX0
     html.append(f'<div class="abs cal-old" style="left:{rx}px;top:{ry}px;width:{w}px;text-align:center;'
@@ -644,7 +650,7 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     comp.add(PREP_JS)
     comp.add(FIX_JS)
 
-    persp = f"perspective:2300px;perspective-origin:{SX + SW / 2:.0f}px {SY + 180}px"
+    persp = f"perspective:5000px;perspective-origin:{SX + SW / 2:.0f}px {SY + 60}px"
 
     # ---- the title sheet (frame 0) and the two lead standees
     a, b = lead[0][1], lead[1][1]
