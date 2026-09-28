@@ -40,6 +40,8 @@ SUB_BOTTOM = 960                  # the subtitles' last line ends here (one line
 DUCK = .2                         # the music under the voice (1 = full level)
 MUSIC_EVERY = 58.0                # a new track about every minute (a library cut is 75 s)
 STICKER = (100, 100, .66)         # the code sticker: x, y, scale
+FONT_FILE = Path(__file__).resolve().parent.parent / "creator-code" / "assets" / "fonts" / "TikTokSans-Variable.ttf"
+SUB_CHARS = 140                   # a subtitle longer than this gets smaller, so it stays on two lines
 EMOJI = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]")
 
 CSS = """
@@ -151,8 +153,9 @@ class LongEdit:
                 self.cue(max(0, s.t0 - .16), s.cue)
             for (a, b), line in zip(s.lines_at, s.lines):
                 shown = line[1] if isinstance(line, tuple) else line
-                self.over(a, b + min(s.gap, .25),
-                          f'<div class="lv-sub" style="bottom:{H - SUB_BOTTOM}px">{esc(shown)}</div>', z=45)
+                size = 44 if len(shown) <= SUB_CHARS else max(34, 44 * SUB_CHARS / len(shown))
+                self.over(a, b + min(s.gap, .25), f'<div class="lv-sub" style="bottom:{H - SUB_BOTTOM}px;'
+                          f'font-size:{size:.0f}px">{esc(shown)}</div>', z=45)
         from cc_looks import PREP_JS
         css, anim, fanim = self.cam.css()
         self.comp.css(css)
@@ -174,6 +177,33 @@ class LongEdit:
         chapters = [(s.t0, s.chapter) for s in self.segs if s.chapter]
         wav = mix(self.comp, self.segs, out_dir / "soundtrack.wav", self.seed, self.day)
         return self.comp, wav, chapters
+
+
+_FACES = {}
+
+
+def text_em(text: str, weight: int = 800) -> float:
+    """The width of `text` in TikTok Sans, in em, measured from the font file
+    (Pillow); a generous estimate without Pillow. An emoji counts 1.2 em (the
+    browser draws it from Noto Color Emoji)."""
+    emojis = len(EMOJI.findall(text))
+    plain = EMOJI.sub("", text)
+    try:
+        from PIL import ImageFont
+        face = _FACES.get(weight)
+        if face is None:
+            face = ImageFont.truetype(str(FONT_FILE), 100)
+            face.set_variation_by_axes([36, 100, weight, 0])      # optical size, width, weight, slant
+            _FACES[weight] = face
+        return face.getlength(plain) / 100 + 1.2 * emojis
+    except Exception:  # noqa: BLE001 - no Pillow, or an old one: estimate
+        return .62 * len(plain) + 1.2 * emojis
+
+
+def fit(text: str, width: float, big: float, small: float = 26, weight: int = 800, pad: float = .64) -> float:
+    """The biggest size (small..big) that sets `text` on one line in `width`
+    px, with `pad` em of box around it (a caption box: .64; outline text: ~.2)."""
+    return max(small, min(big, width / (text_em(text, weight) + pad)))
 
 
 def speakable(text: str) -> str:

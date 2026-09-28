@@ -12,9 +12,10 @@ so they never run out and never make anything up.
     Wed  <SEASON>: WHERE ARE THEY NOW  one season's shop skins, counted down to
                                        the one that has been back the fewest
                                        times; the seasons in a spread-out order
-    Thu  THE ITEM SHOP IN <MONTH YEAR> this calendar month in an earlier year:
-                                       the skins that were new in the shop then,
-                                       and how often each has been back since
+    Thu  THE ITEM SHOP IN <MONTH YEAR> this calendar month two or more years
+                                       back (a different year each week): the
+                                       skins new in the shop then, and how often
+                                       each has been back since
     Fri  THE RAREST <SERIES> SKINS     Icon, Marvel, DC, Star Wars, Gaming
                                        Legends and the biggest sets in turn
 
@@ -144,11 +145,11 @@ TILE = (350, 180, 580, 660)            # x, y, w, h of the item's tile
 COL, COL_W = 1040, 760                 # the right-hand column
 
 
-def _fit(text: str, width: float, big: float, small: float = 34) -> float:
-    """A font size that sets `text` on one line in `width` (TikTok Sans 800-900
-    runs about .58 em a character, .68 in capitals), between small and big."""
-    em = .68 if text.isupper() else .58
-    return max(small, min(big, width / (em * max(4, len(text)))))
+def _fit(text: str, width: float, big: float, small: float = 26, weight: int = 800, box: bool = True) -> float:
+    """The biggest size (small..big) that sets `text` on one line in `width`,
+    measured from the font (cc_edit_long.fit): a caption box's padding, or an
+    outline's edge."""
+    return LE.fit(text, width, big, small, weight, .7 if box else .25)
 
 
 def item_screen(lv, seg, e: dict, move: str = "zoom"):
@@ -162,8 +163,8 @@ def item_screen(lv, seg, e: dict, move: str = "zoom"):
     lv.scene(seg.t0, seg.t1, ED.canvas(iid, ED.tile_colors(it), 1.3, .5) + tile)
     at = [a for a, _ in seg.lines_at] + [seg.t1] * 6
     over = ED.outline(f"#{e['rank']}", COL, 132, 140, seg.t0, align="left", lime=e["rank"] == 1, width=600)
-    over += ED.caption(e["name"], COL, 330, _fit(e["name"], COL_W, 66), at[0] + .1, align="left", width=COL_W,
-                       weight=800)
+    over += ED.caption(e["name"], COL, 330, _fit(e["name"], COL_W - 10, 66, 30), at[0] + .1, align="left",
+                       width=COL_W, weight=800)
     a, b = seg.lines_at[min(1, len(seg.lines_at) - 1)]
     over += ED.caption(e["kicker"], COL, 452, 34, a, style="dark", align="left", width=COL_W, weight=700)
     dur = max(.6, min(1.6, (b - a) * .6))
@@ -174,7 +175,8 @@ def item_screen(lv, seg, e: dict, move: str = "zoom"):
     fy = 668
     for text, k in e.get("facts", []):
         t = at[min(k, len(at) - 1)]
-        over += ED.caption(text, COL, fy, 34, t, style="dark", align="left", width=COL_W, weight=700)
+        over += ED.caption(text, COL, fy, _fit(text, COL_W - 10, 34, 24, 700), t, style="dark", align="left",
+                           width=COL_W, weight=700)
         lv.cue(t, "pop2")
         fy += 60
     if e.get("sticker"):
@@ -200,14 +202,15 @@ def title_screen(lv, seg, title: str, sub: str, entries: list):
     colors = ED.tile_colors(entries[0]["item"]) if entries else ("#333333", "#111111")
     lv.scene(seg.t0, seg.t1, ED.canvas(first, colors, 1.0, .55) + tiles)
     rows = title.upper().split("\n")
-    size = min(_fit(r, 860, 150, 56) for r in rows)
+    size = min(_fit(r, 860, 150, 56, 900, box=False) for r in rows)
     start = seg.t0 - 1 if seg.t0 <= 0 else seg.t0
     over, top = "", 300
     for r in rows:
         over += ED.outline(r, 120, top, size, start, align="left", width=860)
         top += size * 1.08
     sub_at = seg.lines_at[1][0] if len(seg.lines_at) > 1 else seg.t0 + .5
-    over += ED.caption(sub, 124, top + 40, 40, sub_at, style="box", align="left", width=840, weight=800, rot=-1)
+    over += ED.caption(sub, 124, top + 40, _fit(sub, 830, 40, 26), sub_at, style="box", align="left", width=840,
+                       weight=800, rot=-1)
     lv.over(seg.t0, seg.t1, over)
     lv.cam.push(seg.t0, seg.t1, 1.0, 1.05, W / 2, H / 2)
 
@@ -221,7 +224,8 @@ def grid_screen(lv, seg, heading: str, entries: list, labels: list):
     x0 = (W - (cols * tw + (cols - 1) * gap)) / 2
     y0 = 262 if rows > 1 else 400
     tiles, first = "", ""
-    over = ED.caption(heading, W / 2, 150 if rows > 1 else 260, 46, seg.t0, width=1300, weight=800)
+    over = ED.caption(heading, W / 2, 150 if rows > 1 else 260, _fit(heading, 1290, 46, 30), seg.t0, width=1300,
+                      weight=800)
     span = max(.8, (seg.t1 - seg.t0) * .5)
     for i, (e, lab) in enumerate(zip(entries[:n], labels)):
         r, c = divmod(i, cols)
@@ -478,8 +482,9 @@ def _debuts(hist: R.History, y: int, month: int) -> set:
 
 
 def month_years(hist: R.History, day: date) -> list:
-    """Earlier years whose same calendar month brought 14+ new shop skins, newest first."""
-    return [y for y in range(day.year - 1, 2017, -1) if len(_debuts(hist, y, day.month)) >= 14]
+    """Years at least two back whose same calendar month brought 14+ new shop
+    skins, newest first ("then and now" needs time in between)."""
+    return [y for y in range(day.year - 2, 2017, -1) if len(_debuts(hist, y, day.month)) >= 14]
 
 
 def _make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: int):
@@ -578,7 +583,7 @@ def _make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: i
         if not years:
             return None
         for k in range(3):
-            y = years[(ep["index"] + k) % len(years)]
+            y = years[_stride(len(years), ep["index"] + k)]
             debut = _debuts(hist, y, day.month)
             rows = rows_by_times(hist, day, COUNT, art, lambda key, raw: key in debut, True)
             if len(rows) >= MIN_ROWS:
@@ -781,13 +786,13 @@ def thumbnail(out: dict, path: Path) -> Path:
                          extra=f"transform:rotate({rot}deg);z-index:{z}")
     lines_, lime = out["thumb"]
     lines_ = lines_.upper().split("\n")[:3]
-    size = min(_fit(r, 640, 132, 60) for r in lines_)
+    size = min(_fit(r, 640, 132, 60, 900, box=False) for r in lines_)
     text, top = "", 40
     for r in lines_:
         text += ED.outline(r, 44, top, size, -1, align="left", width=660)
         top += size * 1.04
-    text += ED.caption(lime.upper(), 48, top + 22, _fit(lime.upper(), 600, 50, 30), -1, style="lime", align="left",
-                       width=640, weight=900, rot=-2)
+    text += ED.caption(lime.upper(), 48, top + 22, _fit(lime.upper(), 620, 50, 28, 900), -1, style="lime",
+                       align="left", width=640, weight=900, rot=-2)
     colors = ED.tile_colors(rows[0]["item"])
     comp.add(PREP_JS)
     comp.add(ED.PREP)
