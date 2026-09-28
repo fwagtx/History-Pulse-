@@ -296,12 +296,12 @@ def _binding() -> str:
     already torn off. In front of the sheets."""
     x0, y0, x1, y1 = BIND
     stubs = []
+    w = x1 - x0
     for k, (dy, tone) in enumerate(((10, "#e6dcc6"), (7, "#efe6d2"), (3, "#f4ecda"))):
-        pts = _ragged(x1 - x0, 7, 50 + k, 13)
-        poly = ",".join(f"{x:.0f}px {py + dy + 4:.1f}px" for x, py in pts)
-        stubs.append(f'<div class="abs" style="left:{x0}px;top:{y1 - 4}px;width:{x1 - x0}px;height:24px;'
-                     f'background:{tone};clip-path:polygon(0 0,{x1 - x0}px 0,{poly.split(",", 0)[0] if False else ""}'
-                     f'{",".join(reversed([p for p in poly.split(",")]))},0 0)"></div>')
+        edge = [(x, py + dy + 4) for x, py in _ragged(w, 7, 50 + k, 13)]
+        poly = f"0 0,{w}px 0," + ",".join(f"{x:.0f}px {yy:.1f}px" for x, yy in reversed(edge))
+        stubs.append(f'<div class="abs" style="left:{x0}px;top:{y1 - 4}px;width:{w}px;height:24px;'
+                     f'background:{tone};clip-path:polygon({poly})"></div>')
     return (f'<div class="abs" style="left:{x0}px;top:{y1 + 2}px;width:{x1 - x0}px;height:30px;'
             f'background:linear-gradient(180deg,rgba(40,25,10,.30),rgba(40,25,10,0))"></div>'
             + "".join(stubs)
