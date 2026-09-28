@@ -299,17 +299,25 @@ def build(out: Path, per_item: int = 4, per_artist: int = 30, limit: int = 150):
 
 # ------------------------------------------------------------------ use (renders)
 
-def catalog(dest: Path = CACHE) -> list:
-    """The library's catalog, downloaded once per machine."""
+def catalog(dest: Path = CACHE, max_age: float = 6 * 3600) -> list:
+    """The library's catalog, downloaded at most every `max_age` seconds. Each
+    catalog's tracks are cached in their own folder (its "_dir"), so a rebuilt
+    library never mixes with an older one's files."""
+    import hashlib
+    import time
     dest.mkdir(parents=True, exist_ok=True)
     cat = dest / "catalog.json"
-    if not cat.exists():
+    if not cat.exists() or time.time() - cat.stat().st_mtime > max_age:
         cat.write_bytes(_get(f"https://github.com/{REPO}/releases/download/{TAG}/catalog.json"))
-    return json.loads(cat.read_text())["tracks"]
+    raw = cat.read_bytes()
+    folder = str(dest / hashlib.sha1(raw).hexdigest()[:10])
+    return [dict(t, _dir=folder) for t in json.loads(raw.decode("utf-8"))["tracks"]]
 
 
-def ensure(t: dict, dest: Path = CACHE) -> dict | None:
+def ensure(t: dict, dest: Path | None = None) -> dict | None:
     """The track with its mp3 on disk ("path"), or None when it can't be had."""
+    dest = Path(t.get("_dir") or dest or CACHE)
+    dest.mkdir(parents=True, exist_ok=True)
     f = dest / t["file"]
     if not f.exists():
         try:
@@ -322,7 +330,7 @@ def ensure(t: dict, dest: Path = CACHE) -> dict | None:
 
 def fetch(dest: Path = CACHE) -> list:
     """Every track, downloaded."""
-    return [x for x in (ensure(t, dest) for t in catalog(dest)) if x]
+    return [x for x in (ensure(t) for t in catalog(dest)) if x]
 
 
 _LIB = None

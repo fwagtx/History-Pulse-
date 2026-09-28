@@ -407,9 +407,11 @@ def mix(duration: float, cues: list, seed: int, music_gain: float = .34) -> np.n
 # effects (edit_sfx) are the ones short-form editors reach for -- booms,
 # risers, swooshes -- and the music dips a little under the big hits.
 
-EDIT_GAINS = {"boom": .9, "impact": .75, "riser": .42, "swoosh": .42, "pop2": .5, "tick2": .3,
-              "buzz": .42, "shutter": .45, "glitch": .35, "ding": .5, "whoosh": .4, "pop": .38,
-              "tick": .28, "clap": .3, "cash": .45, "reveal": .42, "slam": .65, "click": .38, "drumroll": .38}
+# Set against the music (its loudest 100 ms vs the music's): hits about +5 to
+# +8 dB, transitions about level with it, small sounds a few dB under.
+EDIT_GAINS = {"boom": .9, "impact": .55, "riser": .45, "swoosh": .75, "pop2": .6, "tick2": .8,
+              "buzz": .35, "shutter": .8, "glitch": .6, "ding": .75, "whoosh": .9, "pop": .7,
+              "tick": .9, "clap": .45, "cash": .55, "reveal": .5, "slam": .6, "click": 1.2, "drumroll": .5}
 DUCK = {"boom": .5, "impact": .3, "slam": .3, "buzz": .2}      # how far the music dips (fraction)
 LUFS = -13.0                                               # the finished mix's loudness
 
@@ -553,7 +555,7 @@ def edit_sfx(kind: str, rs: np.random.RandomState) -> np.ndarray:
         x = np.zeros(n)
         s = 0
         while s < n - int(.012 * SR):
-            m = int(rs.uniform(.012, .03) * SR)
+            m = min(int(rs.uniform(.012, .03) * SR), n - s)
             tt = np.arange(m) / SR
             tone = np.sign(np.sin(2 * np.pi * rs.choice([220, 330, 440, 880, 1320]) * tt))
             crush = np.round(_noise(m, rs) * 4) / 4
