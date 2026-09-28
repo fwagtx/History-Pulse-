@@ -711,6 +711,23 @@ def music_credits(ids: list) -> str:
     return "; ".join(f"\"{by[i].get('title') or i}\" by {by[i].get('artist') or 'unknown'}" for i in ids if i in by)
 
 
+def _series_tags(ep: dict, topic: str) -> list:
+    """Search terms people use for each series."""
+    series = ep["series"]
+    if series == "week":
+        return ["fortnite item shop today", "fortnite item shop comebacks", "returning fortnite skins"]
+    if series == "countdown":
+        many = KINDS[ep["kind"]][1]
+        return {"longest_gone": [f"fortnite {many} gone the longest", f"rarest fortnite {many}", f"og fortnite {many}"],
+                "rarest": [f"rarest fortnite {many}", f"rare fortnite {many}", f"og fortnite {many}"],
+                "most_common": [f"most common fortnite {many}", f"fortnite {many}"]}[ep["metric"]]
+    if series == "season":
+        return [f"fortnite {topic.lower().replace(',', '')}", "fortnite season skins", "og fortnite skins"]
+    if series == "month":
+        return [f"fortnite item shop {topic.lower()}", "fortnite throwback", "old fortnite skins"]
+    return [f"fortnite {topic.lower().replace('the rarest ', '')}", "rarest fortnite skins"]
+
+
 def describe(out: dict, day: date) -> dict:
     """YouTube's title, description (with chapters) and tags for a built episode."""
     import cc_long as L
@@ -734,9 +751,9 @@ def describe(out: dict, day: date) -> dict:
     if len(desc) > 4900:
         desc = desc[:4900].rsplit("\n", 1)[0]
     tags, total = [], 0
-    for t in (["usecodebad", "creatorcodebad", "codebad", "creator code bad", "fortnite", "fortnite item shop",
-               "fortnite skins", "item shop history", "rare fortnite skins", out["topic"]]
-              + [r["name"] for r in rows[:8]]):
+    for t in (["usecodebad", "creatorcodebad", "codebad", "creator code bad", "fortnite", "fortnite item shop"]
+              + _series_tags(out["episode"], out["topic"])
+              + ["fortnite skins", "item shop history"] + [r["name"] for r in rows[:8]]):
         t = t.replace("<", "").replace(">", "").replace(",", "")[:60]
         if t and t.lower() not in {x.lower() for x in tags} and total + len(t) + 1 <= 480:
             tags.append(t)
