@@ -52,9 +52,9 @@ import cc_fmt_rarity as FR
 import cc_rarity as R
 from cc_common import OUT_DIR
 from cc_formats import Ctx, Video, _caption, _hashtags, num
-from cc_looks import KIT_CSS, PREP_JS, pad_to
-from cc_motion import (ACCENT, RARITY, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP, W, Comp, an, anton_em,
-                       code_badge, disclosure, esc, style_anim)
+from cc_looks import PREP_JS, pad_to
+from cc_motion import (ACCENT, BADGE_X, BADGE_Y, RARITY, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, SAFE_RIGHT_TOP, W, Comp,
+                       an, anton_em, code_badge, disclosure, esc, style_anim)
 
 FONTS = ("Barlow Condensed",)
 LIME = ACCENT
@@ -254,45 +254,51 @@ def _a(name: str, t: float, d: float, ease: str = "cubic-bezier(.2,.8,.2,1)", fi
 CSS = """
 .bp-room{position:absolute;inset:0;background:#0b0b0d}
 .bp-wall{position:absolute;left:0;top:0;width:1080px;height:%(fy)dpx;
-  background:linear-gradient(180deg,#0b0b0d 0,#131317 38%%,#141418 62%%,#0f0f12 100%%)}
-.bp-slats{position:absolute;top:0;height:%(fy)dpx;opacity:.9;
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.028) 0 2px,rgba(255,255,255,0) 2px 55px,
-    rgba(0,0,0,.42) 55px 58px);
-  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.35),#000 30%%,#000 80%%,rgba(0,0,0,.6))}
+  background:linear-gradient(180deg,#0a0a0c 0,#121216 36%%,#141418 64%%,#0f0f12 100%%)}
+.bp-wallfull{position:absolute;inset:0;
+  background:linear-gradient(180deg,#0a0a0c 0,#121216 30%%,#141418 58%%,#101013 80%%,#0b0b0d 100%%)}
+.bp-slats{position:absolute;top:0;opacity:.9;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 2px,rgba(255,255,255,0) 2px 55px,
+    rgba(0,0,0,.45) 55px 58px);
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.3),#000 28%%,#000 82%%,rgba(0,0,0,.55))}
 .bp-skirt{position:absolute;left:0;width:1080px;top:%(sk)dpx;height:24px;
-  background:linear-gradient(#1b1b1f,#0c0c0e);box-shadow:0 -1px 0 rgba(255,255,255,.05),0 6px 10px rgba(0,0,0,.5)}
+  background:linear-gradient(#1c1c20,#0c0c0e);box-shadow:0 -1px 0 rgba(255,255,255,.05),0 6px 10px rgba(0,0,0,.5)}
 .bp-floor{position:absolute;left:0;top:%(fy)dpx;width:1080px;bottom:0;
-  background:linear-gradient(180deg,#0d0d10 0,#111114 14%%,#0c0c0e 55%%,#08080a 100%%)}
+  background:linear-gradient(180deg,#0e0e11 0,#121215 12%%,#0c0c0e 55%%,#08080a 100%%)}
 .bp-top{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 88%% 70%% at 50%% 46%%,rgba(0,0,0,0) 58%%,rgba(0,0,0,.55) 100%%)}
+  background:radial-gradient(ellipse 90%% 72%% at 48%% 44%%,rgba(0,0,0,0) 56%%,rgba(0,0,0,.5) 100%%)}
 
 .bp-case{position:absolute}
 .bp-box{position:absolute;left:0;top:0;border-radius:5px;
-  background:linear-gradient(180deg,#3a3b41 0,#222328 3%%,#18191c 60%%,#202126 100%%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.6),
-    0 38px 46px -18px rgba(0,0,0,.85),0 12px 18px rgba(0,0,0,.45)}
+  background:linear-gradient(180deg,#44454c 0,#26272c 1.6%%,#1a1b1f 50%%,#131417 100%%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 1px 0 0 rgba(255,255,255,.05),inset -1px 0 0 rgba(0,0,0,.5),
+    0 44px 50px -20px rgba(0,0,0,.9),0 14px 22px rgba(0,0,0,.5)}
 .bp-in{position:absolute;overflow:hidden;background:#0e0e11}
-.bp-strip{position:absolute;left:0;right:0;top:0;background:linear-gradient(180deg,#fffdf6,#f3ede0)}
+.bp-strip{position:absolute;left:0;right:0;top:0;background:linear-gradient(180deg,#fffef9,#f1ebdd);
+  box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.bp-cone{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,252,244,.26) 0,rgba(255,252,244,.08) 16%%,rgba(255,252,244,0) 34%%)}
 .bp-fig{position:absolute}
 .bp-fig img{position:absolute;left:0;top:0;width:100%%;height:100%%;object-fit:contain;object-position:50%% 100%%;
-  filter:drop-shadow(0 16px 14px rgba(0,0,0,.30))}
+  filter:drop-shadow(0 18px 16px rgba(20,14,8,.34))}
 .bp-contact{position:absolute;border-radius:50%%;
-  background:radial-gradient(ellipse 50%% 50%% at 50%% 50%%,rgba(20,14,8,.5),rgba(20,14,8,0))}
-.bp-off{position:absolute;inset:0;background:#08080a}
+  background:radial-gradient(ellipse 50%% 50%% at 50%% 50%%,rgba(26,18,10,.55),rgba(26,18,10,0))}
+.bp-off{position:absolute;inset:0;background:#070709}
 .bp-glass{position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(112deg,rgba(255,255,255,0) 14%%,rgba(255,255,255,.085) 20%%,rgba(255,255,255,0) 27%%,
-    rgba(255,255,255,0) 66%%,rgba(255,255,255,.045) 70%%,rgba(255,255,255,0) 74%%);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 14px 20px rgba(0,0,0,.18)}
+  background:linear-gradient(112deg,rgba(255,255,255,0) 12%%,rgba(255,255,255,.09) 18%%,rgba(255,255,255,0) 25%%,
+    rgba(255,255,255,0) 64%%,rgba(255,255,255,.05) 68%%,rgba(255,255,255,0) 72%%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 18px 18px -14px rgba(0,0,0,.45),
+    inset 14px 0 16px -14px rgba(0,0,0,.35),inset -14px 0 16px -14px rgba(0,0,0,.35)}
 .bp-base{position:absolute;border-radius:3px;
-  background:linear-gradient(180deg,#2c2d32 0,#1b1c20 10%%,#121316 100%%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 26px 30px -10px rgba(0,0,0,.9)}
+  background:linear-gradient(180deg,#303137 0,#1c1d21 9%%,#131417 100%%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 28px 30px -10px rgba(0,0,0,.9)}
 .bp-slot{position:absolute;border-radius:4px;background:#0a0a0c;
   box-shadow:inset 0 3px 5px rgba(0,0,0,.85),0 1px 0 rgba(255,255,255,.07)}
 .bp-plate{position:absolute;display:flex;align-items:center;justify-content:center;border-radius:4px;
   font-family:'Anton',Impact,sans-serif;text-transform:uppercase;letter-spacing:.02em;line-height:1;white-space:nowrap;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(0,0,0,.18),0 2px 3px rgba(0,0,0,.5)}
 .bp-pool{position:absolute;pointer-events:none;
-  background:radial-gradient(ellipse 50%% 62%% at 50%% 0%%,rgba(255,246,232,.14),rgba(255,246,232,.05) 55%%,
+  background:radial-gradient(ellipse 50%% 62%% at 50%% 0%%,rgba(255,246,232,.12),rgba(255,246,232,.04) 55%%,
     rgba(255,246,232,0) 100%%)}
 
 .bp-bc{font-family:%(bc)s;font-weight:800;text-transform:uppercase;line-height:1;white-space:nowrap}
@@ -301,26 +307,25 @@ CSS = """
 .bp-kind{position:absolute;display:flex;align-items:center;gap:.36em;white-space:nowrap}
 .bp-kind .bp-bc{font-size:1em}
 .bp-sw{display:inline-block;width:.52em;height:.52em;border-radius:.1em;box-shadow:0 0 0 2px rgba(0,0,0,.6)}
-.bp-desc{position:absolute;font-family:'Inter';font-weight:500;font-style:italic;color:#c9c9d0;line-height:1.1;
+.bp-desc{position:absolute;font-family:'Inter';font-weight:500;font-style:italic;color:#c4c4cc;line-height:1.1;
   white-space:nowrap}
 .bp-code{display:flex;align-items:center;gap:20px;background:%(lime)s;color:%(ink)s;border-radius:18px;
   padding:10px 32px 4px 28px;box-shadow:0 10px 0 rgba(0,0,0,.4),0 26px 40px rgba(0,0,0,.45)}
 .bp-code .u{font-family:'Inter';font-weight:900;font-size:38px;line-height:1.02;letter-spacing:.1em}
 .bp-code .b{font-family:'Anton',Impact,sans-serif;line-height:.92;letter-spacing:.02em}
-.bp-mini{position:absolute;border-radius:3px}
+.bp-mini{position:absolute;border-radius:3px;border:2px solid #3b3b42;background:#18181c;
+  box-shadow:0 3px 6px rgba(0,0,0,.5)}
 
-@keyframes bpoff{0%%{opacity:.93}9%%{opacity:.18}15%%{opacity:.78}24%%{opacity:.06}33%%{opacity:.4}46%%{opacity:0}
+@keyframes bpoff{0%%{opacity:.94}9%%{opacity:.2}15%%{opacity:.8}24%%{opacity:.07}33%%{opacity:.42}46%%{opacity:0}
   100%%{opacity:0}}
 @keyframes bpfig{0%%{opacity:.3}9%%{opacity:1}100%%{opacity:1}}
 @keyframes bpin{from{opacity:0}to{opacity:1}}
 @keyframes bpout{from{opacity:1}to{opacity:0}}
 @keyframes bprise{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:none}}
-@keyframes bpdrop{0%%{opacity:0;transform:translateY(-26px) scale(1.04)}60%%{opacity:1}100%%{opacity:1;transform:none}}
 @keyframes bpstamp{0%%{opacity:0;transform:scale(1.55) rotate(var(--r,0deg))}55%%{opacity:1;transform:scale(.97) rotate(var(--r,0deg))}
   100%%{opacity:1;transform:scale(1) rotate(var(--r,0deg))}}
 @keyframes bpthump{0%%,100%%{transform:scale(1)}35%%{transform:scale(1.045)}}
-@keyframes bpwipe{from{clip-path:inset(0 100%% 0 0)}to{clip-path:inset(0 0 0 0)}}
-@keyframes bplit{from{background:#1a1a1f;border-color:#3b3b42}to{background:#f2ede3;border-color:#f2ede3}}
+@keyframes bplit{from{background:#18181c;border-color:#3b3b42}to{background:#f3eee4;border-color:#8d877c}}
 """
 
 
@@ -329,20 +334,31 @@ def _css() -> str:
 
 
 def _room() -> str:
-    """The dark room: a slatted wall, a skirting board and a floor. The slats are
-    drawn by each scene (the shelf's move with the camera)."""
+    """The dark room: wall, skirting board and floor. Each scene draws its own
+    slats on the wall (the shelf's move with the camera)."""
     return ('<div class="full bp-room" data-safe="ignore"><div class="bp-wall"></div><div class="bp-floor"></div>'
             '<div class="bp-skirt"></div></div>')
 
 
-def _slats(x: float, w: float) -> str:
-    return f'<div class="bp-slats" data-safe="ignore" style="left:{x:.0f}px;width:{w:.0f}px"></div>'
+def _slats(x: float, w: float, h: float = FLOOR_Y) -> str:
+    return f'<div class="bp-slats" data-safe="ignore" style="left:{x:.0f}px;width:{w:.0f}px;height:{h:.0f}px"></div>'
 
 
-def _code_plate(bad: int = 132) -> str:
+def _code_plate(bad: int = 124) -> str:
     """USE CODE: BAD on the channel's lime ("USE CODE:" 38 px, BAD >= 110 px)."""
     return (f'<div class="bp-code" data-safe="key" data-name="code"><div class="u">USE<br>CODE:</div>'
             f'<div class="b" style="font-size:{bad}px">BAD</div></div>')
+
+
+def _badge_plate() -> str:
+    """The corner badge's own markup (cc_motion.code_badge) with its #EpicPartner
+    line; the hook shows it at HOOK_K times the size and shrinks it into place."""
+    return (f'<div data-safe="key" data-name="code" style="display:flex;align-items:center;gap:12px;background:{LIME};'
+            f'color:{INK};border-radius:16px;padding:8px 20px 6px 18px;box-shadow:0 8px 0 rgba(0,0,0,.38)">'
+            f'<div style="font-size:23px;font-weight:900;line-height:1.02;letter-spacing:.12em">USE<br>CODE:</div>'
+            f'<div class="d" style="font-size:80px;line-height:.9;letter-spacing:.02em">BAD</div></div>'
+            f'<div style="margin:4px 0 0 4px;font-size:23px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.92);'
+            f'text-shadow:0 2px 8px rgba(0,0,0,.9)">#EpicPartner</div>')
 
 
 def _plate_text(times: int) -> str:
@@ -354,12 +370,12 @@ def _plate_text(times: int) -> str:
 def _case(uid: str, w: int, h: int, it: dict, uri: str, t_on: float | None, plate: str = "",
           plate_lime: bool = True, t_plate: float | None = None, t_plate_out: float | None = None,
           plate_font: float = 0, pool: bool = True) -> str:
-    """A display case, w x h with its base, drawn from its top-left corner:
-    a dark metal frame, a lit box inside (back panel, walls, ceiling light, floor,
-    tinted a little by the outfit's rarity), the outfit standing in it, glass in
-    front, and a base with a plate slot. t_on: when its light flickers on (None:
-    lit from the start). `plate`: words on the base's plate (stamped in at
-    t_plate, gone at t_plate_out)."""
+    """A display case, w x h with its base, drawn from its top-left corner: a
+    dark metal frame; inside, a frosted light panel with walls, a ceiling light
+    and a floor in perspective (a little tinted by the outfit's rarity); the
+    outfit standing on the floor with its shadow; glass in front; a base with a
+    plate slot. t_on: when its light flickers on (None: lit from the start).
+    `plate`: words on the base's plate, stamped in at t_plate, gone at t_plate_out."""
     base_h = round(h * .096)
     box_h = h - base_h
     fr = max(6, round(w * .024))
@@ -371,29 +387,30 @@ def _case(uid: str, w: int, h: int, it: dict, uri: str, t_on: float | None, plat
     def m(c, k):
         return _mix(c, tint, k)
     svg = (f'<svg class="abs" style="left:0;top:0" width="{iw}" height="{ih}" viewBox="0 0 {iw} {ih}"><defs>'
-           f'<radialGradient id="b{uid}" cx=".5" cy=".32" r=".82">'
-           f'<stop offset="0" stop-color="{m("#fffbf4", .09)}"/><stop offset=".5" stop-color="{m("#ede7dc", .15)}"/>'
-           f'<stop offset="1" stop-color="{m("#aaa396", .24)}"/></radialGradient>'
-           f'<linearGradient id="c{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{m("#f4f0e8", .06)}"/>'
-           f'<stop offset="1" stop-color="{m("#cdc7ba", .12)}"/></linearGradient>'
-           f'<linearGradient id="l{uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{m("#8c867a", .16)}"/>'
-           f'<stop offset="1" stop-color="{m("#c9c2b5", .14)}"/></linearGradient>'
-           f'<linearGradient id="r{uid}" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="{m("#827c71", .16)}"/>'
-           f'<stop offset="1" stop-color="{m("#bfb8ab", .14)}"/></linearGradient>'
-           f'<linearGradient id="f{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{m("#bdb6a9", .12)}"/>'
-           f'<stop offset="1" stop-color="{m("#ddd7cb", .08)}"/></linearGradient>'
+           f'<radialGradient id="b{uid}" cx=".5" cy=".24" r=".92">'
+           f'<stop offset="0" stop-color="{m("#fffdf8", .04)}"/><stop offset=".38" stop-color="{m("#f1ebe1", .08)}"/>'
+           f'<stop offset=".78" stop-color="{m("#d2cabc", .13)}"/><stop offset="1" stop-color="{m("#b2aa9b", .17)}"/>'
+           f'</radialGradient>'
+           f'<linearGradient id="c{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{m("#77716a", .08)}"/>'
+           f'<stop offset="1" stop-color="{m("#d6cfc2", .1)}"/></linearGradient>'
+           f'<linearGradient id="l{uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{m("#6a645a", .12)}"/>'
+           f'<stop offset="1" stop-color="{m("#c2baac", .12)}"/></linearGradient>'
+           f'<linearGradient id="r{uid}" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="{m("#605a51", .12)}"/>'
+           f'<stop offset="1" stop-color="{m("#b7afa1", .12)}"/></linearGradient>'
+           f'<linearGradient id="f{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{m("#ddd6c9", .08)}"/>'
+           f'<stop offset="1" stop-color="{m("#a39b8e", .1)}"/></linearGradient>'
            f'<linearGradient id="v{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/>'
-           f'<stop offset=".62" stop-color="#000" stop-opacity=".04"/><stop offset="1" stop-color="#000" stop-opacity=".2"/>'
+           f'<stop offset=".55" stop-color="#000" stop-opacity=".03"/><stop offset="1" stop-color="#000" stop-opacity=".17"/>'
            f'</linearGradient></defs>'
            f'<rect x="{bx0}" y="{by0}" width="{bx1 - bx0}" height="{by1 - by0}" fill="url(#b{uid})"/>'
-           f'<rect x="{bx0}" y="{by0}" width="{bx1 - bx0}" height="{by1 - by0}" fill="url(#v{uid})"/>'
            f'<polygon points="0,0 {iw},0 {bx1},{by0} {bx0},{by0}" fill="url(#c{uid})"/>'
            f'<polygon points="0,0 {bx0},{by0} {bx0},{by1} 0,{ih}" fill="url(#l{uid})"/>'
            f'<polygon points="{iw},0 {bx1},{by0} {bx1},{by1} {iw},{ih}" fill="url(#r{uid})"/>'
            f'<polygon points="{bx0},{by1} {bx1},{by1} {iw},{ih} 0,{ih}" fill="url(#f{uid})"/>'
+           f'<rect x="0" y="0" width="{iw}" height="{ih}" fill="url(#v{uid})"/>'
            f'<path d="M{bx0},{by0} V{by1} H{bx1} V{by0} M0,0 L{bx0},{by0} M{iw},0 L{bx1},{by0} M0,{ih} L{bx0},{by1} '
-           f'M{iw},{ih} L{bx1},{by1}" fill="none" stroke="rgba(40,32,24,.16)" stroke-width="1.4"/></svg>')
-    # The outfit stands on the case floor, a little in front of the back panel.
+           f'M{iw},{ih} L{bx1},{by1}" fill="none" stroke="rgba(30,24,18,.24)" stroke-width="1.4"/></svg>')
+    # The outfit stands on the case floor, a little in front of the light panel.
     feet = ih - round(fd * .38)
     fh = round((feet - ti * .5) * .95)
     fw = iw - 2 * max(6, round(si * .45))
@@ -402,9 +419,10 @@ def _case(uid: str, w: int, h: int, it: dict, uri: str, t_on: float | None, plat
     off = (f'<div class="bp-off" data-safe="ignore" style="{style_anim(_a("bpoff", t_on, .55, "linear"))}"></div>'
            if t_on is not None else "")
     inner = (svg
+             + '<div class="bp-cone"></div>'
              + f'<div class="bp-strip" style="height:{max(3, round(ih * .009))}px"></div>'
-             + f'<div class="bp-contact" style="left:{iw / 2 - fw * .3:.0f}px;top:{feet - 11:.0f}px;width:{fw * .6:.0f}px;'
-               f'height:24px"></div>'
+             + f'<div class="bp-contact" style="left:{iw / 2 - fw * .3:.0f}px;top:{feet - 12:.0f}px;width:{fw * .6:.0f}px;'
+               f'height:26px"></div>'
              + f'<div class="bp-fig" style="left:{(iw - fw) / 2:.0f}px;top:{feet - fh:.0f}px;width:{fw}px;height:{fh}px;'
                f'{fig_anim}">{art}</div>'
              + off + '<div class="bp-glass"></div>')
@@ -414,10 +432,11 @@ def _case(uid: str, w: int, h: int, it: dict, uri: str, t_on: float | None, plat
     plate_html = ""
     if plate:
         fs = plate_font or round(slot_h * .74)
-        fg, bg = (INK, LIME) if plate_lime else ("#1b1b1f", "#d7d7dc")
-        vis = style_anim(_a("bpstamp", t_plate, .42, "cubic-bezier(.3,1.4,.5,1)"),
-                         _a("bpout", t_plate_out, .2, "linear", "forwards") if t_plate_out else "") \
-            if t_plate is not None else ""
+        fg, bg = (INK, LIME) if plate_lime else ("#1b1b1f", "#d9d9de")
+        vis = ""
+        if t_plate is not None:
+            vis = style_anim(_a("bpstamp", t_plate, .42, "cubic-bezier(.3,1.4,.5,1)"),
+                             _a("bpout", t_plate_out, .2, "linear", "forwards") if t_plate_out else "")
         plate_html = (f'<div class="bp-plate" style="left:{slot_x:.0f}px;top:{slot_y:.0f}px;width:{slot_w}px;'
                       f'height:{slot_h}px;font-size:{fs:.0f}px;color:{fg};background:{bg};--r:-1.2deg;{vis}">'
                       f'<span style="margin-top:.06em">{esc(plate)}</span></div>')
@@ -435,7 +454,7 @@ def _case(uid: str, w: int, h: int, it: dict, uri: str, t_on: float | None, plat
 
 
 def _placeholder(w: float, h: float) -> str:
-    """No picture of this one: an outline where it would stand."""
+    """No picture of this one: a dashed outline where it would stand."""
     return (f'<svg class="abs" style="left:0;top:0" width="{w:.0f}" height="{h:.0f}" viewBox="0 0 100 200" '
             f'preserveAspectRatio="xMidYMax meet"><g fill="none" stroke="rgba(40,34,28,.35)" stroke-width="1.6" '
             f'stroke-dasharray="4 3"><circle cx="50" cy="30" r="13"/><path d="M28 62 Q50 50 72 62 L76 118 L64 118 '
@@ -468,6 +487,14 @@ def _at(x: float, y: float, inner: str, anim: str = "", align: str = "left", ext
     return f'<div class="abs" style="{pos}top:{y:.0f}px;{anim}{extra}">{inner}</div>'
 
 
+def _big(lines: list, x: float, y: float, size: float, anim: str = "", colors: tuple = ()) -> str:
+    """Anton lines, left-aligned, one under the other."""
+    return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;{anim}">'
+            + "".join(f'<div class="bp-name" style="position:relative;font-size:{size:.0f}px;margin-bottom:6px;'
+                      f'{"color:" + colors[i] if i < len(colors) and colors[i] else ""}">{esc(t)}</div>'
+                      for i, t in enumerate(lines)) + '</div>')
+
+
 # ================================================================== the builder
 
 def build(ctx: Ctx, chapter="1", season="4", feature=()) -> Video | None:
@@ -476,8 +503,7 @@ def build(ctx: Ctx, chapter="1", season="4", feature=()) -> Video | None:
         return None
     _, found = got
     ch, se = _norm(chapter, season)
-    rows = [(it, raw, track, runs, ctx.art(it)) for it, raw, track, runs in found]
-    rows = [(it, raw, track, len(runs), uri, runs) for it, raw, track, runs, uri in rows]
+    rows = [(it, raw, track, len(runs), ctx.art(it), runs) for it, raw, track, runs in found]
     if sum(1 for r in rows if r[4]) < MIN_OUTFITS or len(rows) > MAX_OUTFITS:
         return None
     order, cover = _order(rows, feature)
@@ -492,11 +518,10 @@ def build(ctx: Ctx, chapter="1", season="4", feature=()) -> Video | None:
     comp = Comp(total)
     comp.use_fonts(*FONTS)
     comp.css(_css())
-    comp.css(KIT_CSS)
     comp.add(_room())
 
-    _hook(comp, ctx, ch, se, cover, n)
-    _shelf(comp, ctx, ch, se, short, order, per, t_line)
+    _hook(comp, ch, se, cover)
+    _shelf(comp, ch, se, short, order, per, t_line)
     _lineup(comp, ctx, ch, se, order, never, t_line, content_end)
     _outro(comp, content_end, total)
 
@@ -536,50 +561,59 @@ def build(ctx: Ctx, chapter="1", season="4", feature=()) -> Video | None:
 
 # ------------------------------------------------------------------ 0:00 hook
 
-def _hook(comp: Comp, ctx: Ctx, ch: str, se: str, cover: list, n: int):
-    """Frame 0 is the cover: what it is, two outfits in lit cases, the code."""
-    t_end = HOOK
+HOOK_K = 1.6                               # the code plate: the corner badge x1.6 (USE CODE: 37 px, BAD 128 px)
+HOOK_PLATE = (SAFE_LEFT + 2, 292)          # clear of the cover crop (text from y 285)
+DOCK = (2.05, 2.55)                        # it shrinks into the corner badge
+
+
+def _hook(comp: Comp, ch: str, se: str, cover: list):
+    """Frame 0 is the cover: the code, the season, BATTLE PASS, the question and
+    two of the pass's outfits in lit cases. Nothing flies in; the title thumps
+    and the question pops on their sounds, and at the end the code plate
+    shrinks into the corner badge, which takes over for the rest of the video."""
     inner = _slats(0, W)
-    # Two tall cases side by side, beside the button rail (x 60..900).
-    cw, chh, top = 404, 612, 672
-    xs = (SAFE_LEFT + 2, SAFE_RIGHT - 2 - cw)
-    for k, (r, x) in enumerate(zip(cover, xs)):
+    cw, chh, top = 404, 668, 744
+    for k, (r, x) in enumerate(zip(cover, (SAFE_LEFT + 2, SAFE_RIGHT - 2 - cw))):
         it, uri = r[0], r[4]
-        body = _case(f"h{k}", cw, chh, it, uri, None, plate=it["name"], plate_lime=False,
-                     plate_font=_anton_size(it["name"], cw * .76 - 30, 34, 20))
+        name = it["name"].upper()
+        body = _case(f"h{k}", cw, chh, it, uri, None, plate=name, plate_lime=False,
+                     plate_font=min(32, _anton_size(name, cw * .76 - 28, 32, 18)))
         inner += _case_at(x, top, cw, chh, body)
-    # Title block: kicker, BATTLE PASS, the question.
-    kick = f"CHAPTER {ch} · SEASON {se}"
-    inner += _at(SAFE_LEFT + 2, 390, _bc(kick, 58, LIME, ".07em"))
-    size = _anton_size("BATTLE PASS", 956, 178, 120)
-    inner += (f'<div class="abs" style="left:{SAFE_LEFT - 4}px;top:450px;transform-origin:30% 50%;'
+    right = SAFE_RIGHT_TOP - 4
+    inner += _at(right, 300, _bc(f"CHAPTER {ch}", 58, LIME, ".05em"), align="right")
+    inner += _at(right, 360, _bc(f"SEASON {se}", 58, LIME, ".05em"), align="right")
+    size = _anton_size("BATTLE PASS", 950, 180, 120)
+    inner += (f'<div class="abs" style="left:{SAFE_LEFT + 2}px;top:494px;transform-origin:25% 60%;'
               f'{style_anim(_a("bpthump", .2, .42, "ease-out", "none"))}">'
               f'<div class="bp-name" style="position:relative;font-size:{size:.0f}px">BATTLE PASS</div></div>')
-    inner += _at(SAFE_LEFT + 2, 450 + size * .9 + 14, _bc("WHICH ONE DID YOU UNLOCK?", 50, "#fff", ".04em"),
-                 anim=style_anim(_a("bpthump", .9, .4, "ease-out", "none")))
-    # The code, big, across the cases' bases; it flies to the corner badge as the hook ends.
-    fly = comp.uid("bpfly")
-    comp.css(f"@keyframes {fly}{{0%{{transform:none;opacity:1}}100%{{transform:translate(-190px,-1050px) "
-             f"scale(.36);opacity:0}}}}")
-    inner += (f'<div class="abs" style="left:0;width:{2 * CX:.0f}px;top:1236px;display:flex;justify-content:center;'
-              f'{style_anim(_a(fly, t_end - .62, .5, "cubic-bezier(.6,0,.4,1)"))}">'
-              f'<div style="transform:rotate(-2deg)"><div style="{style_anim(_a("bpthump", 1.45, .45, "ease-out", "none"))}">'
-              f'{_code_plate(118)}</div></div></div>')
-    comp.scene(0, t_end, inner, fade_in=.01, fade_out=.35, z=2)
+    inner += _at(SAFE_LEFT + 4, 494 + size * .9 + 18, _bc("WHICH ONE DID YOU UNLOCK?", 52, "#fff", ".04em"),
+                 extra=f"transform-origin:0 50%;{style_anim(_a('bpthump', .9, .4, 'ease-out', 'none'))}")
+    # The code: the corner badge, bigger, until it shrinks into the corner.
+    dock = comp.uid("bpdock")
+    dx, dy = BADGE_X - HOOK_PLATE[0], BADGE_Y - HOOK_PLATE[1]
+    comp.css(f"@keyframes {dock}{{0%{{transform:scale({HOOK_K}) rotate(-2deg);opacity:1}}"
+             f"99.9%{{transform:translate({dx}px,{dy}px) scale(1) rotate(0deg);opacity:1}}"
+             f"100%{{transform:translate({dx}px,{dy}px) scale(1) rotate(0deg);opacity:0}}}}")
+    comp.css(f".codebadge,.codetag{{animation:fadein .01s linear {DOCK[1] - .01:.3f}s both paused !important}}")
+    inner += (f'<div class="abs" style="left:{HOOK_PLATE[0]}px;top:{HOOK_PLATE[1]}px;transform-origin:0 0;z-index:5;'
+              f'{style_anim(_a(dock, DOCK[0], DOCK[1] - DOCK[0], "cubic-bezier(.6,0,.4,1)"))}">'
+              f'<div style="transform-origin:30% 40%;{style_anim(_a("bpthump", 1.45, .45, "ease-out", "none"))}">'
+              f'{_badge_plate()}</div></div>')
+    comp.scene(0, HOOK, inner, fade_in=.01, fade_out=.35, z=2)
     comp.cue(.15, "whoosh"); comp.cue(.2, "slam"); comp.cue(.9, "pop"); comp.cue(1.45, "pop")
-    comp.cue(t_end - .62, "whoosh")
+    comp.cue(DOCK[0], "whoosh")
 
 
 # ------------------------------------------------------------------ 0:03 the shelf
 
-def _shelf(comp: Comp, ctx: Ctx, ch: str, se: str, short: str, order: list, per: float, t_line: float):
+def _shelf(comp: Comp, ch: str, se: str, short: str, order: list, per: float, t_line: float):
     """The row of cases and the camera moving along it, one stop per outfit; the
     words for each; the counter of tiny cases top right."""
     n = len(order)
     dur = comp.duration
     starts = [HOOK + k * per for k in range(n)]
-    # Camera: hold on case k, pushing in a little, then move to the next; after
-    # the last one, pull back as the line-up fades in.
+    # Camera: hold on case k, pushing in a little, then move on to the next;
+    # after the last one, pull back as the line-up fades in.
     pan = comp.uid("bppan")
     pts = [(0, "transform:translateX(0px)", None)]
     for k, t0 in enumerate(starts[:-1]):
@@ -594,9 +628,9 @@ def _shelf(comp: Comp, ctx: Ctx, ch: str, se: str, short: str, order: list, per:
         if k < n - 1:
             pts.append((t0 + per - PAN, f"transform:scale({PUSH})", EASE_PAN))
         else:
-            pts.append((t_line - .55, f"transform:scale({PUSH})", "cubic-bezier(.5,0,.3,1)"))
-            pts.append((t_line + .35, "transform:scale(.62)", None))
-    pts.append((dur, "transform:scale(.62)", None))
+            pts.append((t_line - .5, f"transform:scale({PUSH})", "cubic-bezier(.5,0,.3,1)"))
+            pts.append((t_line + .3, "transform:scale(.72)", None))
+    pts.append((dur, "transform:scale(.72)", None))
     comp.css(_kf(cam, pts, dur))
 
     cases = _slats(-400, n * BAY + 1600)
@@ -612,22 +646,24 @@ def _shelf(comp: Comp, ctx: Ctx, ch: str, se: str, short: str, order: list, per:
             comp.cue(t0 + per - PAN, "whoosh")
     inner = (f'<div class="full" style="transform-origin:{CAM_O[0]:.0f}px {CAM_O[1]:.0f}px;{_track(cam, dur)}">'
              f'<div class="abs" style="left:0;top:0;width:{W}px;height:1920px;{_track(pan, dur)}">{cases}</div></div>')
-    comp.scene(HOOK - .35, t_line + .45, inner, fade_in=.35, fade_out=.3, z=1)
+    comp.scene(HOOK - .35, t_line + .1, inner, fade_in=.35, fade_out=.3, z=1)
 
     # The words for each outfit, in screen space under its case.
+    row_left = _mini_row(n)[0]
     for k, (r, t0) in enumerate(zip(order, starts)):
-        it = r[0]
         t_end = t0 + per - PAN if k < n - 1 else t_line - .45
-        comp.scene(t0, t_end + .05, _words(it, r[2], short, t0), fade_in=.01, fade_out=.28, z=3)
+        count = (f'<div class="bp-name" style="right:{W - row_left + 16:.0f}px;top:330px;font-size:44px;'
+                 f'text-shadow:none">{k + 1}<span style="color:#6d6d76">/{n}</span></div>')
+        comp.scene(t0, t_end + .05, _words(r[0], r[2], short, t0) + count, fade_in=.01, fade_out=.28, z=3)
 
     # Top right: the season, and a tiny case for each outfit that lights up in turn.
-    comp.scene(HOOK - .1, t_line + .1, _counter(ch, se, n, starts), fade_in=.3, fade_out=.3, z=4)
+    comp.scene(HOOK - .1, t_line + .1, _counter(comp, ch, se, n, starts), fade_in=.3, fade_out=.3, z=4)
 
 
 def _words(it: dict, track: str, short: str, t0: float) -> str:
     name = it["name"].upper()
-    size = _anton_size(name, TEXT_W - 12, 112, 58)
-    out = (f'<div class="bp-name" style="left:{SAFE_LEFT - 2}px;top:{NAME_Y}px;font-size:{size:.0f}px;'
+    size = _anton_size(name, TEXT_W - 16, 112, 58)
+    out = (f'<div class="bp-name" style="left:{SAFE_LEFT + 2}px;top:{NAME_Y}px;font-size:{size:.0f}px;'
            f'{style_anim(_a("bprise", t0 + T_NAME, .45))}">{esc(name)}</div>')
     y = NAME_Y + size * .9 + 16
     kind = f'{(it.get("rarity_label") or it["rarity"]).upper()} {it["type"].upper()}'
@@ -636,109 +672,124 @@ def _words(it: dict, track: str, short: str, t0: float) -> str:
            f'<span class="bp-bc" style="color:#fff;letter-spacing:.05em">{esc(kind)}</span>'
            f'<span class="bp-bc" style="color:#6d6d76">·</span>'
            f'<span class="bp-bc" style="color:#b7b7c0;letter-spacing:.05em">{esc(src)}</span>')
-    out += (f'<div class="bp-kind" data-fit="{TEXT_W - 8}" style="left:{SAFE_LEFT + 2}px;top:{y:.0f}px;'
+    out += (f'<div class="bp-kind" data-fit="{TEXT_W - 10}" style="left:{SAFE_LEFT + 4}px;top:{y:.0f}px;'
             f'font-size:38px;{style_anim(_a("bprise", t0 + T_KIND, .45))}">{row}</div>')
     desc = (it.get("description") or "").strip()
     if desc and len(desc) <= 70:
-        out += (f'<div class="bp-desc" data-fit="{TEXT_W - 8}" style="left:{SAFE_LEFT + 2}px;top:{y + 54:.0f}px;'
+        out += (f'<div class="bp-desc" data-fit="{TEXT_W - 10}" style="left:{SAFE_LEFT + 4}px;top:{y + 54:.0f}px;'
                 f'font-size:31px;{style_anim(_a("bpin", t0 + T_DESC, .5, "linear"))}">“{esc(desc)}”</div>')
     return out
 
 
-def _counter(ch: str, se: str, n: int, starts: list) -> str:
-    """CHAPTER 1 · SEASON 4 and a row of tiny cases, top right (clear of the corner badge)."""
-    right = SAFE_RIGHT_TOP - 4
-    out = _at(right, 250, _bc(f"CHAPTER {ch} · SEASON {se}", 34, LIME, ".08em"), align="right")
-    out += _at(right, 290, _bc("BATTLE PASS", 34, "#fff", ".08em"), align="right")
+def _mini_row(n: int) -> tuple:
+    """(left x, width, height, gap) of the row of tiny cases, right-aligned."""
     mw, mh, gap = 22, 34, 9
     row_w = n * mw + (n - 1) * gap
-    x = right - row_w
+    return SAFE_RIGHT_TOP - 4 - row_w, mw, mh, gap
+
+
+def _counter(comp: Comp, ch: str, se: str, n: int, starts: list) -> str:
+    """CHAPTER 1 · SEASON 4 / BATTLE PASS and a row of tiny cases, top right
+    (clear of the corner badge): each lights up with its case, a lime bar
+    under the one on screen."""
+    right = SAFE_RIGHT_TOP - 4
+    out = _at(right, 248, _bc(f"CHAPTER {ch} · SEASON {se}", 34, LIME, ".08em"), align="right")
+    out += _at(right, 288, _bc("BATTLE PASS", 34, "#fff", ".08em"), align="right")
+    x0, mw, mh, gap = _mini_row(n)
     for k, t0 in enumerate(starts):
-        out += (f'<div class="bp-mini" style="left:{x + k * (mw + gap):.0f}px;top:340px;width:{mw}px;height:{mh}px;'
-                f'border:2px solid #3b3b42;background:#1a1a1f;box-shadow:0 3px 6px rgba(0,0,0,.5);'
+        out += (f'<div class="bp-mini" style="left:{x0 + k * (mw + gap):.0f}px;top:334px;width:{mw}px;height:{mh}px;'
                 f'{style_anim(_a("bplit", t0 + T_ON, .2, "linear", "forwards"))}"></div>')
-    # which one we're on: a lime bar under it
+    mark = comp.uid("bpmark")
+    pts = [(0, "transform:translateX(0px)", None)]
+    for k, t0 in enumerate(starts[1:], 1):
+        pts.append((t0 - .35, f"transform:translateX({(k - 1) * (mw + gap)}px)", EASE_PAN))
+        pts.append((t0 + .1, f"transform:translateX({k * (mw + gap)}px)", None))
+    pts.append((comp.duration, f"transform:translateX({(n - 1) * (mw + gap)}px)", None))
+    comp.css(_kf(mark, pts, comp.duration))
+    out += (f'<div class="abs" data-safe="ignore" style="left:{x0:.0f}px;top:{334 + mh + 7}px;width:{mw}px;height:5px;'
+            f'border-radius:3px;background:{LIME};{_track(mark, comp.duration)}"></div>')
     return out
 
 
 # ------------------------------------------------------------------ the line-up
 
+LW, LH = 500, 770          # a line-up case before it's scaled down (a little narrower than the shelf's)
+GRID_TOP = 700
+
+
 def _grid(n: int) -> tuple:
     rows = 2 if n <= 10 else 3
-    cols = -(-n // rows)
-    return rows, cols
+    return rows, -(-n // rows)
 
 
 def _lineup(comp: Comp, ctx: Ctx, ch: str, se: str, order: list, never: int, t_line: float, end: float):
+    """The camera pulls back from the shelf: every case on one wall, lighting up
+    in turn, and what the Item Shop's history says about all of them."""
     n = len(order)
     rows, cols = _grid(n)
-    top, bottom = 668, SAFE_BOTTOM - 8
+    bottom = SAFE_BOTTOM - 8
     cell_w = TEXT_W / cols
-    row_h = (bottom - top) / rows
-    label_h = 64
-    s = min(cell_w * .9 / CASE_W, (row_h - label_h) / CASE_H)
-    cw, chh = CASE_W * s, CASE_H * s
-    inner = _slats(0, W)
+    row_h = (bottom - GRID_TOP) / rows
+    label_h = 58
+    s = min(cell_w * .92 / LW, (row_h - label_h) / LH)
+    cw, chh = LW * s, LH * s
     grid = ""
     for k, r in enumerate(order):
         it, uri, times = r[0], r[4], r[3]
         row, col = divmod(k, cols)
         in_row = min(cols, n - row * cols)
-        x = SAFE_LEFT + (TEXT_W - in_row * cell_w) / 2 + col * cell_w + (cell_w - cw) / 2
-        y = top + row * row_h
-        t_on = t_line + .35 + k * .11
-        body = _case(f"l{k}", CASE_W, CASE_H, it, uri, t_on, plate=" ", plate_lime=times == 0, t_plate=t_on + .1,
+        cx = SAFE_LEFT + (TEXT_W - in_row * cell_w) / 2 + (col + .5) * cell_w
+        y = GRID_TOP + row * row_h
+        t_on = t_line + .3 + k * .11
+        body = _case(f"l{k}", LW, LH, it, uri, t_on, plate=" ", plate_lime=times == 0, t_plate=t_on + .12,
                      pool=False)
-        grid += (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;width:{CASE_W}px;height:{CASE_H}px;'
+        grid += (f'<div class="abs" style="left:{cx - cw / 2:.1f}px;top:{y:.0f}px;width:{LW}px;height:{LH}px;'
                  f'transform:scale({s:.4f});transform-origin:0 0">{body}</div>')
         name = it["name"].upper()
-        fs = min(30, (cell_w - 10) / max(anton_em(name) * .92, .1))
         tag = ("" if times == 0 else
-               f'<div class="bp-bc" style="font-size:22px;color:#d7d7dc;letter-spacing:.06em;margin-top:4px">'
-               f'IN THE SHOP {times}×</div>')
-        grid += (f'<div class="abs" style="left:{x + cw / 2 - cell_w / 2:.0f}px;width:{cell_w:.0f}px;top:{y + chh + 10:.0f}px;'
+               f'<div class="bp-bc" style="font-size:22px;color:#d7d7dc;letter-spacing:.06em;margin-top:5px">'
+               f'IN THE SHOP {"ONCE" if times == 1 else f"{times}×"}</div>')
+        grid += (f'<div class="abs" style="left:{cx - cell_w / 2:.0f}px;width:{cell_w:.0f}px;top:{y + chh + 9:.0f}px;'
                  f'text-align:center;{style_anim(_a("bpin", t_on + .15, .3, "linear"))}">'
-                 f'<div class="bp-bc" data-fit="{cell_w - 6:.0f}" style="display:inline-block;font-size:{fs:.0f}px;'
+                 f'<div class="bp-bc" data-fit="{cell_w - 8:.0f}" style="display:inline-block;font-size:28px;'
                  f'color:#fff;letter-spacing:.03em">{esc(name)}</div>{tag}</div>')
         comp.cue(t_on, "tick")
-    # The finding.
+    # The finding: the blanket line only when it's true of every one.
     if never == n:
         head = ["NONE OF THESE HAS EVER", "BEEN IN THE ITEM SHOP"]
     elif never:
         head = [f"{never} OF THESE {n} HAVE NEVER", "BEEN IN THE ITEM SHOP"]
     else:
         head = [f"ALL {n} HAVE BEEN", "IN THE ITEM SHOP"]
-    hs = min(_anton_size(head[0], 950, 96, 60), _anton_size(head[1], 950, 96, 60))
-    t_h = t_line + .5 + n * .11
+    hs = min(_anton_size(head[0], 940, 96, 60), _anton_size(head[1], 940, 96, 60))
+    t_h = t_line + .45 + n * .11
     kick = f"EVERY CHAPTER {ch} · SEASON {se} BATTLE PASS OUTFIT"
-    words = (_at(SAFE_LEFT + 2, 398, _bc(kick, 34, LIME, ".07em", fit=950), anim=style_anim(_a("bpin", t_line + .2, .4)))
-             + f'<div class="abs" style="left:{SAFE_LEFT - 2}px;top:448px;{style_anim(_a("bprise", t_h, .5))}">'
-             + "".join(f'<div class="bp-name" style="position:relative;font-size:{hs:.0f}px;margin-bottom:6px">'
-                       f'{esc(h)}</div>' for h in head) + '</div>'
-             + _at(SAFE_LEFT + 2, 448 + 2 * (hs * .9 + 6) + 10,
-                   _bc(f"AS OF {ctx.day_label.upper()} · FROM THE ITEM SHOP'S OWN HISTORY", 26, "#9a9aa3", ".08em",
+    words = (_at(SAFE_LEFT + 2, 396, _bc(kick, 34, LIME, ".07em", fit=950), anim=style_anim(_a("bpin", t_line + .2, .4)))
+             + _big(head, SAFE_LEFT + 2, 446, hs, anim=style_anim(_a("bprise", t_h, .5)))
+             + _at(SAFE_LEFT + 4, 446 + 2 * (hs * .9 + 6) + 8,
+                   _bc(f"AS OF {ctx.day_label.upper()} · THE ITEM SHOP'S OWN HISTORY", 26, "#9a9aa3", ".08em",
                        fit=950), anim=style_anim(_a("bpin", t_h + .3, .4))))
     comp.cue(t_line + .05, "whoosh"); comp.cue(t_h, "reveal"); comp.cue(t_h + .05, "slam")
     # In the outro the line-up steps back to make room for the ask and the code.
     shrink = comp.uid("bpshrink")
-    comp.css(f"@keyframes {shrink}{{from{{transform:none}}to{{transform:translateY(-8px) scale(.74)}}}}")
-    inner += (f'<div class="full" style="transform-origin:{CX:.0f}px {top - 30}px;'
-              f'{style_anim(_a(shrink, end + .05, .7, "cubic-bezier(.6,0,.3,1)"))}">{grid}</div>')
-    inner += f'<div class="full" style="{style_anim(_a("bpout", end, .3, "linear", "forwards"))}">{words}</div>'
-    comp.scene(t_line - .35, comp.duration, inner, fade_in=.4, fade_out=.01, z=2)
+    comp.css(f"@keyframes {shrink}{{from{{transform:none}}to{{transform:translateY(-54px) scale(.8)}}}}")
+    inner = ('<div class="bp-wallfull" data-safe="ignore"></div>' + _slats(0, W, 1920)
+             + f'<div class="full" style="transform-origin:{CX:.0f}px {GRID_TOP}px;'
+               f'{style_anim(_a(shrink, end + .05, .7, "cubic-bezier(.6,0,.3,1)"))}">{grid}</div>'
+             + f'<div class="full" style="{style_anim(_a("bpout", end, .3, "linear", "forwards"))}">{words}</div>')
+    comp.scene(t_line - .4, comp.duration, inner, fade_in=.4, fade_out=.01, z=2)
 
 
 # ------------------------------------------------------------------ outro
 
 def _outro(comp: Comp, start: float, end: float):
-    ask = ["WHICH ONE", "DID YOU UNLOCK?"]
-    size = min(_anton_size(ask[1], 940, 124, 80), 124)
-    inner = (f'<div class="abs" style="left:{SAFE_LEFT - 2}px;top:392px;{style_anim(_a("bprise", start + .25, .5))}">'
-             + "".join(f'<div class="bp-name" style="position:relative;font-size:{size:.0f}px;margin-bottom:4px;'
-                       f'{"color:" + LIME if i else ""}">{esc(a)}</div>' for i, a in enumerate(ask)) + '</div>')
-    inner += (f'<div class="abs" style="left:0;width:{2 * CX:.0f}px;top:1238px;display:flex;justify-content:center;'
+    """WHICH ONE DID YOU UNLOCK? over the line-up, and the code, big."""
+    ask = ["WHICH ONE DID", "YOU UNLOCK?"]
+    size = min(_anton_size(ask[0], 940, 124, 80), _anton_size(ask[1], 940, 124, 80))
+    inner = _big(ask, SAFE_LEFT + 2, 392, size, anim=style_anim(_a("bprise", start + .25, .5)))
+    inner += (f'<div class="abs" style="left:0;width:{2 * CX:.0f}px;top:1252px;display:flex;justify-content:center;'
               f'{style_anim(_a("bprise", start + .55, .5))}"><div style="transform:rotate(-2deg)">'
-              f'<div style="{style_anim(_a("bpthump", start + 1.3, .45, "ease-out", "none"))}">{_code_plate(132)}'
+              f'<div style="{style_anim(_a("bpthump", start + 1.3, .45, "ease-out", "none"))}">{_code_plate(124)}'
               f'</div></div></div>')
     comp.scene(start, end, inner, fade_in=.2, fade_out=.01, z=3)
     comp.cue(start + .25, "slam"); comp.cue(start + .55, "pop"); comp.cue(start + 1.3, "pop")

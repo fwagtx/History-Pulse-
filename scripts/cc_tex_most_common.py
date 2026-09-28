@@ -83,7 +83,7 @@ def floor(w: int = 1080, h: int = 800, seed: int = 5):
     g = rnd.normal(0, 1, (h, w)).astype(np.float32)
     streak = cv2.GaussianBlur(g, (0, 0), sigmaX=26, sigmaY=1.1)
     streak = streak / (streak.std() + 1e-6)
-    lum = streak * 2.2 + _fbm(h, w, rnd, (70, 24)) * 2.4
+    lum = streak * 1.1 + _fbm(h, w, rnd, (70, 24)) * 2.6
     lum += cv2.GaussianBlur(rnd.normal(0, 3.2, (h, w)).astype(np.float32), (0, 0), .6)
     y = np.linspace(0, 1, h, dtype=np.float32)[:, None]
     lum += 9 * np.exp(-y / .12) - 8 * y

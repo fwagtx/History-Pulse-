@@ -208,10 +208,11 @@ def _fame(e: dict) -> tuple:
     return (6 if it["series"] else RANK.get(it["rarity"], 3), e["times"], -len(e["it"]["name"]))
 
 
-def _pool(hist, ctx: Ctx, chapter: str, season: str) -> list:
-    """The season's outfits that have been in the Item Shop, one entry per set
-    sold always together and per name with variants."""
-    groups = {}
+def _pool(hist, ctx: Ctx, chapter: str, season: str) -> tuple:
+    """(entries, skins): the season's outfits that have been in the Item Shop, one
+    entry per set sold always together and per name with variants; and how many
+    skins that is before merging."""
+    groups, skins = {}, 0
     for key, days in hist.days.items():
         raw = hist.items[key]
         intro = raw.get("introduction") or {}
@@ -224,6 +225,7 @@ def _pool(hist, ctx: Ctx, chapter: str, season: str) -> list:
         it = _item(raw)
         if not it["images"]:
             continue
+        skins += 1
         e = {"key": key, "it": it, "times": hist.times(key, until=ctx.day), "with": []}
         # Same set, same days in the shop every time: sold together, one entry.
         gk = (it["set"], past) if it["set"] else (key,)
@@ -240,7 +242,7 @@ def _pool(hist, ctx: Ctx, chapter: str, season: str) -> list:
         plain = e["it"]["name"].strip().lower() == base
         if cur is None or (plain, _fame(e)) > (cur["it"]["name"].strip().lower() == base, _fame(cur)):
             by_base[base] = e
-    return sorted(by_base.values(), key=lambda e: (e["times"], e["it"]["name"]))
+    return sorted(by_base.values(), key=lambda e: (e["times"], e["it"]["name"])), skins
 
 
 def _cuts(counts: list, k: int) -> list | None:
@@ -273,12 +275,9 @@ def _cuts(counts: list, k: int) -> list | None:
         ends.append(i)
         i = back[j][i]
     ends.reverse()
-    out, start = [], 0
-    for j, end in enumerate(ends):
-        lo = vals[start] if j else vals[0]
-        out.append((lo, None if j == k - 1 else vals[end - 1]))
-        start = end
-    return out
+    # Each tier runs up to where the next one starts, so the ranges leave no gaps.
+    lows = [vals[0]] + [vals[e] for e in ends[:-1]]
+    return [(lo, None if j == k - 1 else lows[j + 1] - 1) for j, lo in enumerate(lows)]
 
 
 def _ranges(pool: list, mode: str) -> tuple:
@@ -676,7 +675,7 @@ def build(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 12, thre
     fill an honest board (fewer than six skins, or counts too alike to tier)."""
     chapter, season = str(chapter), str(season)
     hist = history()
-    pool = _pool(hist, ctx, chapter, season)
+    pool, skins = _pool(hist, ctx, chapter, season)
     if len(pool) < 6:
         return None
     ranges, fixed = _ranges(pool, thresholds)
@@ -734,7 +733,9 @@ def build(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 12, thre
     out_w = (BX1 - BX0) * OUT_SCALE
     comp.css(f"@keyframes {shrink}{{from{{transform:none}}to{{transform:translate("
              f"{MID - out_w / 2 - BX0:.1f}px,{OUT_TOP - BY0}px) scale({OUT_SCALE})}}}}")
-    legend = (f"TIER = TIMES IN THE ITEM SHOP · RECORDS TO {ctx.day.strftime('%b %-d, %Y').upper()}")
+    # The records' last day: the video's day, or the data's last day if that's earlier.
+    asof = min(ctx.day, hist.latest) if hist.latest else ctx.day
+    legend = f"TIER = TIMES IN THE ITEM SHOP · RECORDS TO {asof.strftime('%b %-d, %Y').upper()}"
     leg_y = g["bottom"] + LEGEND_GAP
     leg_hook = HOOK_BY + (g["bottom"] - BY0) * HOOK_SCALE + 10
     legmv = comp.uid("tllegmv")
@@ -762,7 +763,6 @@ def build(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 12, thre
 
     # ---- words
     season_txt = f"Chapter {chapter} " + ("Remix" if season.lower() == "remix" else f"Season {season.upper()}")
-    total = len(pool)
     by_tier = sorted(seq, key=lambda p: (p["tier"], p["times"], p["it"]["name"]))
 
     def line(p):
@@ -773,8 +773,8 @@ def build(ctx: Ctx, chapter: str = "1", season: str = "3", count: int = 12, thre
     legend_txt = " · ".join(f"{TIERS[i]} {_range_text(lo, hi).replace('×', '')}" for i, (lo, hi) in enumerate(ranges))
     how = "Tiers by times in the Item Shop" if fixed else "Tiers cut from this season's own counts, times in the Item Shop"
     hook_txt = (f"🏆 {season_txt.upper()} SKINS — RARITY TIER LIST, by the Item Shop's own records "
-                f"(as of {ctx.day_label})\n"
-                f"{how}: {legend_txt}. {n} of the season's {total} Item Shop skins 👇")
+                f"(as of {asof.strftime('%B %-d, %Y')})\n"
+                f"{how}: {legend_txt}. {n} of the season's {skins} Item Shop skins 👇")
     tags = _hashtags("tierlist", "ogfortnite", f"chapter{chapter}season{season}")
     return Video(
         f"tier_list_c{chapter}s{season.lower()}", comp,

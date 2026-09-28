@@ -220,7 +220,7 @@ TINT = {
 
 SEAM = 872                      # the line between the two halves
 TEXT_X, TEXT_W = SAFE_LEFT, 520  # the words' column; the skins stand to its right
-ART_CX, ART_MAXW, ART_H = 752, 296, 460
+ART_CX, ART_MAXW, ART_H = 752, 296, 500
 FEET_T, FEET_B = SEAM - 12, SAFE_BOTTOM - 16      # 860, 1404
 NUM = 200                       # the counts, Anton px (caps are .87em tall, top of the box)
 NY_T, NY_B = 604, 1104          # the count's box top, in the top and in the bottom half
@@ -281,6 +281,18 @@ CSS = f"""
 
 def _tint(it: dict) -> str:
     return TINT.get(it["rarity"], TINT["common"])
+
+
+def _tints(chain: list) -> list:
+    """Each skin's field colour. Two neighbours of the same rarity would make
+    one field of the board: the second takes a darker shade of it."""
+    out, dark = [], []
+    for i, (it, _) in enumerate(chain):
+        base = _tint(it)
+        d = i > 0 and base == _tint(chain[i - 1][0]) and not dark[-1]
+        dark.append(d)
+        out.append("#" + "".join(f"{round(int(base[j:j + 2], 16) * .6):02x}" for j in (1, 3, 5)) if d else base)
+    return out
 
 
 def _a(name: str, start: float, dur: float, ease: str = EASE_OUT, fill: str = "both",
@@ -456,7 +468,6 @@ def _stamp(comp: Comp, dock_start: float, dock_end: float) -> str:
 def _cover(comp: Comp, ctx: Ctx, chain: list, edition: str) -> tuple:
     """Frame 0: the code, the title, the edition and the first two skins as two
     cards. Returns (html, card rects) -- the cards open into the board."""
-    (a, na), (b, nb) = chain[0], chain[1]
     out = [f'<div class="full" style="background:{BG};z-index:1"></div>']
     t_out = 2.38
     gone = _a("hlout", t_out, .22, "ease-in")
@@ -464,7 +475,7 @@ def _cover(comp: Comp, ctx: Ctx, chain: list, edition: str) -> tuple:
     ed = (f'<div class="abs" style="right:{W - SAFE_RIGHT_TOP}px;top:300px;text-align:right;z-index:5;'
           f'{style_anim(gone)}">'
           f'<div class="d" style="font-size:70px;line-height:.9;color:#fff">ITEM SHOP</div>'
-          f'<div style="margin-top:10px;font-size:27px;font-weight:800;letter-spacing:.42em;margin-right:-.42em;'
+          f'<div style="margin-top:10px;font-size:27px;font-weight:800;letter-spacing:.42em;'
           f'color:rgba(255,255,255,.82)">EDITION</div>')
     if edition:
         ed += (f'<div style="display:inline-block;margin-top:12px;background:#fff;color:{INK};font-size:24px;'
@@ -475,7 +486,7 @@ def _cover(comp: Comp, ctx: Ctx, chain: list, edition: str) -> tuple:
     title = "HIGHER OR LOWER?"
     size = min(132, (SAFE_RIGHT_TOP - SAFE_LEFT - 12) / (anton_em(title) - .18))
     out.append(f'<div class="abs" style="left:0;top:0;width:{W}px;z-index:5;{style_anim(gone)}">'
-               f'<div class="abs d" style="left:{SAFE_LEFT - 4}px;top:482px;font-size:{size:.0f}px;line-height:.9;'
+               f'<div class="abs d" style="left:{SAFE_LEFT}px;top:482px;font-size:{size:.0f}px;line-height:.9;'
                f'color:#fff;white-space:nowrap;transform-origin:30% 50%;text-shadow:0 8px 0 rgba(0,0,0,.35);'
                f'{style_anim(_a("hlthump", .2, .4, EASE_OUT, "none"))}">HIGHER OR LOWER<span style="color:{LIME}">?</span>'
                f'</div></div>')
@@ -516,6 +527,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
     comp.css(CSS)
     ups = [chain[k][1] > chain[k - 1][1] for k in range(1, n + 1)]
     uris = [ctx.art(it) for it, _ in chain]
+    tints = _tints(chain)
 
     L = []                        # the board scene's layers
     cover, rects = _cover(comp, ctx, chain, edition)
@@ -528,7 +540,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
 
     # ---- each skin: its half (field), its words, its art
     for i, (it, count) in enumerate(chain):
-        tint = _tint(it)
+        tint = tints[i]
         zf, zc = 10 + 2 * i, 11 + 2 * i
         # when this skin arrives in the bottom half, moves to the top, and is covered
         t_enter = None if i < 2 else T[i]
@@ -566,7 +578,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
         words.append(nm)
         words.append(_label("IN THE ITEM SHOP", TEXT_X + 2, ny - 46))
         if i == 0:
-            words.append(_count(count, TEXT_X - 4, ny))
+            words.append(_count(count, TEXT_X, ny))
             words.append(_wrap(_label("SINCE THE RECORDS BEGAN IN 2017", TEXT_X + 2, ny + 190,
                                       "font-size:22px;letter-spacing:.14em;color:rgba(255,255,255,.62)"),
                                _a("fadeout", T[2] - .2, .25) if n >= 2 else ""))
@@ -586,7 +598,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
             sfx = (f'<div class="abs d" style="left:{RING_CX + RING_D / 2 + 20:.0f}px;top:{base - .8725 * 76:.0f}px;'
                    f'font-size:76px;line-height:.9;color:rgba(255,255,255,.86)">TIMES</div>')
             sfx = _wrap(_wrap(sfx, _a("fadein", q + .1, .25)), _a("fadeout", q + T_ROLL, .15))
-            words += [ring, qm, sfx, _roll(comp, count, TEXT_X - 4, ny, q + T_ROLL)]
+            words += [ring, qm, sfx, _roll(comp, count, TEXT_X, ny, q + T_ROLL)]
         grp = "".join(words)
         if i == 1:
             grp = _wrap(grp, _a("hlin", M1 - .12, .35))
@@ -597,7 +609,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
         if t_up is not None:
             grp = _wrap(grp, _a("hlty", t_up, .78, MOVE_EASE), f"--a:0px;--b:{D_TEXT}px;")
         if t_gone is not None:
-            grp = _wrap(grp, _a("hlty", t_gone, .78, MOVE_EASE), f"--a:0px;--b:-260px;")
+            grp = _wrap(grp, _a("hlty", t_gone, .78, MOVE_EASE), "--a:0px;--b:-260px;")
             grp = _wrap(grp, _a("hlhide", t_gone + .8, .01, "linear"))
 
         # the art
@@ -618,7 +630,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
         if t_up is not None:
             art = _wrap(art, _a("hlty", t_up, .78, MOVE_EASE), f"--a:0px;--b:{D_ART}px;")
         if t_gone is not None:
-            art = _wrap(art, _a("hlty", t_gone, .78, MOVE_EASE), f"--a:0px;--b:-260px;")
+            art = _wrap(art, _a("hlty", t_gone, .78, MOVE_EASE), "--a:0px;--b:-260px;")
             art = _wrap(art, _a("hlhide", t_gone + .8, .01, "linear"))
         L.append(f'<div class="full" style="z-index:{zc}">{grp}{art}</div>')
 
@@ -670,7 +682,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
                f'border-radius:13px;border:4px solid #fff"></div>')
         hud.append(_wrap(_wrap(act, _a("fadein", r0, .2)), _a("fadeout", q + T_FLY + FLY, .1)))
         lab = (f'<div class="abs" style="right:{W - SAFE_RIGHT_TOP}px;top:242px;font-size:25px;font-weight:800;'
-               f'letter-spacing:.18em;color:#fff;white-space:nowrap;margin-right:-.18em">'
+               f'letter-spacing:.18em;color:#fff;white-space:nowrap">'
                f'{"FINAL ROUND" if k == n else f"ROUND {k}/{n}"}</div>')
         hud.append(_wrap(_wrap(lab, _a("fadein", r0, .2)), _a("fadeout", r1 - .05, .15)))
     slots = "".join(f'<div class="abs" style="left:{_slot_xy(k)[0]}px;top:{SLOT_Y}px;width:{SLOT}px;height:{SLOT}px;'
@@ -684,7 +696,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
     L.append('<div class="grain" style="z-index:200" data-safe="ignore"></div>')
     comp.scene(0, content_end + .6, "".join(L), fade_in=.01, fade_out=.05)
 
-    _outro(comp, ctx, chain, ups, uris, content_end, total)
+    _outro(comp, ctx, chain, ups, uris, tints, content_end, total)
     comp.add(code_badge(0))
     comp.add(disclosure())
 
@@ -705,7 +717,7 @@ def build(ctx: Ctx, pool: str = "all", **_ignored):
         hashtags=tags)
 
 
-def _outro(comp: Comp, ctx: Ctx, chain: list, ups: list, uris: list, start: float, end: float):
+def _outro(comp: Comp, ctx: Ctx, chain: list, ups: list, uris: list, tints: list, start: float, end: float):
     """HOW MANY DID YOU GET RIGHT? The chain as an answer key, and the code."""
     out = [f'<div class="full" style="background:{BG};{style_anim(_a("hlwipe", start, .55, IN_EASE))}"></div>',
            '<div class="grain" data-safe="ignore"></div>']
@@ -743,7 +755,7 @@ def _outro(comp: Comp, ctx: Ctx, chain: list, ups: list, uris: list, start: floa
                  f'color:#fff;white-space:nowrap">{cnt:,}<span style="font-size:.36em;margin-left:.2em;'
                  f'color:rgba(255,255,255,.85)">TIMES</span></div>')
         out.append(f'<div class="abs" style="left:{SAFE_LEFT}px;top:{y}px;width:{SAFE_RIGHT - SAFE_LEFT}px;height:{rh}px;'
-                   f'border-radius:14px;background:{_tint(it)};box-shadow:0 6px 0 rgba(0,0,0,.32);'
+                   f'border-radius:14px;background:{tints[i]};box-shadow:0 6px 0 rgba(0,0,0,.32);'
                    f'{style_anim(_a("hlin", ta, .35))}">{chip}{av}{name}{count}</div>')
     # the code, big
     cy = 1238

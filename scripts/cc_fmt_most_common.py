@@ -80,9 +80,9 @@ FLOOR = 1190                       # where the wall meets the floor on the item 
 # the item screen, top to bottom
 KICK_Y, COUNT_Y, COUNT_SIZE = 394, 428, 190
 TALLY = (44, 640, 1036, FLOOR - 12)          # x0, y0, x1, y1 of the painted area
-FIG_X, FIG_TOP, FIG_MAXW = 480, 628, 420
+FIG_X, FIG_TOP, FIG_MAXW = 600, 566, 440
 NAME_Y, STAT_Y = 1204, 1318
-RANK_RIGHT, RANK_Y, RANK_SIZE = 1012, 236, 150
+RANK_RIGHT, RANK_Y, RANK_SIZE = 1010, 256, 150
 # the hook
 HOOK_FLOOR = 1330
 STAMP_X, STAMP_Y, STAMP_ROT = SAFE_LEFT + 10, 640, 3
@@ -101,7 +101,7 @@ CSS = """
 .mc-grain{position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
   background:url("%(grain)s")}
 .mc-t{position:absolute;white-space:nowrap;line-height:1}
-.mc-lab{font:800 21px/1 Inter,sans-serif;letter-spacing:.13em;color:rgba(255,255,255,.62);text-transform:uppercase}
+.mc-lab{font:800 %(lab)spx/1 Inter,sans-serif;letter-spacing:.13em;color:rgba(255,255,255,.66);text-transform:uppercase}
 .mc-hand{font-family:'Permanent Marker',cursive;color:%(paint)s}
 .mc-sh{text-shadow:0 6px 0 rgba(0,0,0,.32),0 0 26px rgba(0,0,0,.5)}
 @keyframes mcwipe{from{clip-path:inset(0 0 100%% 0)}to{clip-path:inset(0 0 0 0)}}
@@ -115,7 +115,7 @@ CSS = """
 @keyframes mcbreathe{from{transform:scaleY(1)}to{transform:scaleY(1.012)}}
 @keyframes mcshake{0%%,100%%{transform:none}20%%{transform:translate(-7px,4px)}45%%{transform:translate(6px,-4px)}
   70%%{transform:translate(-3px,2px)}}
-@keyframes mcslam{0%%{transform:scale(2.2);opacity:0}55%%{transform:scale(.95);opacity:1}100%%{transform:none;opacity:1}}
+@keyframes mcslam{0%%{transform:scale(1.8);opacity:0}55%%{transform:scale(.95);opacity:1}100%%{transform:none;opacity:1}}
 @keyframes mcrise{from{transform:translateY(26px);opacity:0}to{transform:none;opacity:1}}
 @keyframes mcpop{0%%{transform:scale(.2) rotate(var(--r,0deg));opacity:0}60%%{transform:scale(1.08) rotate(var(--r,0deg));opacity:1}
   100%%{transform:rotate(var(--r,0deg));opacity:1}}
@@ -519,9 +519,10 @@ def _figure(ctx: Ctx, it: dict, cx: float, feet: float, h: float, maxw: float, t
     if uri:
         src = _art_key(uri)
         art = f'<img{tr} data-name="{esc(it["name"])}" data-mcsrc="{src}" style="{size}">'
-        shadow = (f'<div class="abs" data-safe="ignore" style="left:26px;bottom:14px;transform:translateX(-50%) '
-                  f'skewX(-6deg);transform-origin:50% 100%;opacity:.55;{style_anim(_a("mccast", t, .9, "linear")) if drop else ""}">'
-                  f'<img{tr} data-bake="brightness(0) blur(11px)" data-pad="44" data-mcsrc="{src}" style="{size}"></div>'
+        shadow = (f'<div class="abs" data-safe="ignore" style="left:{h * .03:.0f}px;bottom:{h * .012:.0f}px;'
+                  f'transform:translateX(-50%);clip-path:inset(-300px -300px 0 -300px);opacity:.46;'
+                  f'{style_anim(_a("mccast", t, .9, "linear")) if drop else ""}">'
+                  f'<img{tr} data-bake="brightness(0) blur(18px)" data-pad="64" data-mcsrc="{src}" style="{size}"></div>'
                   ) if cast else ""
     else:
         art = (f'<div class="d" style="height:{h:.0f}px;width:{min(h * .5, maxw):.0f}px;display:flex;align-items:center;'
@@ -604,8 +605,9 @@ def _stamp(comp: Comp, dock_start: float, dock_end: float) -> str:
             f'box-shadow:0 11px 0 rgba(0,0,0,.4),0 22px 30px rgba(0,0,0,.35)">'
             f'<div style="font-size:32px;font-weight:900;line-height:1.02;letter-spacing:.12em">USE<br>CODE:</div>'
             f'<div class="d" style="font-size:112px;line-height:.9;letter-spacing:.02em">BAD</div></div>'
-            f'<div style="margin:5.6px 0 0 5.6px;font-size:32px;font-weight:700;line-height:1.3;'
-            f'color:rgba(255,255,255,.92);text-shadow:0 2px 8px rgba(0,0,0,.9)">#EpicPartner</div></div></div>')
+            f'<div style="display:inline-block;margin:5.6px 0 0 0;padding:0 8px;font-size:32px;font-weight:700;'
+            f'line-height:1.3;color:rgba(255,255,255,.95);background:rgba(10,10,11,.82);border-radius:8px">'
+            f'#EpicPartner</div></div></div>')
 
 
 # ------------------------------------------------------------------ hook
@@ -650,7 +652,7 @@ def _hook(comp: Comp, ctx: Ctx, rows: list, words_kind: str, period: dict) -> No
     l2 = f"{words_kind} {period['short'] or 'IN FORTNITE'}"
     size = min(132, 930 / max(anton_em(l1) - .18, anton_em(l2) - .18))
     ty = 402
-    inner += _patch(26, ty - 30, 1054, ty + size * 1.84 + 26, ctx.seed + 3, rot=-1.2)
+    inner += _patch(22, 270, 1058, ty + size * 1.84 + 26, ctx.seed + 3, rot=-1.2)
     inner += (f'<div class="full" style="transform-origin:50% {ty + size:.0f}px;'
               f'{style_anim(an("mcthump", .2, .42, "ease-out", fill="none"))}">'
               f'<div class="abs d" style="left:0;width:{W}px;top:{ty:.0f}px;text-align:center;font-size:{size:.0f}px;'
@@ -662,7 +664,7 @@ def _hook(comp: Comp, ctx: Ctx, rows: list, words_kind: str, period: dict) -> No
               f'<div class="mc-t mc-sh" style="position:static;display:inline-block;font:800 30px/1 Inter,sans-serif;'
               f'letter-spacing:.17em;color:{LIME}">{esc(kick)}</div></div>')
     # the legend: a painted group of five = 5 TIMES IN THE ITEM SHOP
-    lx, ly = 500, 664
+    lx, ly = 500, 646
     inner += _patch(lx - 22, ly - 16, 1036, ly + 118, ctx.seed + 5, rot=1.0)
     leg = _group(lx, ly + 8, 86, 4, True, random.Random(ctx.seed + 9), rot=-3, drip_p=0)
     inner += _static_marks(leg)
@@ -673,8 +675,8 @@ def _hook(comp: Comp, ctx: Ctx, rows: list, words_kind: str, period: dict) -> No
     a, b = rows[0]["item"], rows[1]["item"]
     inner += _figure(ctx, b, 670, HOOK_FLOOR + 6, 560, 380, 0, drop=False)
     inner += _figure(ctx, a, 292, HOOK_FLOOR + 6, 580, 380, 0, drop=False)
-    inner += (f'<div class="abs" style="left:0;width:{int(SAFE_RIGHT * 2 - W + 0)}px;top:{HOOK_FLOOR + 22}px;'
-              f'text-align:center;{style_anim(_a("mcrise", 1.1, .45))}">'
+    inner += (f'<div class="abs" style="left:{SAFE_LEFT}px;width:{TEXT_W}px;top:{HOOK_FLOOR + 24}px;'
+              f'text-align:center">'
               f'<div class="mc-t mc-sh" style="position:static;display:inline-block;font:800 30px/1 Inter,sans-serif;'
               f'letter-spacing:.12em;color:#fff">TOP {len(rows)} · RANKED BY TIMES IN THE ITEM SHOP</div></div>')
     inner += _stamp(comp, dock_start, dock_end)
@@ -684,13 +686,29 @@ def _hook(comp: Comp, ctx: Ctx, rows: list, words_kind: str, period: dict) -> No
 
 # ------------------------------------------------------------------ one item
 
-def _stat(label: str, value: str, x: float, y: float, w: float, t: float) -> str:
-    vs = min(50, (w - 10) / max(anton_em(value) - .18, .1))
-    ls = min(21, (w - 6) / max(_text_w(label, 1, .13), .1))
-    return (f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;{style_anim(_a("mcrise", t, .45))}">'
-            f'<div class="mc-t mc-lab" style="position:static;font-size:{ls:.1f}px">{esc(label)}</div>'
-            f'<div class="d mc-sh" style="margin-top:8px;font-size:{vs:.0f}px;line-height:1;color:#fff;'
-            f'white-space:nowrap">{esc(value)}</div></div>')
+LAB = 23                           # the stats' labels (Inter 800, px)
+
+
+def _stats_row(stats: list, y: float, t: float) -> str:
+    """FIRST SEEN / LAST SEEN / DAYS IN SHOP: small labels over Anton values,
+    one size for all three, each column as wide as it needs, all within TEXT_W."""
+    gap = 40
+    lab_w = [_text_w(lab, LAB, .13) for lab, _ in stats]
+    val_em = [max(anton_em(v) - .18, .1) for _, v in stats]
+    vs = 62.0
+    while vs > 30:
+        widths = [max(lw, ve * vs) for lw, ve in zip(lab_w, val_em)]
+        if sum(widths) + gap * (len(stats) - 1) <= TEXT_W - 8:
+            break
+        vs -= 1
+    out, x = [], SAFE_LEFT
+    for j, ((lab, val), w) in enumerate(zip(stats, widths)):
+        out.append(f'<div class="abs" style="left:{x:.0f}px;top:{y:.0f}px;{style_anim(_a("mcrise", t + j * .14, .45))}">'
+                   f'<div class="mc-t mc-lab" style="position:static">{esc(lab)}</div>'
+                   f'<div class="d mc-sh" style="margin-top:9px;font-size:{vs:.0f}px;line-height:1;color:#fff;'
+                   f'white-space:nowrap">{esc(val)}</div></div>')
+        x += w + gap
+    return "".join(out)
 
 
 def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_LEN: float, period: dict,
@@ -711,7 +729,7 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
     feet = min(FLOOR + 6, name_y + 6)
     fig_h = max(420, feet - FIG_TOP)
     inner += _figure(ctx, it, FIG_X, feet, fig_h, FIG_MAXW, t_fig)
-    inner += _words(it["name"], SAFE_LEFT - 2, name_y, size, t0 + .95, brk=brk if lines == 2 else 0)
+    inner += _words(it["name"], SAFE_LEFT + 2, name_y, size, t0 + .95, brk=brk if lines == 2 else 0)
     # rank, top right
     rank_s = f"#{rank}"
     inner += (f'<div class="abs d mc-sh" style="right:{W - RANK_RIGHT}px;top:{RANK_Y}px;font-size:{RANK_SIZE}px;'
@@ -720,8 +738,8 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
     if r.get("tied"):
         inner += (f'<div class="abs" style="right:{W - RANK_RIGHT + 4}px;top:{RANK_Y + RANK_SIZE * .92:.0f}px;'
                   f'{style_anim(_a("mcrise", t_land + .5, .4))}"><div class="mc-t" style="position:static;'
-                  f'font:800 22px/1 Inter,sans-serif;letter-spacing:.14em;color:#111;background:#fff;padding:6px 10px 5px;'
-                  f'border-radius:6px">TIED ON TIMES</div></div>')
+                  f'font:800 26px/1 Inter,sans-serif;letter-spacing:.14em;color:#111;background:#fff;padding:7px 12px 6px;'
+                  f'border-radius:6px">TIED</div></div>')
     # the count: IN THE ITEM SHOP / 107 TIMES
     inner += (f'<div class="abs mc-t mc-sh" style="left:{SAFE_LEFT + 2}px;top:{KICK_Y}px;font:800 30px/1 Inter,sans-serif;'
               f'letter-spacing:.14em;color:rgba(255,255,255,.9);{style_anim(_a("mcrise", t0 + .9, .45))}">'
@@ -729,25 +747,25 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
     num_w = (anton_em(str(times)) - .18) * COUNT_SIZE
     cnt = _counter(comp, when, t_count)
     fin = f"{times:,}"
-    inner += (f'<div class="abs d mc-sh" style="left:{SAFE_LEFT - 4}px;top:{COUNT_Y}px;font-size:{COUNT_SIZE}px;'
+    inner += (f'<div class="abs d mc-sh" style="left:{SAFE_LEFT + 2}px;top:{COUNT_Y}px;font-size:{COUNT_SIZE}px;'
               f'line-height:.9;color:{LIME}">'
-              f'<span class="count" style="position:absolute;left:0;top:0;{cnt}{style_anim(_a("mcfade", t_count - .2, .2), an("mcout", t_land, .01, "linear"))}"></span>'
+              f'<div class="abs" style="left:0;top:0;{style_anim(an("mcfade", t_count - .05, .05, "linear"))}">'
+              f'<div style="{style_anim(an("mcout", t_land, .01, "linear"))}">'
+              f'<span class="count" style="white-space:nowrap;{cnt}"></span></div></div>'
               f'<span style="white-space:nowrap;{style_anim(an("mcfade", t_land, .01, "linear"))}">{fin}</span></div>')
-    inner += (f'<div class="abs d mc-sh" style="left:{SAFE_LEFT - 4 + num_w + COUNT_SIZE * .09:.0f}px;'
+    inner += (f'<div class="abs d mc-sh" style="left:{SAFE_LEFT + 2 + num_w + COUNT_SIZE * .09:.0f}px;'
               f'top:{COUNT_Y + COUNT_SIZE * .9 - 88 * .9 - 6:.0f}px;font-size:88px;line-height:.9;color:#fff;'
               f'{style_anim(_a("mcslam", t_land, .42))}">{"TIME" if times == 1 else "TIMES"}</div>')
     # first / last / days
-    col = TEXT_W / 3
-    first = ("FIRST IN THE SHOP", _d(r["first"])) if r["first"] else ("IN THE SHOP SINCE", "2017")
+    first = ("FIRST SEEN", _d(r["first"])) if r["first"] else ("IN SHOP SINCE", "2017")
     stats = [first, ("LAST SEEN", _ago(r["last"], ctx.day))]
     if period["start"]:
         stats.append(("ALL TIME", f"{r['all_times']:,} TIMES"))
     else:
-        stats.append(("DAYS IN THE SHOP", f"{r['days']:,}"))
-    for j, (lab, val) in enumerate(stats):
-        inner += _stat(lab, val, SAFE_LEFT + j * col, STAT_Y, col - 12, t_land + .35 + j * .14)
+        stats.append(("DAYS IN SHOP", f"{r['days']:,}"))
+    inner += _stats_row(stats, STAT_Y, t_land + .35)
     if rank == 1:
-        flag = "TIED FOR THE MOST!" if r.get("tied") else "THE MOST TIMES!"
+        flag = "TIED FOR #1!" if r.get("tied") else "MOST COMMON!"
         fs = 54
         fw = (anton_em(flag) - .18 + .84) * fs
         inner += (f'<div class="abs" style="left:{SAFE_RIGHT_TOP - 18 - fw:.0f}px;top:{KICK_Y + 104}px;--r:-6deg;'
@@ -772,8 +790,9 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
 
 # ------------------------------------------------------------------ outro
 
-def _outro(comp: Comp, ctx: Ctx, rows: list, start: float, end: float, ask: str) -> None:
-    inner = '<div class="mc-light"></div>' + _floor(FLOOR)
+def _outro(comp: Comp, ctx: Ctx, rows: list, start: float, end: float, ask: tuple) -> None:
+    inner = f'<div class="full" style="opacity:.2">{_static_marks(_hook_wall(ctx.seed + 1)[0])}</div>'
+    inner += '<div class="mc-light"></div>' + _floor(FLOOR)
     inner += (f'<div class="abs" style="left:0;width:{W}px;top:392px;text-align:center;'
               f'{style_anim(_a("mcrise", start + .3, .45))}"><div class="mc-t mc-sh" style="position:static;'
               f'display:inline-block;font:800 42px/1 Inter,sans-serif;letter-spacing:.26em;color:#fff">'
@@ -788,9 +807,8 @@ def _outro(comp: Comp, ctx: Ctx, rows: list, start: float, end: float, ask: str)
         inner += f'<div class="abs" style="left:0;top:0;z-index:{zz}">' + _figure(
             ctx, r["item"], x, FLOOR + 6, h, mw, tk, cast=True) + '</div>'
         comp.cue(tk + .36, "stamp")
-    ask_l = ask.split(" OF ")
-    l1, l2 = (f"{ask_l[0]} OF", ask_l[1]) if len(ask_l) == 2 else (ask, "")
-    asz = min(78, 820 / max(anton_em(l1) - .18, anton_em(l2) - .18 if l2 else 0))
+    l1, l2 = ask
+    asz = min(88, 820 / max(anton_em(l1) - .18, anton_em(l2) - .18))
     inner += (f'<div class="abs d mc-sh" style="left:{SAFE_LEFT}px;width:{TEXT_W}px;top:{FLOOR + 30}px;'
               f'text-align:center;font-size:{asz:.0f}px;line-height:.95;color:#fff;z-index:9;'
               f'{style_anim(_a("mcslam", start + 1.9, .45))}">{esc(l1)}<br><span style="color:{LIME}">{esc(l2)}</span></div>')
@@ -818,13 +836,12 @@ def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int =
     comp.use_fonts(*FONTS)
     comp.css(KIT_CSS)
     comp.css(CSS % {"wall": tex("most-common-wall.jpg"), "floor": tex("most-common-floor.jpg"), "grain": GRAIN,
-                    "paint": PAINT})
+                    "paint": PAINT, "lab": LAB})
     _hook(comp, ctx, rows, word, period)
     for k, r in enumerate(reversed(rows), 1):
         t0 = HOOK + (k - 1) * r_len
         _item_screen(comp, ctx, r, n - k + 1, n, t0, r_len, period, z=10 + k)
-    ask = "HOW MANY OF THESE DO YOU OWN?"
-    _outro(comp, ctx, rows, content_end, comp.duration, ask)
+    _outro(comp, ctx, rows, content_end, comp.duration, ("HOW MANY OF THESE", "DO YOU OWN?"))
     comp.add(_art_js())
     comp.add(PREP_JS)
     comp.add(code_badge(0))

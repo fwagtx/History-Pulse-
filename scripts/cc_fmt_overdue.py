@@ -426,13 +426,22 @@ def _chart(comp: Comp, r: dict, t0: float) -> str:
            f'{_a(an("odin", ta, .1), an("odout", ta + D_A + D_B, .12))}">'
            f'<div class="full" style="background:#fff;{_a(an(f"odph{uid}", ta, D_A + D_B))}"></div></div>',
            _today(X1, TAG_Y - 1, top + h + 6, t0 + T_TODAY)]
-    # what the empty stretch is, when there's room to say it
+    # What the empty stretch is, when there's room to say it. It steps aside while
+    # the xN counter travels along its row, and comes back when the counter has
+    # stopped at the far end, if both fit.
     band_w = X1 - last_end
     label = "NOT IN THE ITEM SHOP"
-    if band_w >= len(label) * .7 * 19 + 40:
+    label_w = len(label) * .72 * 19 + 28
+    if band_w >= label_w + 12:
+        n_w = 24 * .64 * (len(str(int(r["factor"]))) + 1) + 30
+        back = band_w >= label_w + n_w + 30
+        # Later animations win while they apply: in (fill both: hidden before),
+        # out and back in (fill forwards: nothing before they start).
+        vis = [an("odin", t0 + T_B + .35, .4), an("odout", t0 + T_TILE - .12, .15, fill="forwards")]
+        if back:
+            vis.append(an("odin", t0 + T_TILE + r["d_tile"] + .1, .3, fill="forwards"))
         out.append(f'<div class="abs od-m" style="left:{last_end + 14:.0f}px;top:{top + 9}px;font-size:19px;'
-                   f'font-weight:700;color:{LIME};letter-spacing:.12em;{_a(an("odin", t0 + T_B + .35, .4))}">'
-                   f'{label}</div>')
+                   f'font-weight:700;color:{LIME};letter-spacing:.12em;{_a(*vis)}">{label}</div>')
     # the usual gap, end to end across the empty stretch
     n = int(r["factor"])
     w = r["typical"] * ax.ppd
@@ -682,6 +691,7 @@ def build(ctx: Ctx, kind: str = "outfit", count: int = 5, min_count: int = 4, mi
     than `min_count` qualify."""
     if kind not in KINDS:
         return None
+    count = max(2, min(5, count))       # the outro's ranked rows hold five
     word, words_, tags_extra = KINDS[kind]
     hist = history()
     today_ids = {i.lower() for row in (ctx.shop or {}).get("items", []) for i in R.shop_ids(row)}
@@ -746,8 +756,8 @@ def build(ctx: Ctx, kind: str = "outfit", count: int = 5, min_count: int = 4, mi
 
     top = picks[0]
     body = "\n".join(
-        f"{num(k)} {r['item']['name']} · gone {r['gone']:,} days · usually back every ~{int(r['typical'])} · "
-        f"{r['n']}× longer than usual" for k, r in enumerate(picks, 1))
+        f"{num(k)} {r['item']['name']} · gone {r['gone']:,} days · usually back every ~{int(r['typical'])} days "
+        f"({r['n']}× longer)" for k, r in enumerate(picks, 1))
     tags = _hashtags(*tags_extra, top["item"]["name"])
     return Video(
         f"overdue_{kind}", comp,

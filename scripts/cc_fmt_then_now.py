@@ -49,10 +49,10 @@ from collections import Counter
 from datetime import date
 
 import cc_rarity as R
-from cc_fmt_rarity import _item, _label_w, history
+from cc_fmt_rarity import _item, history
 from cc_formats import Ctx, Video, _caption, _hashtags, num
 from cc_looks import PREP_JS, pad_to
-from cc_motion import (ACCENT, BADGE_H, BADGE_W, BADGE_X, BADGE_Y, EASE_OUT, INK, SAFE_BOTTOM, SAFE_LEFT,
+from cc_motion import (ACCENT, BADGE_H, BADGE_X, BADGE_Y, EASE_OUT, INK, SAFE_LEFT,
                        SAFE_RIGHT, SAFE_RIGHT_TOP, W, Comp, an, anton_em, character, code_badge, disclosure, esc,
                        style_anim, trim_for)
 
@@ -538,7 +538,8 @@ def _beat_average(comp: Comp, S: dict, t0: float, k: int):
         inner += _t("SKINS A DAY", x, 896, 28, t_num + .9, color=MUTED, spacing=".12em")
         inner += _waffle(v, x, 950, n_cols, cell, gap, col, t_num + .1, 1.3)
     q, core = _mult_parts(a1 / a0)
-    inner += _stamp(([(q, 30, False)] if q else []) + [(f"{core} MORE", 88, True)], L + 6, 1080, t0 + 3.0, rot=-4)
+    size = min(88, 340 / anton_em(f"{core} MORE"))       # the stamp stays clear of NOW's squares (x 484)
+    inner += _stamp(([(q, 30, False)] if q else []) + [(f"{core} MORE", size, True)], L + 6, 1080, t0 + 3.0, rot=-4)
     inner += _foot(f"Different skins (outfits) in the Item Shop each day, averaged over the year"
                    + _so_far(S), t0)
     comp.scene(t0, t0 + BEAT + .3, inner, fade_in=.3, fade_out=.3)
