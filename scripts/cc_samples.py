@@ -62,8 +62,57 @@ EDITS = {"most_common": ("cc_edit_most_common", "build", {}),
          "on_this_day": ("cc_edit_on_this_day", "look", {})}
 
 
-def short(name, make, ctx, out, seed, index, stem="") -> dict:
-    v = E.finish(make, ctx)
+# Every format the daily lineup (cc_lineup.py) can post, for "lineup_all".
+LINEUP_EDITS = [("shop_recap", {}), ("back_after", {}), ("og_check", {}), ("last_chance", {}), ("guess_price", {}),
+                ("this_or_that", {}), ("higher_lower", {"pool": "all"}), ("most_common", {"kind": "outfit"}),
+                ("rarest", {"kind": "outfit"}), ("longest_gone", {"kind": "pickaxe"})]
+LINEUP_QUIZZES = ["whos_that", "zoomed_in", "which_first", "guess_season", "throwback", "which_year"]
+
+
+def lineup(what: set, shop: dict, art, day: date, out: Path, seed: int) -> list:
+    """"lineup": the day's five exactly as the nightly build picks them.
+    "lineup_all": every format the lineup can post, once (the quizzes from
+    their next planned episode on or after the day)."""
+    import cc_bootstrap as B
+    import cc_lineup as LU
+    B.ensure_emoji_font()
+    plan = json.loads((CC_DIR / "quiz" / "plan.json").read_text())
+    items = plan.get("items", {})
+    ctx = Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
+    reps = []
+    if "lineup" in what:
+        for slot, v, safe in LU.build_day(shop, art, day, plan, None, post_problems):
+            reps.append(short(f"slot {slot['slot']} {v.format}", None, ctx, out, seed + slot["slot"], 0,
+                              stem=f"sample-lineup-{slot['slot']}-{v.format.replace('_', '-')}", video=v))
+            reps[-1].update(slot=slot["slot"], at=f"{slot['at'][0]:02d}:{slot['at'][1]:02d}")
+    if "lineup_all" in what:
+        LU._edit_look_for_otd()
+        cands = [("edit", f, kw) for f, kw in LINEUP_EDITS]
+        todays = [v for v in plan["videos"] if v["date"] >= day.isoformat()]
+        for fmt in LINEUP_QUIZZES + ["on_this_day"]:
+            spec = next((v for v in todays if v["format"] == fmt), None)
+            if spec:
+                cands.append(("plan", spec))
+        for i, cand in enumerate(cands):
+            make = LU._builder(cand, items)
+            name = LU._name(cand)
+            if make is None:
+                reps.append({"name": name, "built": False, "error": "module missing"})
+                continue
+            c = ctx if cand[0] == "edit" else Ctx(shop=shop, art=art, day=date.fromisoformat(cand[1]["date"]),
+                                                   seed=int(cand[1]["date"].replace("-", "")))
+            try:
+                reps.append(short(name, make, c, out, seed + 30 + i, 0,
+                                  stem=f"sample-all-{i:02d}-{name.split(' #')[0].replace(' ', '-').replace('_', '-')}"))
+            except Exception as e:  # noqa: BLE001 - one broken format must not cost the others
+                log(f"{name}: failed: {e!r}")
+                reps.append({"name": name, "built": False, "error": repr(e)})
+    return reps
+
+
+def short(name, make, ctx, out, seed, index, stem="", video=None) -> dict:
+    """Build (or take `video`, already finished), check and render one sample."""
+    v = video or E.finish(make, ctx)
     if v is None:
         log(f"{name}: today's data can't support it")
         return {"name": name, "built": False}
@@ -146,14 +195,14 @@ def main():
         day = date.fromisoformat(shop["shop_day"])
     else:
         day = date.fromisoformat(a.day) if a.day else datetime.now(timezone.utc).date()
-        if what & {"back_after", "rarest", "og"}:
+        if what & {"back_after", "rarest", "og", "lineup", "lineup_all"}:
             shop = fetch_today(day, 0)
     art = art_fn(a.art or None)
     ctx = Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
     seed = int(day.strftime("%Y%m%d")) * 10
     report = {"day": day.isoformat(), "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
               "shorts": [], "long": None, "voices": [], "styles": [], "topics": [], "edits": [],
-              "long_series": None}
+              "long_series": None, "lineup": []}
 
     # BACK AFTER needs three comebacks of 180+ days; on a quiet day the sample
     # drops to 90+ so there's still something to look at.
@@ -197,6 +246,9 @@ def main():
                                                        "days": p[2], "times": p[3], "same_day_set": p[4]}
                                                       for p in picks]}
 
+    if what & {"lineup", "lineup_all"}:
+        report["lineup"] = lineup(what, shop, art, day, out, seed)
+
     if "long_series" in what:
         # A whole weekday long video exactly as the nightly job makes it
         # (cc_long_build.py): the sample day's series, or Monday's at a weekend.
@@ -226,7 +278,7 @@ def main():
 
     # Runs for styles and topics can publish to the same release at once: each
     # keeps its own report.
-    parts = [k for k in ("styles", "topics", "edits") if report[k]] + (
+    parts = [k for k in ("styles", "topics", "edits", "lineup") if report[k]] + (
         [f"long-{report['long_series']['day']}"] if report["long_series"] else [])
     name = f"samples-{'-'.join(parts)}.json" if parts else "samples.json"
     (out / name).write_text(json.dumps(report, indent=1, ensure_ascii=False))
