@@ -153,10 +153,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      # fonts-noto-color-emoji: the edits' captions use emojis, as people's do.
       - name: Install ffmpeg, Chromium, Python deps (and the free TTS)
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
+          sudo apt-get install -y -qq ffmpeg fonts-noto-color-emoji
           pip install -q playwright==1.56.0 numpy pillow kokoro-onnx soundfile
           python -m playwright install --with-deps chromium
 
@@ -189,7 +190,7 @@ jobs:
           python3 scripts/cc_music.py build --out "$DIR"
           ls -la "$DIR"
           TAG=music-library
-          NOTES="Public-domain (CC0 1.0) music by human producers, each cut to its strongest 75 s, with tempo and beat times in catalog.json. Built by scripts/cc_music.py; sources and licences are listed per track."
+          NOTES="Public-domain (CC0 1.0) music by human producers (up to 30 tracks each), each cut to its strongest 75 s, with tempo, beat times, energy and mood in catalog.json. Built by scripts/cc_music.py; sources and licences are listed per track."
           if gh release view "$TAG" >/dev/null 2>&1; then
             for a in $(gh release view "$TAG" --json assets -q '.assets[].name'); do gh release delete-asset "$TAG" "$a" --yes; done
             gh release upload "$TAG" "$DIR"/*.mp3 "$DIR/catalog.json" --clobber

@@ -267,11 +267,16 @@ PROGRESSIONS = [
 ]
 
 
-def music(duration: float, seed: int) -> np.ndarray:
-    """A driving, loopable bed. Stereo (n, 2). Varies by seed."""
+BPMS = [112, 116, 120, 124, 128]
+
+
+def music(duration: float, seed: int, bpm: float | None = None) -> np.ndarray:
+    """A driving, loopable bed. Stereo (n, 2). Varies by seed. Its beats fall on
+    k * 60 / bpm from 0; `bpm` fixes the tempo (default: one of BPMS by seed)."""
     r = random.Random(seed)
     rs = np.random.RandomState(seed % (2 ** 32))
-    bpm = r.choice([112, 116, 120, 124, 128])
+    picked = r.choice(BPMS)
+    bpm = bpm or picked
     key = r.choice([45, 46, 47, 48, 49, 50, 52])       # A2..E3 roots
     prog = r.choice(PROGRESSIONS)
     beat = 60 / bpm
@@ -393,6 +398,290 @@ def mix(duration: float, cues: list, seed: int, music_gain: float = .34) -> np.n
     return _norm(out, .89)
 
 
+# ------------------------------------------------------------------ real music (the edits)
+#
+# An edit (cc_edit.py) is cut to the beats of a real track. comp.music is then
+# either a cc_music track -- {"path": mp3, "beats": [s, ...], "cut": s, ...} --
+# or, where the library can't be had, {"synth": bpm, "seed": n}: the
+# synthesized bed at that tempo, whose beats fall on k * 60 / bpm. The edits'
+# effects (edit_sfx) are the ones short-form editors reach for -- booms,
+# risers, swooshes -- and the music dips a little under the big hits.
+
+EDIT_GAINS = {"boom": .9, "impact": .75, "riser": .42, "swoosh": .42, "pop2": .5, "tick2": .3,
+              "buzz": .42, "shutter": .45, "glitch": .35, "ding": .5, "whoosh": .4, "pop": .38,
+              "tick": .28, "clap": .3, "cash": .45, "reveal": .42, "slam": .65, "click": .38, "drumroll": .38}
+DUCK = {"boom": .5, "impact": .3, "slam": .3, "buzz": .2}      # how far the music dips (fraction)
+LUFS = -13.0                                               # the finished mix's loudness
+
+
+def _pan(x: np.ndarray, pan: float = 0.0) -> np.ndarray:
+    """Mono to stereo, constant power; pan -1 (left) .. 1 (right)."""
+    a = (pan + 1) * np.pi / 4
+    return np.stack([x * np.cos(a), x * np.sin(a)], axis=1) * 1.414
+
+
+def _ir(seconds: float, rs: np.random.RandomState, dark: float = 5000) -> np.ndarray:
+    """A synthetic stereo room: decaying noise, darker as it fades."""
+    n = int(seconds * SR)
+    t = np.arange(n) / SR
+    env = np.exp(-t * 6.9 / seconds)
+    out = []
+    for _ in range(2):
+        x = _noise(n, rs) * env
+        X = np.fft.rfft(x)
+        f = np.fft.rfftfreq(n, 1 / SR)
+        X *= 1 / (1 + (f / dark) ** 2)
+        out.append(np.fft.irfft(X, n))
+    ir = np.stack(out, axis=1)
+    ir[: int(.004 * SR)] *= np.linspace(0, 1, int(.004 * SR))[:, None]
+    return ir / (np.sqrt((ir ** 2).sum(axis=0)).max() or 1)
+
+
+def _verb(x: np.ndarray, seconds: float, wet: float, rs: np.random.RandomState,
+          dark: float = 5000) -> np.ndarray:
+    """Mono in, stereo out: the dry sound centred plus a synthetic room."""
+    ir = _ir(seconds, rs, dark)
+    n = len(x) + len(ir) - 1
+    m = 1 << (n - 1).bit_length()
+    X = np.fft.rfft(x, m)
+    tail = np.stack([np.fft.irfft(X * np.fft.rfft(ir[:, c], m), m)[:n] for c in range(2)], axis=1)
+    dry = np.zeros((n, 2))
+    dry[: len(x)] = _pan(x) * .707
+    return dry + wet * tail
+
+
+def _sweep_noise(n: int, rs: np.random.RandomState, centre: np.ndarray, width: float = .6) -> np.ndarray:
+    """Noise through a band-pass whose centre moves (Hz per sample), in 40 ms
+    overlapping frames."""
+    hop, size = int(.02 * SR), int(.04 * SR)
+    x = _noise(n + size, rs)
+    out = np.zeros(n + size)
+    win = np.hanning(size)
+    f = np.fft.rfftfreq(size, 1 / SR)
+    for s in range(0, n, hop):
+        c = float(centre[min(s, n - 1)])
+        g = np.exp(-.5 * (np.log2(np.maximum(f, 1) / c) / width) ** 2)
+        seg = np.fft.irfft(np.fft.rfft(x[s:s + size] * win) * g, size)
+        out[s:s + size] += seg * win
+    return out[:n]
+
+
+def edit_sfx(kind: str, rs: np.random.RandomState) -> np.ndarray:
+    """One stereo effect for the edits, peak-normalized. The quiz set's kinds
+    come through sfx(), centred; unknown kinds are silent."""
+    if kind == "boom":
+        # The cinematic hit on a number or a reveal: a sub that drops in pitch,
+        # a punchy body and a click, in a big dark room.
+        n = int(1.4 * SR)
+        t = np.arange(n) / SR
+        f = 36 + 64 * np.exp(-t / .05)
+        sub = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / .5)
+        body = _band(_noise(n, rs), 90, 800) * np.exp(-t / .06)
+        click = _band(_noise(n, rs), 1800, 9000) * np.exp(-t / .005)
+        x = _norm(np.tanh(1.7 * (sub + .4 * body)) + .3 * click)
+        return _norm(_verb(x, 1.6, .16, rs, dark=2500)) * .95
+    if kind == "impact":
+        # A lighter punch for words landing.
+        n = int(.6 * SR)
+        t = np.arange(n) / SR
+        kick = np.sin(2 * np.pi * np.cumsum(55 + 110 * np.exp(-t / .03)) / SR) * np.exp(-t / .12)
+        snap = _band(_noise(n, rs), 900, 6500) * np.exp(-t / .03)
+        x = _norm(np.tanh(1.5 * (kick + .6 * snap)))
+        return _norm(_verb(x, .7, .12, rs, dark=4000)) * .85
+    if kind == "riser":
+        # Two seconds of rising noise and tone that stops dead on the drop.
+        dur = 2.0
+        n = int(dur * SR)
+        t = np.arange(n) / SR
+        p = t / dur
+        air = _sweep_noise(n, rs, 350 * (9000 / 350) ** (p ** 1.3), .7)
+        f = 170 * (1150 / 170) ** (p ** 1.6)
+        ph = 2 * np.pi * np.cumsum(f) / SR
+        trem = .75 + .25 * np.sin(2 * np.pi * np.cumsum(5 + 22 * p ** 2) / SR)
+        L = (np.sin(ph) + .35 * np.sin(2 * ph + .3)) * trem
+        R = (np.sin(ph * 1.006) + .35 * np.sin(2 * ph * 1.006)) * trem
+        env = p ** 2.2 * np.minimum(1, (dur - t) / .012)
+        x = np.stack([.55 * air + .45 * L, .55 * air + .45 * R], axis=1) * env[:, None]
+        return _norm(x) * .9
+    if kind == "swoosh":
+        # A fast whoosh for a whip pan: the band rises then falls, left to right.
+        n = int(.34 * SR)
+        t = np.arange(n) / SR
+        p = t / t[-1]
+        centre = 600 + 3200 * np.sin(np.pi * np.clip(p / .75, 0, 1)) ** 1.5
+        x = _sweep_noise(n, rs, centre, .5) * np.sin(np.pi * p) ** 1.8
+        pan = -.7 + 1.4 * p
+        a = (pan + 1) * np.pi / 4
+        return _norm(np.stack([x * np.cos(a), x * np.sin(a)], axis=1)) * .85
+    if kind == "pop2":
+        # A bubbly pop for a caption appearing.
+        n = int(.16 * SR)
+        t = np.arange(n) / SR
+        f = 1250 * np.exp(-t / .03) + 340
+        x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / .035)
+        x += .25 * _band(_noise(n, rs), 2000, 8000) * np.exp(-t / .003)
+        return _norm(_verb(_norm(x), .35, .08, rs)) * .75
+    if kind == "tick2":
+        # A soft woodblock tick for a counter.
+        n = int(.07 * SR)
+        t = np.arange(n) / SR
+        x = (np.sin(2 * np.pi * 1850 * t) + .45 * np.sin(2 * np.pi * 3120 * t)) * np.exp(-t / .01)
+        x += .4 * _band(_noise(n, rs), 2500, 7000) * np.exp(-t / .002)
+        return _norm(_pan(x)) * .6
+    if kind == "buzz":
+        # Wrong: a short, low, detuned buzzer.
+        n = int(.5 * SR)
+        t = np.arange(n) / SR
+        env = np.minimum(1, t / .01) * np.minimum(1, (t[-1] - t) / .06)
+        x = np.tanh(2.5 * (_saw(98, t, 12) + _saw(104, t, 12))) * env
+        return _norm(_pan(x)) * .7
+    if kind == "shutter":
+        # A camera shutter: two mechanical clicks and a thunk.
+        n = int(.16 * SR)
+        t = np.arange(n) / SR
+        x = np.zeros(n)
+        for at, a in ((0, 1), (.045, .7)):
+            s = int(at * SR)
+            m = n - s
+            tt = np.arange(m) / SR
+            x[s:] += a * (_band(_noise(m, rs), 2500, 9000) * np.exp(-tt / .004)
+                          + .5 * np.sin(2 * np.pi * 180 * tt) * np.exp(-tt / .015))
+        return _norm(_pan(x)) * .7
+    if kind == "glitch":
+        # Digital stutter: short crushed bursts at jumping pitches.
+        n = int(.32 * SR)
+        x = np.zeros(n)
+        s = 0
+        while s < n - int(.012 * SR):
+            m = int(rs.uniform(.012, .03) * SR)
+            tt = np.arange(m) / SR
+            tone = np.sign(np.sin(2 * np.pi * rs.choice([220, 330, 440, 880, 1320]) * tt))
+            crush = np.round(_noise(m, rs) * 4) / 4
+            x[s:s + m] += (tone * .6 + crush * .4) * rs.uniform(.4, 1)
+            s += m + int(rs.uniform(0, .015) * SR)
+        return _norm(_pan(x, rs.uniform(-.4, .4))) * .6
+    mono = sfx(kind, rs)
+    return _pan(mono) * .707 if len(mono) > 1 else np.zeros((1, 2))
+
+
+def loudness(x: np.ndarray) -> float:
+    """Integrated loudness in LUFS (ITU-R BS.1770: K-weighting, 400 ms blocks,
+    absolute and relative gates), with the K-filter applied as a zero-phase
+    frequency response."""
+    x = x[:, None] if x.ndim == 1 else x
+    n = len(x)
+    if n < int(.4 * SR):
+        return -70.0
+    f = np.fft.rfftfreq(n, 1 / SR)
+    g = 10 ** (4 / 20)
+    shelf = np.sqrt((1 + (f / 1500) ** 2 * g ** 2) / (1 + (f / 1500) ** 2))
+    hp = (f / 38) ** 2 / np.sqrt(1 + (f / 38) ** 4)
+    y = np.fft.irfft(np.fft.rfft(x, axis=0) * (shelf * hp)[:, None], n, axis=0)
+    blk, hop = int(.4 * SR), int(.1 * SR)
+    cs = np.concatenate([np.zeros((1, y.shape[1])), np.cumsum(y ** 2, axis=0)])
+    st = np.arange(0, n - blk + 1, hop)
+    z = ((cs[st + blk] - cs[st]) / blk).sum(axis=1)
+    lk = -.691 + 10 * np.log10(z + 1e-12)
+    z, lk = z[lk > -70], lk[lk > -70]
+    if not len(z):
+        return -70.0
+    rel = -.691 + 10 * np.log10(z.mean()) - 10
+    return float(-.691 + 10 * np.log10(z[lk > rel].mean()))
+
+
+def limit(x: np.ndarray, ceiling: float = .89, release: float = .12) -> np.ndarray:
+    """A peak limiter: the gain is already down when a peak arrives (a block
+    of look-ahead) and comes back up over `release` seconds."""
+    blk = 32
+    n = len(x)
+    nb = -(-n // blk)
+    pad = np.zeros((nb * blk, x.shape[1]))
+    pad[:n] = x
+    need = np.minimum(1.0, ceiling / np.maximum(np.abs(pad).reshape(nb, blk, -1).max(axis=(1, 2)), 1e-9))
+    need = np.minimum.reduce([need, np.r_[need[1:], 1.0], np.r_[1.0, need[:-1]]])
+    step = 1 - np.exp(-blk / (release * SR))
+    g, cur = np.empty(nb), 1.0
+    for i in range(nb):
+        cur = need[i] if need[i] < cur else cur + (need[i] - cur) * step
+        g[i] = cur
+    gs = np.interp(np.arange(nb * blk), np.arange(nb) * blk + blk / 2, g)[:n]
+    return np.clip(x * gs[:, None], -ceiling, ceiling)
+
+
+def decode(path, sr: int = SR) -> np.ndarray:
+    """An audio file as float stereo (n, 2) at `sr`, via ffmpeg."""
+    import subprocess
+    from cc_motion import find_ffmpeg
+    raw = subprocess.run([find_ffmpeg() or "ffmpeg", "-v", "error", "-i", str(path), "-ac", "2", "-ar", str(sr),
+                          "-f", "f32le", "-"], capture_output=True, check=True).stdout
+    return np.frombuffer(raw, dtype="<f4").reshape(-1, 2).astype(np.float64)
+
+
+def track_audio(track: dict, duration: float, seed: int) -> np.ndarray:
+    """The music under an edit, `duration` seconds, stereo: the library track
+    (looped by whole bars if the video runs past its cut, see
+    cc_music.extend) or the synthesized bed at the edit's tempo."""
+    n = int(duration * SR)
+    if track.get("synth"):
+        bed = music(duration, int(track.get("seed", seed)), bpm=float(track["synth"]))
+    else:
+        import cc_music
+        x = decode(track["path"])
+        off = float(track.get("offset", 0))          # the edit starts this far into the cut
+        full = int((duration + off) * SR)
+        bed = np.zeros((full, 2))
+        for dst, src, length in cc_music.extend(track["beats"], len(x) / SR, duration + off):
+            a, b, m = int(round(dst * SR)), int(round(src * SR)), int(round(length * SR))
+            m = min(m, full - a, len(x) - b)
+            if m <= 0:
+                continue
+            seg = x[b:b + m].copy()
+            k = min(int(.006 * SR), m // 2)
+            if a > 0 and k:                      # 6 ms crossfade at a loop join
+                seg[:k] *= np.linspace(0, 1, k)[:, None]
+                bed[a:a + k] *= np.linspace(1, 0, k)[:, None]
+            bed[a:a + m] += seg
+        bed = bed[int(round(off * SR)):][:n]
+        if len(bed) < n:
+            bed = np.concatenate([bed, np.zeros((n - len(bed), 2))])
+        fo = min(n, int(1.2 * SR))
+        bed[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 1.5
+    fi = int(.005 * SR)
+    bed[:fi] *= np.linspace(0, 1, fi)[:, None]
+    return bed
+
+
+def mix_track(duration: float, cues: list, track: dict, seed: int, music_lufs: float = -15.0) -> np.ndarray:
+    """An edit's soundtrack: the track at a steady loudness, the effects on top
+    (EDIT_GAINS), the music dipping under the big hits (DUCK), then the whole
+    mix brought to LUFS and peak-limited to -1 dBFS."""
+    n = int(duration * SR)
+    bed = track_audio(track, duration, seed)[:n]
+    bed *= 10 ** ((music_lufs - loudness(bed)) / 20)
+    fx = np.zeros((n, 2))
+    duck = np.ones(n)
+    rs = np.random.RandomState((seed * 7 + 3) % (2 ** 32))
+    cache = {}
+    for t, kind in sorted(cues):
+        if kind not in cache:
+            cache[kind] = edit_sfx(kind, rs)
+        s = int(t * SR)
+        if s >= n:
+            continue
+        sig = cache[kind] * EDIT_GAINS.get(kind, .4)
+        e = min(n, s + len(sig))
+        fx[s:e] += sig[:e - s]
+        depth = DUCK.get(kind, 0)
+        if depth:
+            m = min(n - s, int(.6 * SR))
+            tt = np.arange(m) / SR
+            env = 1 - depth * np.minimum(1, tt / .008) * np.exp(-np.maximum(tt - .08, 0) / .18)
+            duck[s:s + m] = np.minimum(duck[s:s + m], env)
+    out = bed * duck[:, None] + fx
+    out *= 10 ** ((LUFS - loudness(out)) / 20)
+    return limit(out, .89)
+
+
 def write_wav(samples: np.ndarray, path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     pcm = (np.clip(samples, -1, 1) * 32767).astype("<i2")
@@ -405,7 +694,12 @@ def write_wav(samples: np.ndarray, path: Path) -> Path:
 
 
 def soundtrack(comp, seed: int, path: Path) -> Path:
-    """Write the mixed soundtrack for a composition and return its path."""
+    """Write the mixed soundtrack for a composition and return its path. A comp
+    with a `music` track (the edits, cc_edit.py) gets that track under its
+    effects; every other comp gets the synthesized bed, exactly as before."""
+    track = getattr(comp, "music", None)
+    if track:
+        return write_wav(mix_track(comp.duration, comp.cues, track, seed), path)
     return write_wav(mix(comp.duration, comp.cues, seed), path)
 
 

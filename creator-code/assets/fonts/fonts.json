@@ -160,5 +160,11 @@
   "style": "normal",
   "weight": "700",
   "file": "LiberationSans-Bold.ttf"
+ },
+ {
+  "family": "TikTok Sans",
+  "style": "normal",
+  "weight": "300 900",
+  "file": "TikTokSans-Variable.ttf"
  }
 ]

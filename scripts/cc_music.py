@@ -175,23 +175,62 @@ def measure(path: Path) -> dict:
     end = min(dur, start + CUT)
     seg = x[int(start * SR):int(end * SR)]
     rms = float(np.sqrt(np.mean(seg ** 2) + 1e-12))
-    density = float((env[int(start * fps):int(end * fps)] > env.mean() + env.std()).mean()) if env.size else 0.0
+    e = env[int(start * fps):int(end * fps)]
+    density = float((e > env.mean() + env.std()).mean()) if e.size else 0.0
+    # How hard the beat hits: onset strength on the beats against the average.
+    on = [e[max(0, int(round((b - start) * fps)) - 1):int(round((b - start) * fps)) + 2].max()
+          for b in beats if start <= b < end and int(round((b - start) * fps)) + 2 <= len(e)]
+    salience = float(np.mean(on) / (e.mean() + 1e-9)) if on and e.size else 0.0
+    # How much of it is bass and kick (below 150 Hz).
+    spec = np.abs(np.fft.rfft(seg[: SR * 60])) ** 2 if len(seg) else np.zeros(2)
+    f = np.fft.rfftfreq(min(len(seg), SR * 60), 1 / SR)
+    low = float(spec[f < 150].sum() / (spec.sum() + 1e-12))
     return {"duration": round(dur, 2), "bpm": round(bpm, 2), "start": round(start, 3), "cut": round(end - start, 2),
-            "rms": round(rms, 4), "density": round(density, 4),
+            "rms": round(rms, 4), "density": round(density, 4), "salience": round(salience, 3),
+            "flux": round(float(e.mean()) if e.size else 0.0, 3), "low": round(low, 4),
             "beats": [round(b - start, 3) for b in beats if start <= b < end]}
 
 
-def mood(m: dict) -> str:
-    if m["rms"] >= 0.16 and m["density"] >= 0.12 and m["bpm"] >= 100:
-        return "hype"
-    if m["rms"] >= 0.10 and m["bpm"] >= 90:
-        return "drive"
-    return "chill"
+SEASONS = {
+    "winter": ("holiday", "christmas", "xmas", "winter", "jingle", "carol", "snow", "santa", "noel"),
+    "halloween": ("halloween", "hallowe", "spooky", "witch", "ghost", "graveyard", "monster", "batty", "zombie",
+                  "haunt"),
+}
+IN_SEASON = {"winter": (12,), "halloween": (10,)}
+
+
+def season(album: str, title: str) -> str:
+    """"winter" or "halloween" for a seasonal track (by its album or title), else ""."""
+    text = f"{album} {title}".lower()
+    for name, words in SEASONS.items():
+        if any(w in text for w in words):
+            return name
+    return ""
+
+
+def moods(tracks: list) -> None:
+    """Sort the library into "hype" (the most energetic third: loud, a beat
+    that hits hard, busy, with bass), "chill" (the calmest quarter) and
+    "drive" (the rest), relative to each other; sets t["energy"] and t["mood"]."""
+    if not tracks:
+        return
+    def z(key):
+        v = np.array([float(t.get(key, 0)) for t in tracks])
+        return (v - v.mean()) / (v.std() + 1e-9)
+    score = z("rms") + z("salience") + .5 * z("flux") + .3 * z("low")
+    order = np.argsort(-score)
+    n = len(tracks)
+    for rank, i in enumerate(order):
+        t = tracks[i]
+        t["energy"] = round(float(score[i]), 3)
+        t["mood"] = "hype" if rank < n * .34 else ("chill" if rank >= n * .75 else "drive")
 
 
 # ------------------------------------------------------------------ build (runner)
 
-def build(out: Path, per_item: int = 6, limit: int = 90):
+def build(out: Path, per_item: int = 4, per_artist: int = 30, limit: int = 150):
+    """Every artist's CC0 uploads, up to `per_item` tracks an album and
+    `per_artist` an artist, so no one sound fills the library."""
     out.mkdir(parents=True, exist_ok=True)
     raw_dir = out / "_raw"
     raw_dir.mkdir(exist_ok=True)
@@ -204,8 +243,9 @@ def build(out: Path, per_item: int = 6, limit: int = 90):
             continue
         cc0 = [it for it in items if CC0 in (it[2] or "")]
         log(f"{artist}: {len(items)} uploads, {len(cc0)} CC0")
+        mine = 0
         for ident, album, lic in cc0:
-            if len(catalog) >= limit:
+            if len(catalog) >= limit or mine >= per_artist:
                 break
             try:
                 tracks = archive_tracks(ident)
@@ -215,7 +255,7 @@ def build(out: Path, per_item: int = 6, limit: int = 90):
             tracks = [t for t in tracks if 60 <= t[2] <= 600][:per_item]
             for name, title, length in tracks:
                 key = (artist, title.lower())
-                if key in seen or len(catalog) >= limit:
+                if key in seen or len(catalog) >= limit or mine >= per_artist:
                     continue
                 seen.add(key)
                 src = f"https://archive.org/download/{ident}/{urllib.parse.quote(name)}"
@@ -226,78 +266,153 @@ def build(out: Path, per_item: int = 6, limit: int = 90):
                     m = measure(raw)
                 except Exception as e:  # noqa: BLE001
                     log(f"  {title}: skipped ({e!r})")
+                    raw.unlink(missing_ok=True)
                     continue
                 if not m["bpm"] or len(m["beats"]) < 40:
                     log(f"  {title}: no steady beat, skipped")
+                    raw.unlink(missing_ok=True)
                     continue
                 cut = out / f"{slug}.mp3"
                 subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", str(m["start"]), "-t", str(m["cut"]),
                                 "-i", str(raw), "-ac", "2", "-ar", "44100", "-b:a", "192k",
                                 "-af", "afade=t=in:d=0.02", str(cut)], check=True)
+                raw.unlink(missing_ok=True)
                 entry = {"id": slug, "file": cut.name, "artist": artist, "album": album, "title": title,
                          "license": lic, "source": src, "page": f"https://archive.org/details/{ident}",
-                         **m, "mood": mood(m)}
+                         "season": season(album, title), **m}
                 catalog.append(entry)
-                log(f"  + {artist} — {title}: {m['bpm']:.0f} bpm, rms {m['rms']:.3f}, "
-                    f"density {m['density']:.3f} -> {entry['mood']}")
+                mine += 1
+                log(f"  + {artist} — {title}: {m['bpm']:.0f} bpm, rms {m['rms']:.3f}, salience {m['salience']:.2f}, "
+                    f"low {m['low']:.2f}{' [' + entry['season'] + ']' if entry['season'] else ''}")
+    moods(catalog)
     (out / "catalog.json").write_text(json.dumps({"tracks": catalog}, indent=1, ensure_ascii=False))
     for f in raw_dir.glob("*"):
         f.unlink()
     raw_dir.rmdir()
-    log(f"music library: {len(catalog)} tracks "
-        f"({sum(t['mood'] == 'hype' for t in catalog)} hype, {sum(t['mood'] == 'drive' for t in catalog)} drive)")
+    by = {}
+    for t in catalog:
+        by.setdefault(t["artist"], []).append(t["mood"])
+    log(f"music library: {len(catalog)} tracks " + ", ".join(
+        f"{a}: {len(m)} ({m.count('hype')} hype)" for a, m in by.items()))
     return catalog
 
 
 # ------------------------------------------------------------------ use (renders)
 
-def fetch(dest: Path = CACHE) -> list:
-    """The catalog, with its files downloaded from the release (once per machine)."""
+def catalog(dest: Path = CACHE) -> list:
+    """The library's catalog, downloaded once per machine."""
     dest.mkdir(parents=True, exist_ok=True)
     cat = dest / "catalog.json"
     if not cat.exists():
         cat.write_bytes(_get(f"https://github.com/{REPO}/releases/download/{TAG}/catalog.json"))
-    tracks = json.loads(cat.read_text())["tracks"]
-    for t in tracks:
-        f = dest / t["file"]
-        if not f.exists():
-            try:
-                f.write_bytes(_get(f"https://github.com/{REPO}/releases/download/{TAG}/{t['file']}", timeout=120))
-            except Exception as e:  # noqa: BLE001
-                log(f"music: {t['file']} unavailable ({e!r})")
-    return [dict(t, path=str(dest / t["file"])) for t in tracks if (dest / t["file"]).exists()]
+    return json.loads(cat.read_text())["tracks"]
+
+
+def ensure(t: dict, dest: Path = CACHE) -> dict | None:
+    """The track with its mp3 on disk ("path"), or None when it can't be had."""
+    f = dest / t["file"]
+    if not f.exists():
+        try:
+            f.write_bytes(_get(f"https://github.com/{REPO}/releases/download/{TAG}/{t['file']}", timeout=120))
+        except Exception as e:  # noqa: BLE001
+            log(f"music: {t['file']} unavailable ({e!r})")
+            return None
+    return dict(t, path=str(f))
+
+
+def fetch(dest: Path = CACHE) -> list:
+    """Every track, downloaded."""
+    return [x for x in (ensure(t, dest) for t in catalog(dest)) if x]
 
 
 _LIB = None
 
 
 def library() -> list:
-    """The fetched library, or [] where it can't be had (then cc_audio synthesizes)."""
+    """The catalog, or [] where it can't be had (the edits then use the
+    synthesized bed). CC_MUSIC=0 turns the library off."""
     global _LIB
     if _LIB is None:
         if os.environ.get("CC_MUSIC", "1") == "0":
             _LIB = []
         else:
             try:
-                _LIB = fetch()
+                _LIB = catalog()
             except Exception as e:  # noqa: BLE001
                 log(f"music library unavailable ({e!r}); using the synthesized bed")
                 _LIB = []
     return _LIB
 
 
-def pick(mood_: str = "hype", seed: int = 0, want: str = "") -> dict | None:
-    """A track for a video: `want` (an id) if given, else one of the mood's, by seed."""
+def pick(mood_: str = "hype", seed: int = 0, want: str = "", avoid: tuple = (), day=None) -> dict | None:
+    """A track for a video, downloaded: `want` (an id) if given, else one of the
+    mood's, chosen by seed (not one in `avoid` while there are others). A
+    seasonal track (Christmas, Halloween) only plays in its month (`day`)."""
     lib = library()
     if not lib:
         return None
     if want:
         hit = [t for t in lib if t["id"] == want]
-        if hit:
-            return hit[0]
+        if hit and ensure(hit[0]):
+            return ensure(hit[0])
+    month = day.month if day else 0
+    lib = [t for t in lib if not t.get("season") or month in IN_SEASON.get(t["season"], ())] or lib
     pool = [t for t in lib if t["mood"] == mood_] or [t for t in lib if t["mood"] != "chill"] or lib
     pool = sorted(pool, key=lambda t: t["id"])
-    return pool[seed % len(pool)]
+    fresh = [t for t in pool if t["id"] not in avoid] or pool
+    for k in range(len(fresh)):
+        got = ensure(fresh[(seed + k) % len(fresh)])
+        if got:
+            return got
+    return None
+
+
+def downbeat(t: dict) -> int:
+    """Which of the track's first four beats starts a bar: the phase (beat
+    number mod 4) whose beats carry the most low-end onset energy -- the kick
+    drum. 0 when it can't be measured."""
+    beats = t.get("beats") or []
+    if len(beats) < 16 or not t.get("path"):
+        return 0
+    try:
+        x = decode(Path(t["path"]))
+    except Exception:  # noqa: BLE001
+        return 0
+    n_fft, hop = 2048, 512
+    if len(x) < n_fft * 4:
+        return 0
+    frames = np.lib.stride_tricks.sliding_window_view(x, n_fft)[::hop] * np.hanning(n_fft).astype(np.float32)
+    f = np.fft.rfftfreq(n_fft, 1 / SR)
+    low = np.log1p(10 * np.abs(np.fft.rfft(frames, axis=1))[:, (f >= 30) & (f <= 160)]).sum(axis=1)
+    flux = np.maximum(0, np.diff(low, prepend=low[0]))
+    idx = np.minimum(np.round(np.array(beats) * SR / hop).astype(int), len(flux) - 1)
+    vals = np.array([flux[max(0, i - 2):i + 3].max() for i in idx])
+    return int(np.argmax([vals[k::4].mean() for k in range(4)]))
+
+
+def extend(beats: list, cut: float, duration: float) -> list:
+    """How a cut of `cut` seconds lies under a video of `duration` seconds:
+    [(at, from, length)] -- the cut as it is up to its last beat, then its last
+    four bars (16 beats) again and again, joined on the beat. A cut too short
+    to know its bars is looped whole."""
+    if duration <= cut:
+        return [(0.0, 0.0, duration)]
+    if len(beats) < 17:
+        return [(k * cut, 0.0, cut) for k in range(int(duration // cut) + 1)]
+    a, e = beats[-17], beats[-1]
+    segs, at = [(0.0, 0.0, e)], e
+    while at < duration:
+        segs.append((at, a, e - a))
+        at += e - a
+    return segs
+
+
+def beat_grid(beats: list, cut: float, duration: float) -> list:
+    """The beat times under a video of `duration` seconds, as extend() lays the cut."""
+    out = []
+    for at, frm, length in extend(beats, cut, duration):
+        out += [at + b - frm for b in beats if frm <= b < frm + length - 1e-6 and at + b - frm < duration]
+    return sorted(set(round(b, 4) for b in out))
 
 
 def main():
@@ -305,17 +420,19 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build")
     b.add_argument("--out", default=str(OUT_DIR / "music-library"))
-    b.add_argument("--limit", type=int, default=90)
+    b.add_argument("--limit", type=int, default=150)
+    b.add_argument("--per-artist", type=int, default=30)
     sub.add_parser("fetch")
     sub.add_parser("list")
     a = ap.parse_args()
     if a.cmd == "build":
-        build(Path(a.out), limit=a.limit)
+        build(Path(a.out), per_artist=a.per_artist, limit=a.limit)
     elif a.cmd == "fetch":
         print(len(fetch()), "tracks in", CACHE)
     else:
         for t in library():
-            print(f"{t['mood']:6} {t['bpm']:6.1f} bpm  rms {t['rms']:.3f}  {t['artist']} — {t['title']}")
+            print(f"{t['mood']:6} {t['bpm']:6.1f} bpm  rms {t['rms']:.3f}  {t['artist']} — {t['title']}"
+                  f"{'  [' + t['season'] + ']' if t.get('season') else ''}")
 
 
 if __name__ == "__main__":

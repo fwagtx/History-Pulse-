@@ -15,6 +15,8 @@ the owner to watch before any of them goes live. Nothing schedules these.
   styles       the day's On This Day in each new look (STYLES), one video each;
                or style_<name> for one (e.g. style_calendar)
   topics       each new topic (TOPICS), one video each; or topic_<name>
+  edits        the formats cut as edits to real music (EDITS, cc_edit.py), one
+               video each; or edit_<name>
 
 The new looks and topics are switched on for this process only: looks.json, the
 quiz plan and the nightly builds never see them.
@@ -52,6 +54,10 @@ TOPICS = {"higher_lower": ("cc_fmt_higher_lower", "build", {"pool": "ch1"}),
           "then_now": ("cc_fmt_then_now", "build", {}),
           "tier_list": ("cc_fmt_tier_list", "build", {}),
           "battle_pass": ("cc_fmt_battle_pass", "build", {})}
+# The same formats cut as edits to real music (cc_edit.py): name -> (module, builder, kwargs).
+EDITS = {"most_common": ("cc_edit_most_common", "build", {}),
+         "higher_lower": ("cc_edit_higher_lower", "build", {"pool": "ch1"}),
+         "on_this_day": ("cc_edit_on_this_day", "build", {})}
 
 
 def short(name, make, ctx, out, seed, index, stem="") -> dict:
@@ -63,9 +69,13 @@ def short(name, make, ctx, out, seed, index, stem="") -> dict:
     stem = stem or f"sample-{index}-{name.replace('_', '-')}"
     qa = [COVER_T, 1.2] + [float(t) for t in range(4, int(v.comp.duration), 4)] + [round(v.comp.duration - .3, 2)]
     _render_one((v.comp, out, stem, "mp4", qa, seed, False, False))
-    return {"name": name, "built": True, "file": f"{stem}.mp4", "duration": round(v.comp.duration, 2),
-            "title": v.title, "yt_title": v.yt_title, "caption": v.caption, "ig_caption": ig_caption(v.caption),
-            "safe_zones": S.note(safe), "problems": post_problems(v)}
+    rep = {"name": name, "built": True, "file": f"{stem}.mp4", "duration": round(v.comp.duration, 2),
+           "title": v.title, "yt_title": v.yt_title, "caption": v.caption, "ig_caption": ig_caption(v.caption),
+           "safe_zones": S.note(safe), "problems": post_problems(v)}
+    music = getattr(v.comp, "music", None)
+    if music:
+        rep["music"] = {k: music[k] for k in ("artist", "title", "license", "page", "bpm", "synth") if k in music}
+    return rep
 
 
 def style(name, module, day, art, out, seed) -> dict:
@@ -94,15 +104,18 @@ def style(name, module, day, art, out, seed) -> dict:
     return rep
 
 
-def topic(name, spec, ctx, out, seed) -> dict:
+def topic(name, spec, ctx, out, seed, kind: str = "topic") -> dict:
     module, fn, kw = spec
     try:
         mod = importlib.import_module(module)
-        return short(f"topic_{name}", lambda c: getattr(mod, fn)(c, **kw), ctx, out, seed, 0,
-                     stem=f"sample-topic-{name.replace('_', '-')}")
+        rep = short(f"{kind}_{name}", lambda c: getattr(mod, fn)(c, **kw), ctx, out, seed, 0,
+                    stem=f"sample-{kind}-{name.replace('_', '-')}")
     except Exception as e:  # noqa: BLE001 - one broken sample must not cost the others
-        log(f"topic {name}: failed: {e!r}")
-        return {"name": f"topic_{name}", "built": False, "error": repr(e)}
+        import traceback
+        traceback.print_exc()
+        log(f"{kind} {name}: failed: {e!r}")
+        return {"name": f"{kind}_{name}", "built": False, "error": repr(e)}
+    return rep
 
 
 def main():
@@ -121,6 +134,8 @@ def main():
         what |= {f"style_{k}" for k in STYLES}
     if "topics" in what:
         what |= {f"topic_{k}" for k in TOPICS}
+    if "edits" in what:
+        what |= {f"edit_{k}" for k in EDITS}
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     shop = {"items": []}
@@ -135,7 +150,7 @@ def main():
     ctx = Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
     seed = int(day.strftime("%Y%m%d")) * 10
     report = {"day": day.isoformat(), "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-              "shorts": [], "long": None, "voices": [], "styles": [], "topics": []}
+              "shorts": [], "long": None, "voices": [], "styles": [], "topics": [], "edits": []}
 
     # BACK AFTER needs three comebacks of 180+ days; on a quiet day the sample
     # drops to 90+ so there's still something to look at.
@@ -152,6 +167,10 @@ def main():
     for i, (name, spec) in enumerate(TOPICS.items()):
         if f"topic_{name}" in what:
             report["topics"].append(topic(name, spec, ctx, out, seed + 40 + i))
+    for i, (name, spec) in enumerate(EDITS.items()):
+        if f"edit_{name}" in what:
+            rep = topic(name, spec, ctx, out, seed + 60 + i, kind="edit")
+            report["edits"].append(rep)
 
     if "long" in what:
         import cc_long as L
@@ -183,10 +202,10 @@ def main():
 
     # Runs for styles and topics can publish to the same release at once: each
     # keeps its own report.
-    parts = [k for k in ("styles", "topics") if report[k]]
+    parts = [k for k in ("styles", "topics", "edits") if report[k]]
     name = f"samples-{'-'.join(parts)}.json" if parts else "samples.json"
     (out / name).write_text(json.dumps(report, indent=1, ensure_ascii=False))
-    log(f"samples: {[s.get('file') for s in report['shorts'] + report['styles'] + report['topics']]} "
+    log(f"samples: {[s.get('file') for s in report['shorts'] + report['styles'] + report['topics'] + report['edits']]} "
         f"long={bool(report['long'])} voices={len(report['voices'])}")
 
 
