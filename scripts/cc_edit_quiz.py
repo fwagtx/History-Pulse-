@@ -124,7 +124,7 @@ TRANSITIONS = ["zoom", "whip_left", "zoom", "whip_up"]
 SEASONS = {
     "fortnitemares": {"tiles": ("dark", "lava"), "emoji": "🎃", "emoji2": "🦇",
                       "edition": "fortnitemares edition 🎃", "short": "fortnitemares"},
-    "winterfest": {"tiles": ("frozen", "rare"), "emoji": "❄️", "emoji2": "🎄",
+    "winterfest": {"tiles": ("frozen", "slurp"), "emoji": "❄️", "emoji2": "🎄",
                    "edition": "winterfest edition ❄️", "short": "winterfest"},
 }
 

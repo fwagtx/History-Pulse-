@@ -293,7 +293,9 @@ def build(ctx: Ctx, **_):
         over = ED.caption("final round 😤" if last else f"round {r + 1}/{n}", TOP_R, 300, 36, start - 1,
                           style="lime" if last else "dark", align="right", width=440, weight=800)
         over += name_cap(r, MID_X, TW, start - 1)
-        over += count_cap("? V-Bucks", MID_X, TW, start - 1, t_roll - FRAME)
+        # "? V-Bucks" becomes the rolling price in place: an exact hand-off (the kit's
+        # 1 ms fades show the old one on the boundary frame, the new one right after)
+        over += count_cap("? V-Bucks", MID_X, TW, start - 1, t_roll)
         over += count_cap(f"{ED.counter(it['price'], t_roll, t_land - t_roll)} V-Bucks", MID_X, TW, t_roll, raw=True)
         # the question, then what it was
         over += slot(_question(it), t_q, bu(marks[0]) - FRAME, rot=rnd.choice([-2, -1.5, 1.5, 2]))
@@ -301,9 +303,9 @@ def build(ctx: Ctx, **_):
             if j < len(lines):
                 over += slot(lines[j], bu(a), None if (b is None or j + 1 >= len(lines)) else bu(b) - FRAME, 54,
                              rot=rnd.choice([-3, -2, 2, 3]))
-        # the choices, until the reveal
+        # the choices, until the reveal lights them in place (an exact hand-off: no frame without them)
         for j in range(3):
-            over += choice(j, prices, "box", bu(picks[j]), t_land - FRAME, rot=(-2, 1, 2)[j])
+            over += choice(j, prices, "box", bu(picks[j]), t_land, rot=(-2, 1, 2)[j])
         # 3, 2, 1 in the middle of the tile
         for j, word in enumerate("321"):
             over += ED.caption(word, MID_X, CAM_Y - CD_SIZE / 2, CD_SIZE, bu(cd + j), bu(cd + j + 1) - FRAME,
