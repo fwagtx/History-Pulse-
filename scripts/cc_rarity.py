@@ -31,7 +31,8 @@ from datetime import date, timedelta
 from cc_common import OUT_DIR, log
 
 RELEASE_URL = "https://github.com/fwagtx/History-Pulse-/releases/download/cosmetics-data/br-full.json.gz"
-FRESH_URL = "https://fortnite-api.com/v2/cosmetics/br?responseFlags=4"
+# responseFlags: 2 = gameplay tags (Battle Pass, source...), 4 = shop history
+FRESH_URL = "https://fortnite-api.com/v2/cosmetics/br?responseFlags=6"
 RECORDS_START = date(2017, 10, 30)
 FIRST_SURE = date(2018, 1, 1)
 
