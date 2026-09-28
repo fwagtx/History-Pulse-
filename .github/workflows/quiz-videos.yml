@@ -26,8 +26,12 @@ on:
       sample:
         description: >-
           Optional: instead of quiz videos, render the approval samples of new
-          formats (scripts/cc_samples.py), e.g. "all" or "long,voices". They go
-          to a samples-DATE release that nothing schedules.
+          formats (scripts/cc_samples.py), e.g. "all", "long,voices", "styles"
+          or "topics". They go to a samples-DATE release that nothing schedules.
+        required: false
+        default: ""
+      sample_date:
+        description: Optional, with sample - the day the samples are for (YYYY-MM-DD). Empty = today.
         required: false
         default: ""
 
@@ -175,12 +179,18 @@ jobs:
       - name: Render the samples
         env:
           SAMPLE: ${{ inputs.sample }}
+          SAMPLE_DATE: ${{ inputs.sample_date }}
         run: |
           set -e
           [[ "$SAMPLE" =~ ^[a-z_,]+$ ]] || { echo "::error::sample must look like all or long,voices"; exit 1; }
-          python3 scripts/cc_samples.py --out creator-code/out/samples --what "$SAMPLE"
+          DAY=()
+          if [ -n "$SAMPLE_DATE" ]; then
+            [[ "$SAMPLE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::sample_date must look like 2026-09-28"; exit 1; }
+            DAY=(--day "$SAMPLE_DATE")
+          fi
+          python3 scripts/cc_samples.py --out creator-code/out/samples --what "$SAMPLE" "${DAY[@]}"
           ls -la creator-code/out/samples
-          cat creator-code/out/samples/samples.json
+          cat creator-code/out/samples/samples*.json
 
       - name: Publish to a release
         env:
@@ -191,12 +201,15 @@ jobs:
           TAG="samples-$(date -u +%F)"
           shopt -s nullglob
           FILES=("$DIR"/sample-*.mp4 "$DIR"/sample-*-cover.png "$DIR"/sample-*-qa.jpg "$DIR"/sample-*-thumbnail.* \
-                 "$DIR"/voice-*.m4a "$DIR/samples.json")
+                 "$DIR"/voice-*.m4a "$DIR"/samples*.json)
           NOTES="Approval samples of new formats. Nothing schedules these."
+          # Two sample runs can finish at once: whichever loses the race to
+          # create the release uploads into it instead.
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "${FILES[@]}" --clobber
           else
-            gh release create "$TAG" --title "Samples $TAG" --notes "$NOTES" "${FILES[@]}"
+            gh release create "$TAG" --title "Samples $TAG" --notes "$NOTES" "${FILES[@]}" \
+              || { sleep 10; gh release upload "$TAG" "${FILES[@]}" --clobber; }
           fi
           echo "https://github.com/${{ github.repository }}/releases/tag/$TAG"
 
