@@ -172,6 +172,7 @@ CSS = """
 @keyframes mtfill{from{transform:scale(0)}to{transform:scale(1)}}
 @keyframes mtflash{0%%,100%%{opacity:0}30%%,60%%{opacity:1}}
 @keyframes mtbadge{0%%{opacity:0;transform:scale(1.3)}55%%{opacity:1;transform:scale(.97)}100%%{opacity:1;transform:scale(1)}}
+@keyframes mtpush{from{transform:scale(1)}to{transform:scale(1.045)}}
 @keyframes mtbump{0%%,100%%{transform:translateY(0)}35%%{transform:translateY(7px)}70%%{transform:translateY(-2px)}}
 """
 
@@ -388,7 +389,7 @@ def _figure(ctx, it: dict, h: float, maxw: float) -> str:
             f'border:3px dashed #b9b3a6;border-radius:24px;overflow-wrap:anywhere">{esc(it["name"])}</div>')
 
 
-def _poster_station(ctx, it: dict, debut: bool, top: float, t_arr: float) -> str:
+def _poster_station(ctx, it: dict, debut: bool, top: float, t_arr: float, hold: float = 5.0) -> str:
     """A year's poster: the outfit over a disc of its rarity's colour, a rule,
     its name (up to two lines), rarity and type, and what that day was. The
     words take the room they need at the foot; the outfit gets the rest."""
@@ -397,7 +398,8 @@ def _poster_station(ctx, it: dict, debut: bool, top: float, t_arr: float) -> str
     w = IW - 52
     html = (f'<div class="mt-poster mt-stack" style="top:{top:.0f}px">'
             f'<div class="mt-circ" style="left:{IW / 2 - 190:.0f}px;top:96px;width:380px;height:380px;background:{col}"></div>'
-            f'<div class="mt-figbox"><div class="in">{_figure(ctx, it, 0, IW - 48)}</div></div>'
+            f'<div class="mt-figbox"><div class="in" style="transform-origin:50% 100%;'
+            f'{_a("mtpush", t_arr + .15, hold, "cubic-bezier(.4,0,.6,1)")}">{_figure(ctx, it, 0, IW - 48)}</div></div>'
             f'<div style="flex:none;position:relative;margin-top:12px">'
             f'<div class="mt-rule"></div>'
             f'<div class="mt-name" data-fit="{w}" data-lines="2" style="width:{w}px;font-size:56px;margin-top:12px">'
@@ -440,19 +442,19 @@ def _poster_bday(bday: dict, when: str, top: float, t_arr: float) -> str:
     y = bday["year"]
     return (f'<div class="mt-poster" style="top:{top:.0f}px">'
             f'<div class="mt-name" style="position:absolute;left:24px;top:30px;font-size:160px;letter-spacing:-.04em">{y}</div>'
-            f'<svg class="abs" style="left:0;top:214px" width="{IW}" height="60">'
+            f'<svg class="abs" style="left:0;top:252px" width="{IW}" height="60">'
             f'<path d="M36,30 H{IW - 20}" stroke="{INK}" stroke-width="40"/>'
             f'<path d="M36,30 H{IW - 20}" stroke="{LIME}" stroke-width="26"/>'
             f'<rect x="30" y="0" width="12" height="60" rx="3" fill="{INK}"/>'
             f'<circle cx="120" cy="30" r="{DISC_R}" fill="#fffdf8" stroke="{INK}" stroke-width="{DISC_S}"/></svg>'
-            f'<div class="abs" style="left:26px;top:300px;width:{w}px">'
+            f'<div class="abs" style="left:26px;top:372px;width:{w}px">'
             f'<div class="mt-name" style="font-size:50px;line-height:1.02">FORTNITE<br>BATTLE ROYALE</div>'
             f'<div class="mt-bd" style="font-size:150px;line-height:.86;margin-top:6px;color:{INK}">OPENS</div>'
             f'<div class="mt-rule" style="margin-top:18px"></div>'
             f'<div class="mt-bd" style="font-size:46px;margin-top:14px;color:{INK}">{esc(when.upper())}, {y}</div>'
             f'<div class="mt-note mt-mono" data-fit="{w}" style="font-size:24px;margin-top:10px;white-space:nowrap">'
             f'PC · PLAYSTATION 4 · XBOX ONE</div></div>'
-            f'<div class="mt-badge" style="right:18px;top:40px;background:{INK};color:#fbfaf6;'
+            f'<div class="mt-badge" style="left:{IW - 30 - 138}px;top:{282 - 69}px;background:{INK};color:#fbfaf6;'
             f'box-shadow:inset 0 0 0 9px {LIME},0 3px 5px rgba(0,0,0,.22);'
             f'{_a("mtbadge", t_arr + .5, .36, "cubic-bezier(.3,1.3,.5,1)")}">'
             f'<span class="a">{bday["age"]}</span><span class="b">YEARS<br>TODAY</span></div>'
@@ -556,7 +558,7 @@ def on_this_day(ctx, rounds: list, bday, lead: list, third) -> Comp:
         roll.append(_poster_bday(bday, when_long, step, t_arr[0]))
         k = 1
     for j, (rd, it, debut) in enumerate(rounds):
-        roll.append(_poster_station(ctx, it, debut, (k + j + 1) * step, t_arr[k + j]))
+        roll.append(_poster_station(ctx, it, debut, (k + j + 1) * step, t_arr[k + j], r - DEP - ARR - .3))
     picks = [(rd["year"], it) for rd, it, _ in lead]
     if third is not None:
         yr = next((rd["year"] for rd, it, _ in rounds if it is third), None)

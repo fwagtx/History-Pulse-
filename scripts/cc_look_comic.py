@@ -92,8 +92,6 @@ INK_FILTER = f"url(#cmink) drop-shadow(11px 10px 0 {INK})"
 
 CSS = """
 .cm-paper{background:#efe5cc url('@paper@') center/cover}
-.cm-grain{position:absolute;inset:0;pointer-events:none;background:url('@grain@') 0 0/512px 512px;
-  mix-blend-mode:multiply;opacity:.6}
 .cm-dots{position:absolute;-webkit-mask:url('@dots@') no-repeat;mask:url('@dots@') no-repeat;
   -webkit-mask-size:1300px 1300px;mask-size:1300px 1300px}
 .cm-lines{position:absolute;-webkit-mask:url('@lines@') no-repeat;mask:url('@lines@') no-repeat;
@@ -120,7 +118,6 @@ CSS = """
 @keyframes cmslam{0%{opacity:0;transform:scale(2.2) rotate(calc(var(--r,0deg) - 22deg))}1%{opacity:1}
   45%{opacity:1;transform:scale(.9) rotate(calc(var(--r,0deg) + 3deg))}
   72%{transform:scale(1.035) rotate(var(--r,0deg))}100%{opacity:1;transform:scale(1) rotate(var(--r,0deg))}}
-@keyframes cmdrift{from{transform:scale(1)}to{transform:scale(1.06)}}
 @keyframes cmthump{0%,100%{transform:scale(1)}35%{transform:scale(1.05)}}
 @keyframes cmshake{0%,100%{transform:none}20%{transform:translate(-6px,4px)}45%{transform:translate(5px,-3px)}
   70%{transform:translate(-2px,2px)}}
@@ -214,17 +211,16 @@ def _burst(inner: str, cx: float, cy: float, w: float, h: float, fill: str, seed
 def _panel_bg(color: str, x: float, y: float, w: float, h: float, focus: tuple, t0, dur: float,
               lines: float = .78, tint: float = .74, base: str = "", dot: str = "") -> str:
     """The panel's printed art: a light tint of the colour, Ben-Day dots of it
-    that thin out towards the focus, and ink focus lines aimed at it. It drifts
-    in a little over the page (a slow push, like a motion comic)."""
+    that thin out towards the focus, and ink focus lines aimed at it. Printed:
+    it holds still (a moving masked layer would cost every frame)."""
     fx, fy = focus[0] - x, focus[1] - y
-    m = 60                                              # room for the drift
-    drift = _a("cmdrift", t0, dur, "linear") if t0 is not None else ""
+    m = 0
     mp = f"-webkit-mask-position:{fx + m - 650:.0f}px {fy + m - 650:.0f}px;mask-position:{fx + m - 650:.0f}px {fy + m - 650:.0f}px;"
     ml = f"-webkit-mask-position:{fx + m - 720:.0f}px {fy + m - 720:.0f}px;mask-position:{fx + m - 720:.0f}px {fy + m - 720:.0f}px;"
     return (f'<div class="abs" data-safe="ignore" style="left:{x + MX:.0f}px;top:{y + MY:.0f}px;width:{w:.0f}px;'
             f'height:{h:.0f}px;overflow:hidden">'
             f'<div class="abs" style="left:{-m}px;top:{-m}px;width:{w + 2 * m:.0f}px;height:{h + 2 * m:.0f}px;'
-            f'transform-origin:{fx + m:.0f}px {fy + m:.0f}px;{drift}">'
+            f'">'
             f'<div class="abs" style="inset:0;background:{base or _mix(color, PAPER, tint)};mix-blend-mode:multiply"></div>'
             f'<div class="cm-dots" style="inset:0;background:{dot or color};mix-blend-mode:multiply;{mp}"></div>'
             + (f'<div class="cm-lines" style="inset:0;background:{INK};opacity:{lines};{ml}"></div>' if lines else "")
@@ -334,6 +330,12 @@ def _row(years: list, cur: int, t_on=None) -> str:
         fill = CAP if on else (_mix(PAPER, INK, .1) if past else PAPER)
         col = INK if not past or on else "#857a64"
         anim = _a("cmpop", t_on, .32, "cubic-bezier(.3,1.5,.5,1)") if (on and t_on is not None) else ""
+        if anim:
+            # the plain panel stays under the highlight until it pops on
+            out.append(f'<div class="abs" style="left:{X0 + i * step:.0f}px;top:{ROW_Y}px;width:{w:.0f}px;'
+                       f'height:{ROW_H}px;background:{PAPER};border:4px solid {INK};display:flex;'
+                       f'align-items:center;justify-content:center"><span class="cm-o" data-safe="ignore" '
+                       f'style="font-size:{size:.0f}px;line-height:1;letter-spacing:.02em">{y}</span></div>')
         out.append(f'<div class="abs" style="left:{X0 + i * step:.0f}px;top:{ROW_Y}px;width:{w:.0f}px;'
                    f'height:{ROW_H}px;{anim}">'
                    + (f'<div class="cm-sh" style="transform:translate(6px,6px)"></div>' if on else "")
@@ -454,7 +456,7 @@ def _page(inner: str, t_turn, cast_at=None) -> str:
     return (f'<div class="full" style="perspective:2600px;perspective-origin:540px 960px">'
             f'<div class="full cm-paper" style="transform-origin:0 50%;backface-visibility:hidden;'
             f'-webkit-backface-visibility:hidden;overflow:hidden;{turn}">'
-            f'{inner}<div class="cm-grain"></div>{cast}'
+            f'{inner}{cast}'
             f'<div class="abs" data-safe="ignore" style="inset:0;background:linear-gradient(90deg,'
             f'rgba(30,22,8,.14),rgba(30,22,8,.74));opacity:0;{shade}"></div>'
             f'</div></div>')
@@ -627,7 +629,7 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
     comp = Comp(pad_to(content_end))
     comp.use_fonts(*FONTS)
     css = CSS
-    for k, v in (("paper", tex("comic-newsprint.jpg")), ("grain", tex("comic-grain.png")),
+    for k, v in (("paper", tex("comic-newsprint.jpg")),
                  ("dots", tex("comic-dots.png")), ("lines", tex("comic-lines.png")), ("INK", INK),
                  ("MX", str(MX)), ("MY", str(MY))):
         css = css.replace(f"@{k}@", v)

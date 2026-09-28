@@ -40,7 +40,7 @@ import random
 from datetime import date
 
 from cc_looks import KIT_CSS, LIME, PREP_JS, pad_to, rough_line, stroke_svg, tex
-from cc_motion import Comp, esc
+from cc_motion import RARITY, Comp, esc
 
 HOOK = 3.0
 R = 6.5
@@ -115,6 +115,8 @@ CSS = """
   78%%{transform:translate(8px,0) rotate(.6deg)}100%%{transform:translate(0,0) rotate(0deg)}}
 @keyframes calstamp{0%%{opacity:0;transform:scale(1.14) rotate(var(--r))}
   45%%{opacity:.9;transform:scale(.985) rotate(var(--r))}100%%{opacity:.9;transform:scale(1) rotate(var(--r))}}
+@keyframes caldot{0%%{opacity:0;transform:scale(1.45) rotate(-20deg)}55%%{opacity:1;transform:scale(.94) rotate(3deg)}
+  100%%{opacity:1;transform:scale(1) rotate(0deg)}}
 @keyframes calwrite{from{clip-path:inset(-20%% 100%% -30%% 0)}to{clip-path:inset(-20%% -2%% -30%% 0)}}
 """
 
@@ -145,7 +147,7 @@ FIX_JS = """<script>(() => {
 PRINT_BAKE = ("url(#calcut) drop-shadow(0 2px 1.5px rgba(40,25,10,.30)) "
               "drop-shadow(5px 10px 9px rgba(40,25,10,.20))")
 STANDEE_BAKE = ("url(#calboard) drop-shadow(0 3px 2px rgba(30,18,8,.35)) "
-                "drop-shadow(26px 16px 16px rgba(30,18,8,.30))")
+                "drop-shadow(16px 10px 10px rgba(30,18,8,.30))")
 
 
 # ------------------------------------------------------------------ helpers
@@ -469,12 +471,18 @@ def _page_year(ctx, rd: dict, it: dict, debut: bool, t0: float) -> tuple:
             _date_block(day, y)]
     kx, ky = _L(LX0 + 4, KICK_Y)
     kind = _kind(it)
-    html.append(f'<div class="abs cal-sc" data-fit="{LX1 - LX0 - 10}" style="left:{kx}px;top:{ky}px;'
+    col = RARITY.get(it.get("rarity", ""), "#9AA0A6")
+    # a colour-coding dot sticker, stuck on by hand a moment after the page shows
+    html.append(f'<div class="abs" style="left:{kx}px;top:{ky - 7}px;width:38px;height:38px;border-radius:50%;'
+                f'background:radial-gradient(circle at 36% 32%,rgba(255,255,255,.55),rgba(255,255,255,0) 42%),{col};'
+                f'box-shadow:0 1px 1px rgba(30,15,5,.35),1px 3px 4px rgba(30,15,5,.25);'
+                f'{_a("caldot", t0 + 1.45, .3, "cubic-bezier(.3,.9,.4,1)")}"></div>')
+    html.append(f'<div class="abs cal-sc" data-fit="{LX1 - LX0 - 62}" style="left:{kx + 50}px;top:{ky}px;'
                 f'font-size:25px;letter-spacing:.2em;color:{MUTED}">{esc(kind.upper())}</div>')
+    sounds = [(t0 + 1.45, "paper")]
     nx, ny = _L(LX0 + 2, NAME_Y)
     html.append(f'<div class="abs cal-type" data-fit="{LX1 - LX0 - 6}" data-lines="2" style="left:{nx}px;top:{ny}px;'
                 f'width:{LX1 - LX0 - 6}px;font-size:74px;line-height:1.0;color:{INK}">{esc(it["name"])}</div>')
-    sounds = []
     if debut:
         sx, sy = _L(RX0 + 20, 918)
         html.append(f'<div class="abs" style="left:{sx}px;top:{sy}px">'
@@ -544,8 +552,10 @@ def _page_cover(ctx, span: str, bday) -> str:
     return "".join(html)
 
 
-def _page_outro(t: float) -> tuple:
-    """The NOTES sheet at the back of the pad, and the question in pen."""
+def _page_outro(t: float, years: list) -> tuple:
+    """The NOTES sheet at the back of the pad: the question in pen, and the
+    picks' years listed with a box to tick (the picks stand on the desk, in the
+    same order)."""
     rules = "".join(
         f'<div class="abs" style="left:18px;right:18px;top:{yy - SY}px;height:2px;background:rgba(90,120,150,.22)">'
         f'</div>' for yy in range(560, 1290, 62))
@@ -556,7 +566,24 @@ def _page_outro(t: float) -> tuple:
             + f'<div class="abs cal-hand" style="left:{x}px;top:{y}px;width:{RX1 - LX0 - 20}px;font-size:96px;'
               f'line-height:1.02;color:{INK};transform:rotate(-2deg);'
               f'{_a("calwrite", t + .15, 1.1, "steps(22,end)")}">Which year had<br>the best shop?</div>')
-    return html, [(t + .15, "pen"), (t + .65, "pen")]
+    sounds = [(t + .15, "pen"), (t + .65, "pen")]
+    paths = []
+    for i, yr in enumerate(years):
+        ty = 752 + i * 96
+        tw = t + 2.05 + i * .4
+        bx = RX0 + 36
+        box = [rough_line(bx, ty + 14, bx + 40, ty + 12, seed=i * 5 + 1, bow=.04),
+               rough_line(bx + 40, ty + 12, bx + 42, ty + 52, seed=i * 5 + 2, bow=.04),
+               rough_line(bx + 42, ty + 52, bx + 2, ty + 54, seed=i * 5 + 3, bow=.04),
+               rough_line(bx + 2, ty + 54, bx, ty + 14, seed=i * 5 + 4, bow=.04)]
+        paths.append(stroke_svg(box, INK, 4, tw, .07, opacity=.85, gap=.0))
+        lx, ly = _L(bx + 62, ty - 6)
+        html += (f'<div class="abs cal-hand" style="left:{lx}px;top:{ly}px;font-size:70px;color:{INK};'
+                 f'transform:rotate(-2deg);{_a("calwrite", tw + .22, .3, "steps(8,end)")}">{yr}</div>')
+        sounds.append((tw, "pen"))
+    # the strokes are drawn in frame coordinates: shift them into the sheet's
+    html += f'<div class="abs" style="left:{-SX}px;top:{-SY}px;width:1080px;height:1920px">{"".join(paths)}</div>'
+    return html, sounds
 
 
 def _sheet(inner: str, seed: int, t_tear) -> str:
@@ -583,7 +610,7 @@ def _standee(ctx, it: dict, cx: float, h: float, w: float, anim: str) -> str:
             f'height:{h:.0f}px;{anim}">'
             f'<div class="abs" style="left:{w * .18:.0f}px;top:{h - 14:.0f}px;width:{w * .64:.0f}px;height:26px;'
             f'border-radius:50%;background:rgba(25,12,4,.5);filter:blur(6px)"></div>'
-            + _picture(ctx.art(it), it, w, h, STANDEE_BAKE, 70) + '</div>')
+            + _picture(ctx.art(it), it, w, h, STANDEE_BAKE, 40) + '</div>')
 
 
 # ------------------------------------------------------------------ the video
@@ -656,8 +683,8 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     a, b = lead[0][1], lead[1][1]
     cover = _sheet(_page_cover(ctx, span, bday), 11, tears[0])
     comp.scene(0, HOOK + .05, f'<div class="full" style="{persp}">{cover}</div>', fade_in=.01, fade_out=.01, z=40)
-    stand = (_standee(ctx, b, 420, 690, 300, _a("calout", 1.62, .5, "cubic-bezier(.5,0,.85,.4)"))
-             + _standee(ctx, a, 212, 750, 330, _a("calout", 1.72, .5, "cubic-bezier(.5,0,.85,.4)")))
+    stand = (_standee(ctx, b, 440, 736, 280, _a("calout", 1.62, .5, "cubic-bezier(.5,0,.85,.4)"))
+             + _standee(ctx, a, 236, 784, 336, _a("calout", 1.72, .5, "cubic-bezier(.5,0,.85,.4)")))
     comp.scene(0, 2.3, f'<div class="full">{stand}</div>', fade_in=.01, fade_out=.01, z=65)
     comp.cue(1.62, "paper")
     comp.cue(tears[0] + .05, "paper"); comp.cue(rips[0], "paper"); comp.cue(rips[0] + .12, "whoosh")
@@ -683,13 +710,14 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
 
     # ---- outro: the NOTES sheet, the question in pen, the picks on the desk again
     t = content_end
-    notes, sounds = _page_outro(t)
+    picks = [x[1] for x in lead] + ([third] if third else [])
+    year_of = {id(it): rd["year"] for rd, it, _ in rounds}
+    notes, sounds = _page_outro(t, [year_of.get(id(it), "") for it in picks])
     comp.scene(tears[-1], comp.duration, f'<div class="full" style="{persp}">{_sheet(notes, 999, None)}</div>',
                fade_in=.01, fade_out=.01, z=39 - n - 1)
     for s in sounds:
         comp.cue(*s)
-    picks = [x[1] for x in lead] + ([third] if third else [])
-    spots = [(170, 610, 300), (330, 660, 300), (478, 560, 250)]
+    spots = [(204, 640, 276), (362, 690, 286), (462, 600, 236)]
     outro = ""
     for i, (it, (cx, h, w)) in enumerate(zip(picks, spots)):
         outro += _standee(ctx, it, cx, h, w, _a("calin", t + 1.3 + i * .22, .55, "cubic-bezier(.2,.75,.3,1)"))

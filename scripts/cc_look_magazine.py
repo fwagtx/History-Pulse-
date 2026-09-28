@@ -398,7 +398,7 @@ def _special(ctx, lead: list, span: str, when_short: str, bday) -> str:
     if bday:
         head = (f'<div class="mg-name" data-mgfit="{COL_W}" data-lines="3" style="width:{COL_W}px;font-size:104px;'
                 f'color:{th["text"]};line-height:.94">Fortnite turns {bday["age"]}!</div>')
-        sub = f"Battle Royale came out on this day in {bday['year']} · The Item Shop, every year since"
+        sub = f"Battle Royale came out on this day in {bday['year']}"
     else:
         head = (f'<div class="mg-name" style="width:{COL_W}px;font-size:112px;color:{th["text"]};line-height:.9">'
                 f'On<br>this<br>day</div>')
@@ -408,8 +408,8 @@ def _special(ctx, lead: list, span: str, when_short: str, bday) -> str:
                 f'<div class="mg-year" style="position:relative;font-size:128px;line-height:.86;color:{th["year"]}">'
                 f'{esc(when_short.upper())}</div></div>'
                 # bottom right, under the stars' feet: what it is, and the span, big
-                f'<div class="abs" style="right:{CW - 792}px;top:{_top(968, 36, BC):.1f}px;width:440px;text-align:right;'
-                f'z-index:4"><div class="mg-cl" data-mgfit="440" data-lines="2" style="font-size:36px;'
+                f'<div class="abs" style="right:{CW - 770}px;top:{_top(968, 36, BC):.1f}px;width:420px;text-align:right;'
+                f'z-index:4"><div class="mg-cl" data-mgfit="420" data-lines="2" style="font-size:36px;'
                 f'color:{th["text"]}">{esc(sub)}</div>'
                 f'<div class="mg-year" style="position:relative;font-size:104px;line-height:.9;margin-top:6px;'
                 f'color:{th["text"]}">{esc(span)}</div></div>')
@@ -426,10 +426,10 @@ def _collector(bday: dict, k: int, n: int, when_up: str, t_imp: float) -> tuple:
                + f'<div class="abs mg-cl mg-rule" style="left:34px;right:34px;top:318px;height:44px;font-size:34px;'
                  f'letter-spacing:.32em;color:{gold};z-index:4"><i style="background:{gold}"></i>Collector\'s edition'
                  f'<i style="background:{gold}"></i></div>'
-               + _year(y, th, 400, 270)
-               + f'<div class="abs mg-name" data-mgfit="760" data-lines="2" style="left:{COL_X}px;top:640px;width:760px;'
+               + _year(y, th, 394, 262)
+               + f'<div class="abs mg-name" data-mgfit="760" data-lines="2" style="left:{COL_X}px;top:604px;width:760px;'
                  f'font-size:100px;color:{th["text"]};z-index:4">Fortnite Battle Royale is out!</div>'
-               + f'<div class="abs mg-cl" style="left:{COL_X}px;top:852px;width:760px;font-size:40px;line-height:1.12;'
+               + f'<div class="abs mg-cl" style="left:{COL_X}px;top:814px;width:760px;font-size:40px;line-height:1.12;'
                  f'color:{gold};z-index:4">September 26, {y}<br><span style="color:{th["text"]}">'
                  f'PC · PlayStation 4 · Xbox One</span></div>'
                + _barcode(y, "0 17092 6 00001 9"))
@@ -453,7 +453,6 @@ def _code(cx: float, cy: float, k: float = 1.0, style: str = "") -> str:
 
 def _teaser(ctx, picks: list) -> str:
     """The NEXT ISSUE page: the question and the lead picks with their years."""
-    th = TEASER
     content = (f'<div class="abs mg-cl mg-rule" style="left:34px;right:34px;top:40px;height:44px;font-size:36px;'
                f'letter-spacing:.34em;color:{RED};z-index:4"><i style="background:{RED};height:3px"></i>Next issue'
                f'<i style="background:{RED};height:3px"></i></div>'
@@ -514,7 +513,7 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     for i, cv in enumerate(covers):
         nxt = covers[i + 1]["t"] if i + 1 < len(covers) else None
         rnd = random.Random(ctx.seed * 7 + i)
-        nudge = (nxt - .02, rnd.choice((-1, 1)) * rnd.uniform(3, 7), rnd.uniform(2, 6)) if nxt else None
+        nudge = (nxt - .02, rnd.uniform(-7, 2.5), rnd.uniform(2, 6)) if nxt else None
         html.append(_cover(cv["content"], cv["theme"], i, cv["t"], nudge, .35 if i == 0 else None))
         if cv["t"] is not None:
             sounds += [(cv["t"] - FALL + .02, "whoosh"), (cv["t"] - .2, "flip")]

@@ -890,37 +890,36 @@ def _title(ctx, tr: _Tracks, lead: list, when_short: str, span: str, bday, cues:
 def _bonus(tr: _Tracks, bday: dict, when: str, t0: float, t1: float, cues: list) -> str:
     """Sep 26: the BONUS STAGE -- Battle Royale's release day and a birthday cake."""
     clear = t1 - .12
-    out = [_tc("BONUS STAGE", MID, 330, 46, CYAN, _anim(tr.vis(_blink(t0, clear, .6, .25))))]
-    out.append(_tc("FORTNITE", MID, 392, 96, WHITE, _anim(tr.vis([(t0 + .15, clear)]),
-                                                         _a("acdrop", t0 + .15, .34, "steps(6,end)"))))
-    out.append(_tc("BATTLE ROYALE", MID, 486, 96, WHITE, _anim(tr.vis([(t0 + .3, clear)]),
-                                                              _a("acdrop", t0 + .3, .34, "steps(6,end)"))))
+    out = [_tc("BONUS STAGE", MID, 318, 50, CYAN, _anim(tr.vis(_blink(t0 + .55, clear, .6, .25))))]
+    for j, (word, dy) in enumerate((("FORTNITE", 378), ("BATTLE ROYALE", 482))):
+        tj = t0 + .15 + j * .15
+        out.append(_tc(word, MID, dy, 112, WHITE, _anim(tr.vis([(tj, clear)]), _a("acdrop", tj, .34, "steps(6,end)"))))
     rel = f"RELEASED {when.upper()}, {bday['year']}"
-    s1, _ = _fit(rel, CX1 - CX0 - 30, 48)
-    out.append(_typed(rel, MID - len(rel) * EM * s1 / 2, 616, s1, LIME, t0 + .8, .03, tr.vis([(t0 + .8, clear)])))
+    s1, _ = _fit(rel, CX1 - CX0 - 30, 50)
+    out.append(_typed(rel, MID - len(rel) * EM * s1 / 2, 612, s1, LIME, t0 + .8, .03, tr.vis([(t0 + .8, clear)])))
     plat = "PC · PLAYSTATION 4 · XBOX ONE"
-    s2, _ = _fit(plat, CX1 - CX0 - 30, 42)
-    out.append(_typed(plat, MID - len(plat) * EM * s2 / 2, 680, s2, WHITE, t0 + 1.7, .025,
+    s2, _ = _fit(plat, CX1 - CX0 - 30, 44)
+    out.append(_typed(plat, MID - len(plat) * EM * s2 / 2, 676, s2, WHITE, t0 + 1.7, .025,
                       tr.vis([(t0 + 1.7, clear)])))
     rows, alt = _cake(bday["age"])
-    p = 14
+    p = 18
     cw = len(rows[0]) * p
     cx0 = MID - cw / 2
-    t_cake = t0 + 2.5
-    cake_body = _bitmap(rows[2:], CAKE_COLORS, cx0, 800 + 2 * p, p, _anim(tr.vis([(t_cake, clear)])))
-    flames_a = _bitmap(rows[:2], CAKE_COLORS, cx0, 800, p,
-                       _anim(tr.vis(_blink(t_cake + .35, clear, .18, .18))))
-    flames_b = _bitmap(alt[:2], CAKE_COLORS, cx0, 800, p,
-                       _anim(tr.vis(_blink(t_cake + .53, clear, .18, .18))))
-    out += [cake_body, flames_a, flames_b]
+    t_cake = t0 + 2.4
+    top = 762
+    out.append(f'<div class="abs" style="left:{MID - cw * .46:.0f}px;top:{top + len(rows) * p:.0f}px;'
+               f'width:{cw * .92:.0f}px;height:10px;background:#0e3a44;{_anim(tr.vis([(t_cake, clear)]))}"></div>')
+    out.append(_bitmap(rows[2:], CAKE_COLORS, cx0, top + 2 * p, p, _anim(tr.vis([(t_cake, clear)]))))
+    out.append(_bitmap(rows[:2], CAKE_COLORS, cx0, top, p, _anim(tr.vis(_blink(t_cake + .35, clear, .18, .18)))))
+    out.append(_bitmap(alt[:2], CAKE_COLORS, cx0, top, p, _anim(tr.vis(_blink(t_cake + .53, clear, .18, .18)))))
     hb = f"HAPPY BIRTHDAY — {bday['age']} YEARS TODAY"
-    s3, _ = _fit(hb, CX1 - CX0 - 60, 42)
-    bw = len(hb) * EM * s3 + 36
-    t_hb = t0 + 3.1
-    on = _blink(t_hb, clear, .55, .2)
-    out.append(f'<div class="abs" style="left:{MID - bw / 2:.0f}px;top:1112px;width:{bw:.0f}px;height:60px;'
+    s3, _ = _fit(hb, CX1 - CX0 - 70, 50)
+    bw = len(hb) * EM * s3 + 40
+    t_hb = t0 + 3.0
+    on = _blink(t_hb, clear, .6, .2)
+    out.append(f'<div class="abs" style="left:{MID - bw / 2:.0f}px;top:1068px;width:{bw:.0f}px;height:72px;'
                f'background:{LIME};{_anim(tr.vis(on))}"></div>')
-    out.append(_tc(hb, MID, 1112 + 30 - (BASE - CAP / 2) * s3, s3, INK, _anim(tr.vis(on))))
+    out.append(_tc(hb, MID, 1068 + 36 - (BASE - CAP / 2) * s3, s3, INK, _anim(tr.vis(on))))
     cues += [(t0 + .15, "pop"), (t0 + .3, "pop"), (t0 + .8, "tick"), (t0 + 1.7, "tick"), (t_cake, "reveal"),
              (t_hb, "ding")]
     return "".join(out)
