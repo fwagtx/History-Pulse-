@@ -149,10 +149,10 @@ CSS = """
   letter-spacing:-.01em}
 .mg-cl{font-family:'Barlow Condensed';font-weight:800;text-transform:uppercase;line-height:1.02;letter-spacing:.02em}
 .mg-kick{display:inline;padding:2px 12px 0;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-.mg-name{font-family:'Playfair Display';font-weight:900;line-height:.98;text-wrap:balance;overflow-wrap:break-word}
-.mg-kind{font-family:'Barlow Condensed';font-weight:800;font-size:29px;letter-spacing:.14em;text-transform:uppercase;
-  line-height:1.1;display:flex;align-items:center;gap:12px}
-.mg-kind i{flex:none;width:18px;height:18px;border-radius:2px;box-shadow:0 0 0 2px rgba(255,255,255,.55)}
+.mg-name{font-family:'Playfair Display';font-weight:900;line-height:.98;text-wrap:balance}
+.mg-kind{font-family:'Barlow Condensed';font-weight:800;font-size:29px;letter-spacing:.12em;text-transform:uppercase;
+  line-height:1.1;display:flex;align-items:flex-start;gap:12px}
+.mg-kind i{flex:none;width:18px;height:18px;margin-top:6px;border-radius:2px;box-shadow:0 0 0 2px rgba(255,255,255,.55)}
 .mg-rule{display:flex;align-items:center;gap:18px}
 .mg-rule i{flex:1;height:2px}
 .mg-bar{position:absolute;background:#fbfaf6;padding:8px 7px 4px;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
@@ -333,6 +333,12 @@ def _cover(content: str, theme: dict, i: int, t_imp=None, nudge=None, sweep_t=No
             f'<div class="fx mg-edge"></div></div></div></div></div>')
 
 
+def _words(text: str) -> str:
+    """Escaped text whose hyphenated words never break at the hyphen."""
+    return " ".join(f'<span style="white-space:nowrap">{esc(w)}</span>' if "-" in w else esc(w)
+                    for w in text.split(" "))
+
+
 def _kind(it: dict) -> str:
     return " ".join(x for x in (it.get("rarity_label") or "", it.get("type") or "") if x).strip()
 
@@ -352,9 +358,10 @@ def _cover_lines(theme: dict, debut: bool, name: str, kind: str, rarity: str, to
     return (f'<div class="abs" style="left:{COL_X}px;top:{top:.0f}px;width:{COL_W}px;display:flex;flex-direction:column;'
             f'gap:20px;z-index:4">{k}'
             f'<div class="mg-name" data-mgfit="{COL_W}" data-lines="3" style="width:{COL_W}px;font-size:100px;'
-            f'color:{theme["text"]}">{esc(name)}</div>'
+            f'color:{theme["text"]}">{_words(name)}</div>'
             f'<div class="mg-kind" style="color:{theme["text"]}"><i style="background:{col}"></i>'
-            f'<span data-mgfit="{COL_W - 30}" style="white-space:nowrap">{esc(kind)}</span></div></div>')
+            f'<span data-mgfit="{COL_W - 30}" data-lines="2" style="display:block;width:{COL_W - 30}px">{esc(kind)}'
+            f'</span></div></div>')
 
 
 def _year(year, theme: dict, cap: float = YEAR_CAP, f: float = YEAR_F, x: float = COL_X - 4) -> str:
@@ -386,24 +393,26 @@ def _special(ctx, lead: list, span: str, when_short: str, bday) -> str:
     a, b = lead[0][1], lead[1][1]
     content = (_line(f"The Item Shop on {when_short}, every year · {span}", "", th["text"])
                + _masthead(th["mast"])
-               + _star(ctx.art(b), b["name"], (514, 262, 272, 836), 2)
-               + _star(ctx.art(a), a["name"], (318, 204, 322, 906), 3))
+               + _star(ctx.art(b), b["name"], (522, 206, 272, 716), 2, "floor")
+               + _star(ctx.art(a), a["name"], (336, 196, 420, 748), 3, "floor"))
     if bday:
         head = (f'<div class="mg-name" data-mgfit="{COL_W}" data-lines="3" style="width:{COL_W}px;font-size:104px;'
                 f'color:{th["text"]};line-height:.94">Fortnite turns {bday["age"]}!</div>')
-        sub = f"Battle Royale came out on this day in {bday['year']}"
+        sub = f"Battle Royale came out on this day in {bday['year']} · The Item Shop, every year since"
     else:
-        head = (f'<div class="mg-name" style="width:{COL_W}px;font-size:122px;color:{th["text"]};line-height:.9">'
+        head = (f'<div class="mg-name" style="width:{COL_W}px;font-size:112px;color:{th["text"]};line-height:.9">'
                 f'On<br>this<br>day</div>')
         sub = "The Item Shop, every year"
     content += (f'<div class="abs" style="left:{COL_X}px;top:326px;width:{COL_W}px;display:flex;flex-direction:column;'
                 f'gap:16px;z-index:4">{head}'
-                f'<div class="mg-year" style="position:relative;font-size:132px;line-height:.86;color:{th["year"]}">'
-                f'{esc(when_short.upper())}</div>'
-                f'<div class="mg-cl" data-mgfit="{COL_W}" data-lines="3" style="font-size:40px;color:{th["text"]}">'
-                f'{esc(sub)}</div>'
-                f'<div class="mg-year" style="position:relative;font-size:82px;line-height:.9;color:{th["text"]}">'
-                f'{esc(span)}</div></div>')
+                f'<div class="mg-year" style="position:relative;font-size:128px;line-height:.86;color:{th["year"]}">'
+                f'{esc(when_short.upper())}</div></div>'
+                # bottom right, under the stars' feet: what it is, and the span, big
+                f'<div class="abs" style="right:{CW - 792}px;top:{_top(968, 36, BC):.1f}px;width:440px;text-align:right;'
+                f'z-index:4"><div class="mg-cl" data-mgfit="440" data-lines="2" style="font-size:36px;'
+                f'color:{th["text"]}">{esc(sub)}</div>'
+                f'<div class="mg-year" style="position:relative;font-size:104px;line-height:.9;margin-top:6px;'
+                f'color:{th["text"]}">{esc(span)}</div></div>')
     return content
 
 
@@ -452,11 +461,11 @@ def _teaser(ctx, picks: list) -> str:
                f'font-size:112px;line-height:.96;color:{INK};z-index:4">Which year had the best shop?</div>')
     cols = [(36, 240), (293, 240), (550, 240)][:len(picks)]
     for (x, w), (it, year) in zip(cols, picks):
-        content += _star(ctx.art(it), it["name"], (x, 356, w, 424), 2, "floor")
-        content += (f'<div class="abs" style="left:{x}px;top:792px;width:{w}px;text-align:center;z-index:4">'
-                    f'<div class="mg-year" style="position:relative;font-size:60px;line-height:.9;color:{RED}">{year}</div>'
-                    f'<div class="mg-cl" data-mgfit="{w}" data-lines="2" style="font-size:28px;color:{INK};margin-top:6px">'
-                    f'{esc(it["name"])}</div></div>')
+        content += _star(ctx.art(it), it["name"], (x, 330, w, 420), 2, "floor")
+        content += (f'<div class="abs" style="left:{x}px;top:762px;width:{w}px;text-align:center;z-index:4">'
+                    f'<div class="mg-year" style="position:relative;font-size:70px;line-height:.9;color:{RED}">{year}</div>'
+                    f'<div class="mg-cl" data-mgfit="{w}" data-lines="2" style="font-size:34px;color:{INK};margin-top:6px">'
+                    f'{_words(it["name"])}</div></div>')
     return content
 
 

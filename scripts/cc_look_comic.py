@@ -212,7 +212,7 @@ def _burst(inner: str, cx: float, cy: float, w: float, h: float, fill: str, seed
 
 
 def _panel_bg(color: str, x: float, y: float, w: float, h: float, focus: tuple, t0, dur: float,
-              lines: float = .78, tint: float = .74) -> str:
+              lines: float = .78, tint: float = .74, base: str = "", dot: str = "") -> str:
     """The panel's printed art: a light tint of the colour, Ben-Day dots of it
     that thin out towards the focus, and ink focus lines aimed at it. It drifts
     in a little over the page (a slow push, like a motion comic)."""
@@ -225,12 +225,23 @@ def _panel_bg(color: str, x: float, y: float, w: float, h: float, focus: tuple, 
             f'height:{h:.0f}px;overflow:hidden">'
             f'<div class="abs" style="left:{-m}px;top:{-m}px;width:{w + 2 * m:.0f}px;height:{h + 2 * m:.0f}px;'
             f'transform-origin:{fx + m:.0f}px {fy + m:.0f}px;{drift}">'
-            f'<div class="abs" style="inset:0;background:{_mix(color, PAPER, tint)};mix-blend-mode:multiply"></div>'
-            f'<div class="cm-dots" style="inset:0;background:{color};mix-blend-mode:multiply;{mp}"></div>'
-            f'<div class="cm-lines" style="inset:0;background:{INK};opacity:{lines};{ml}"></div>'
-            f'</div></div>'
+            f'<div class="abs" style="inset:0;background:{base or _mix(color, PAPER, tint)};mix-blend-mode:multiply"></div>'
+            f'<div class="cm-dots" style="inset:0;background:{dot or color};mix-blend-mode:multiply;{mp}"></div>'
+            + (f'<div class="cm-lines" style="inset:0;background:{INK};opacity:{lines};{ml}"></div>' if lines else "")
+            + f'</div></div>'
             f'<div class="abs" data-safe="ignore" style="left:{x:.0f}px;top:{y:.0f}px;width:{w:.0f}px;'
             f'height:{h:.0f}px;border:{PB}px solid {INK}"></div>')
+
+
+def _tier(color: str) -> str:
+    """Below the row of years, the top of the page's next tier of panels runs on
+    under the apps' captions: dark night-time halftone, nothing to read (and
+    white captions read better on it)."""
+    y = ROW_Y + ROW_H + 38
+    h = 1920 - 44 - y
+    base, dot = _mix(color, INK, .74), _mix(color, INK, .42)
+    return (_panel_bg(color, 34, y, 352, h, (34 + 352 * .7, y + h * .45), None, 0, 0, base=base, dot=dot)
+            + _panel_bg(color, 410, y, 636, h, (410 + 636 * .3, y + h * .5), None, 0, .5, base=base, dot=dot))
 
 
 # ---------------------------------------------------------------- the cosmetic
@@ -428,15 +439,15 @@ def _page(inner: str, t_turn, cast_at=None) -> str:
         shade = _a("cmshade", t_turn, TURN, "cubic-bezier(.6,0,.9,.6)")
     cast = ""
     if cast_at is not None:
-        cast = (f'<div class="abs" data-safe="ignore" style="left:0;top:0;width:520px;height:1920px;'
-                f'background:linear-gradient(90deg,rgba(28,20,6,.5),rgba(28,20,6,.2) 30%,rgba(28,20,6,0));'
+        cast = (f'<div class="abs" data-safe="ignore" style="left:0;top:0;width:620px;height:1920px;'
+                f'background:linear-gradient(90deg,rgba(28,20,6,.66),rgba(28,20,6,.3) 28%,rgba(28,20,6,0));'
                 f'animation:cmcast {TURN:.3f}s linear {cast_at:.3f}s 1 normal both"></div>')
     return (f'<div class="full" style="perspective:2600px;perspective-origin:540px 960px">'
             f'<div class="full cm-paper" style="transform-origin:0 50%;backface-visibility:hidden;'
             f'-webkit-backface-visibility:hidden;overflow:hidden;{turn}">'
             f'{inner}<div class="cm-grain"></div>{cast}'
             f'<div class="abs" data-safe="ignore" style="inset:0;background:linear-gradient(90deg,'
-            f'rgba(30,22,8,.05),rgba(30,22,8,.55));opacity:0;{shade}"></div>'
+            f'rgba(30,22,8,.14),rgba(30,22,8,.74));opacity:0;{shade}"></div>'
             f'</div></div>')
 
 
@@ -450,7 +461,8 @@ def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list, r: float, w
             _caption(f"{when.upper()}, {y} —", X0, CAP_Y, -1.5, t0 + .02),
             _year(y, col, t0 + .2),
             _banner(it["name"], kind.upper(), col, t0 + .55),
-            _row(years, idx, t0 + .3)]
+            _row(years, idx, t0 + .3),
+            _tier(col)]
     sounds = [(t0 + .02, "paper"), (t0 + .2, "slam"), (t0 + .55, "whoosh"), (t0 + .87, "pop")]
     if debut:
         html.append(_new_burst(t0 + 1.15, y * 7 + idx))
@@ -491,7 +503,8 @@ def _page_origin(bday: dict, t0: float, years: list, r: float, when: str) -> tup
                    f'<div class="cm-a" style="font-size:58px;line-height:1.05;color:#fff;-webkit-text-stroke:8px {INK};'
                    f'paint-order:stroke fill">BIRTHDAY!</div>', 470, 1232, 520, 240, RED, 99, -4,
                    _a("cmslam", t0 + 1.5, .44, "cubic-bezier(.2,.8,.3,1)"), 18),
-            _row(years, 0, t0 + .3)]
+            _row(years, 0, t0 + .3),
+            _tier(col)]
     sounds = [(t0 + .02, "paper"), (t0 + .2, "slam"), (t0 + .35, "whoosh"), (t0 + .95, "paper"),
               (t0 + 1.5, "slam"), (t0 + 1.7, "clap")]
     return "".join(html), sounds
@@ -501,13 +514,15 @@ def _cover(ctx, lead: list, years: list, when_short: str, bday) -> str:
     """Frame 0: the comic's cover, complete."""
     a, b = lead[0][1], lead[1][1]
     span = f"{years[0]}–{years[-1]}"
-    logo = (f'<div class="abs" style="left:{X0 + 2}px;top:300px;transform:rotate(-4deg) skewX(-8deg);'
+    face = "linear-gradient(180deg,#ffe36b 0%,#ffd03f 45%,#ff9d24 100%)"
+    logo = (f'<div class="abs" style="left:{X0 + 20}px;top:302px;transform:rotate(-4deg) skewX(-8deg);'
             f'transform-origin:0 0">'
-            + _block("ON THIS", 118, CAP, 16, 12)
-            + f'<div style="margin-top:-18px;margin-left:34px">' + _block("DAY", 208, CAP, 18, 14) + '</div></div>')
+            + _block("ON THIS", 118, CAP, 16, 12, grad=face)
+            + f'<div style="margin-top:-18px;margin-left:34px">' + _block("DAY", 208, CAP, 18, 14, grad=face)
+            + '</div></div>')
     html = [_panel_bg(BLUE, PX, PY, PW, PH, (470, 900), None, 0, lines=.8, tint=.72),
             _figure(ctx, b, 612, 1230, 360, 640),
-            _figure(ctx, a, 300, 1236, 420, 700),
+            _figure(ctx, a, 300, 1236, 420, 684),
             logo]
     if bday:
         html.append(_burst(f'<div class="cm-a" style="font-size:52px;line-height:1;color:#fff;'
@@ -530,13 +545,14 @@ def _cover(ctx, lead: list, years: list, when_short: str, bday) -> str:
                   f'justify-content:center">'
                   f'<span class="cm-n" style="font-size:96px;color:#fff;-webkit-text-stroke:10px {INK};'
                   f'paint-order:stroke fill">{esc(when_short.upper())}</span>'
-                  f'<span class="cm-n" style="font-size:60px;color:{CAP};-webkit-text-stroke:9px {INK};'
+                  f'<span class="cm-n" style="font-size:96px;color:#fff;-webkit-text-stroke:10px {INK};'
                   f'paint-order:stroke fill">·</span>'
                   f'<span class="cm-n" style="font-size:96px;color:#fff;-webkit-text-stroke:10px {INK};'
                   f'paint-order:stroke fill">{esc(span)}</span></div>', RED, "position:relative",
                   "10px 26px 8px", 10, 6) + '</div></div>')
     html.append(ban)
     html.append(_row(years, -1))
+    html.append(_tier(BLUE))
     return "".join(html)
 
 
@@ -544,7 +560,7 @@ def _outro(ctx, picks: list, t: float, years: list) -> tuple:
     """The last page: the question in a big balloon over the lead picks, each
     with its year, and THE END? lettered under them."""
     n = len(picks)
-    slots = [(236, 1214, 300, 600), (560, 1214, 300, 560), (790, 1214, 210, 470)][:n]
+    slots = [(226, 1214, 300, 600), (530, 1214, 290, 560), (764, 1214, 190, 470)][:n]
     if n == 2:
         slots = [(290, 1214, 360, 600), (640, 1214, 330, 560)]
     figs, tags = [], []
@@ -576,11 +592,11 @@ def _outro(ctx, picks: list, t: float, years: list) -> tuple:
     end = (f'<div class="abs" style="left:{X0 + 60}px;top:1244px;width:{XR - X0 - 120}px;display:flex;'
            f'justify-content:center;align-items:baseline;gap:14px;--r:-3deg;transform:rotate(-3deg);'
            f'{_a("cmprint", t + 2.2, .4, "cubic-bezier(.25,.9,.3,1)")}">'
-           + _block("THE END", 84, CAP, 13, 10)
+           + _block("THE END", 84, "#fff", 13, 10)
            + f'<div class="cm-k" style="font-size:120px;line-height:.8;color:{RED};-webkit-text-stroke:8px {INK};'
              f'paint-order:stroke fill;transform:rotate(12deg)">?</div></div>')
     html = (_panel_bg(CAP, PX, PY, PW, PH, (480, 900), t - TURN_LEAD, 9, lines=.7, tint=.72)
-            + "".join(figs) + "".join(tags) + balloon + end + _row(years, len(years)))
+            + "".join(figs) + "".join(tags) + balloon + end + _row(years, -1) + _tier(CAP))
     sounds = [(t + .05, "pop"), (t + .45, "whoosh")] + [(t + .75 + i * .18, "pop") for i in range(len(tags))]
     sounds += [(t + 2.2, "slam")]
     return html, sounds

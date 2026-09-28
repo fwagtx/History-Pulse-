@@ -726,7 +726,7 @@ def _outro(comp: Comp, ctx: Ctx, chain: list, ups: list, uris: list, tints: list
                f'text-shadow:0 7px 0 rgba(0,0,0,.35);transform-origin:0 50%;{style_anim(_a("hlslam", t, .45))}">'
                f'HOW MANY DID YOU<br>GET RIGHT?</div>')
     gw = (anton_em("GET RIGHT?") - .18) * 100
-    out.append(f'<div class="abs" style="left:{SAFE_LEFT + gw + 34:.0f}px;top:470px;transform:rotate(-5deg)">'
+    out.append(f'<div class="abs" style="left:{SAFE_LEFT + gw + 34:.0f}px;top:500px;transform:rotate(-4deg)">'
                f'<div class="d" style="background:{LIME};color:{INK};font-size:96px;line-height:.9;padding:12px 22px 6px;'
                f'border-radius:16px;box-shadow:0 9px 0 rgba(0,0,0,.35);{style_anim(_a("hlpop", start + 1.4, .5, EASE_BACK))}">'
                f'5/5?</div></div>')

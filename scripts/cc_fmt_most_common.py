@@ -81,6 +81,7 @@ FLOOR = 1190                       # where the wall meets the floor on the item 
 KICK_Y, COUNT_Y, COUNT_SIZE = 394, 428, 190
 TALLY = (44, 640, 1036, FLOOR - 12)          # x0, y0, x1, y1 of the painted area
 FIG_X, FIG_TOP, FIG_MAXW = 600, 566, 440
+TALLY_OPEN = (44, 640, FIG_X - 226, FLOOR - 12)   # the open wall left of the figure, for short counts
 NAME_Y, STAT_Y = 1204, 1318
 RANK_RIGHT, RANK_Y, RANK_SIZE = 1010, 256, 150
 # the hook
@@ -312,14 +313,17 @@ def _fit_grid(groups: int, x0, y0, x1, y1, mh_max=200.0) -> tuple:
 
 def _count_marks(n: int, area: tuple, seed: int) -> tuple:
     """The n marks of a count, in the order they are painted, laid out in rows
-    of groups that fill `area`. Returns (marks, rows) where each mark has a
-    'row' index."""
-    x0, y0, x1, y1 = area
+    of groups that fill `area` -- or, when they fit there with marks at least
+    100 px tall, the open wall left of the figure, so a short count is never
+    hidden behind it. Returns (marks, rows) where each mark has a 'row' index."""
     groups = math.ceil(n / 5)
-    mh, cols, rows = _fit_grid(groups, x0, y0, x1, y1)
+    if _fit_grid(groups, *TALLY_OPEN, mh_max=170)[0] >= 100:
+        area = TALLY_OPEN
+    x0, y0, x1, y1 = area
+    mh, cols, rows = _fit_grid(groups, x0, y0, x1, y1, mh_max=170)
     cw, ch = mh * 1.47, mh * 1.3
     gw = cols * cw - (cw - mh * 1.07)              # the painted width of a full row
-    gx0 = x0 + (x1 - x0 - gw) / 2 + mh * .16
+    gx0 = x0 + mh * .16 + (0 if area == TALLY_OPEN else (x1 - x0 - gw) / 2)
     gy0 = y0 + (y1 - y0 - rows * ch + (ch - mh)) / 2
     rnd = random.Random(seed)
     marks = []
