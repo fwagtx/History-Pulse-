@@ -489,9 +489,9 @@ def _page_origin(bday: dict, t0: float, years: list, r: float, when: str) -> tup
             f'{_a("cmplace", t0 + .25, .34)}">'
             + _box(f'<div class="cm-a" style="font-size:44px;line-height:1.1;color:#fff;letter-spacing:.04em">'
                    f'ORIGIN STORY</div>', INK, "position:relative", "6px 20px 4px", 8, 5) + '</div>',
-            f'<div class="abs" style="left:{X0}px;top:760px;width:{XR - X0}px;display:flex;flex-direction:column;'
-            f'align-items:center;gap:2px;transform:rotate(-2deg)">{title}</div>',
-            f'<div class="abs" style="left:{X0}px;top:1086px;width:{XR - X0}px;display:flex;'
+            f'<div class="abs" style="left:{X0}px;top:716px;width:{XR - X0}px;display:flex;flex-direction:column;'
+            f'align-items:center;gap:0;transform:rotate(-2deg)">{title}</div>',
+            f'<div class="abs" style="left:{X0}px;top:1030px;width:{XR - X0}px;display:flex;'
             f'justify-content:center">'
             f'<div style="--r:1deg;transform:rotate(1deg);{_a("cmplace", t0 + .95, .34)}">'
             + _box('<div class="cm-o" style="font-size:40px;line-height:1.15;letter-spacing:.04em;'
@@ -500,7 +500,7 @@ def _page_origin(bday: dict, t0: float, years: list, r: float, when: str) -> tup
             _burst(f'<div class="cm-a" style="font-size:58px;line-height:1;color:#fff;-webkit-text-stroke:8px {INK};'
                    f'paint-order:stroke fill">HAPPY {_ordinal(bday["age"])}</div>'
                    f'<div class="cm-a" style="font-size:58px;line-height:1.05;color:#fff;-webkit-text-stroke:8px {INK};'
-                   f'paint-order:stroke fill">BIRTHDAY!</div>', 470, 1232, 520, 240, RED, 99, -4,
+                   f'paint-order:stroke fill">BIRTHDAY!</div>', 478, 1212, 500, 214, RED, 99, -4,
                    _a("cmslam", t0 + 1.5, .44, "cubic-bezier(.2,.8,.3,1)"), 18),
             _row(years, 0, t0 + .3),
             _tier(col)]

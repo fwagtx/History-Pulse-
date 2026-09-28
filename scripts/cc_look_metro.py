@@ -63,12 +63,12 @@ L0 = 56                     # the terminus
 L1 = 1236                   # the line runs on under the code sign
 CASE_W, CORE_W = 40, 26     # the line's black casing and its core
 DISC_R, DISC_S = 25, 7      # a station: radius and ring
-TOP_X0, TOP_X1 = 222, 650   # the first and the last station on the top row
+TOP_X0, TOP_X1 = 230, 650   # the first and the last station on the top row
 COL_Y0, COL_Y1 = 612, 1050  # ... in the column
 COL_STEP = 146
 LAB_FS = 48                 # the stations' years
-CAR_L, CAR_W, CAR_GAP = 48, 32, 5
-DEPOT_X = 116               # where the train waits on the cover
+CAR_L, CAR_W, CAR_GAP = 56, 34, 6
+DEPOT_X = 124              # where the train waits on the cover
 
 # ---- the poster case, left of the column
 PX, PY, PW, PH = 80, 590, 506, 810
@@ -113,8 +113,9 @@ CSS = """
     0 2px 3px rgba(0,0,0,.3),0 16px 24px rgba(35,30,20,.2)}
 .mt-board:before{content:"";position:absolute;inset:8px;border:1.5px solid rgba(236,236,228,.24);border-radius:8px}
 .mt-board:after{content:"";position:absolute;inset:0;
-  background:linear-gradient(102deg,rgba(255,255,255,0) 18%%,rgba(255,255,255,.055) 30%%,rgba(255,255,255,0) 44%%),
-    url(%(grain)s) 0 0/256px 256px;opacity:.9}
+  background:linear-gradient(102deg,rgba(255,255,255,0) 18%%,rgba(255,255,255,.06) 30%%,rgba(255,255,255,0) 44%%),
+    linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 40%%)}
+.mt-grain{position:absolute;inset:0;background:url(%(grain)s) 0 0/256px 256px;opacity:.16}
 .mt-screw{position:absolute;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%%;z-index:2;
   background:radial-gradient(circle at 38%% 32%%,#f2f2ef,#a3a6ab 52%%,#5d6066);
   box-shadow:0 1px 1.5px rgba(0,0,0,.6),inset 0 0 0 .5px rgba(0,0,0,.4)}
@@ -143,19 +144,21 @@ CSS = """
 .mt-kind{display:flex;align-items:center;gap:12px;margin-top:10px;font-size:30px;letter-spacing:.06em;color:%(ink)s}
 .mt-kind i{flex:none;width:20px;height:20px;border-radius:50%%;box-shadow:inset 0 0 0 2.5px rgba(0,0,0,.25)}
 .mt-note{font-size:23px;line-height:1.2;color:#44403a;margin-top:8px}
-.mt-badge{position:absolute;display:flex;align-items:center;gap:10px;height:62px;padding:0 20px 0 12px;
-  border-radius:31px;background:#fffdf8;box-shadow:inset 0 0 0 6px %(ink)s,0 3px 5px rgba(0,0,0,.2)}
-.mt-badge b{display:block;width:26px;height:26px;border-radius:50%%;background:%(ink)s}
-.mt-badge span{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:34px;letter-spacing:.04em;
-  color:%(ink)s;line-height:1;white-space:nowrap}
+.mt-badge{position:absolute;width:138px;height:138px;border-radius:50%%;background:#fffdf8;color:%(ink)s;
+  box-shadow:inset 0 0 0 9px %(ink)s,0 3px 5px rgba(0,0,0,.22),0 10px 16px rgba(0,0,0,.1);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;line-height:.86;text-align:center}
+.mt-badge .a{font-size:56px;letter-spacing:.01em}
+.mt-badge .b{font-size:23px;letter-spacing:.07em;margin-top:5px}
 .mt-lab{position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:%(lab)dpx;line-height:1;
+  color:%(grey)s;
   padding:3px 10px 2px;border-radius:8px;white-space:nowrap}
 .mt-car{position:absolute;left:0;top:0;width:%(cl)dpx;height:%(cw)dpx;offset-path:path('%(path)s');offset-rotate:auto;
   offset-anchor:50%% 50%%;border-radius:8px;background:linear-gradient(180deg,#34373c,#141518 45%%,#0d0e10);
   box-shadow:0 0 0 3px #fbf9f3,0 4px 6px 3px rgba(0,0,0,.28)}
-.mt-car:before{content:"";position:absolute;left:9px;right:9px;top:13px;height:6px;border-radius:3px;background:#4b4f56}
-.mt-car.front{border-radius:8px 17px 17px 8px}
-.mt-car.front:after{content:"";position:absolute;right:5px;top:6px;width:7px;height:20px;border-radius:4px;background:%(lime)s}
+.mt-car:before{content:"";position:absolute;left:10px;right:10px;top:14px;height:6px;border-radius:3px;background:#50545b}
+.mt-car.front{border-radius:8px 18px 18px 8px}
+.mt-car.front:after{content:"";position:absolute;right:6px;top:7px;width:8px;height:20px;border-radius:4px;background:%(lime)s}
 .mt-code{position:absolute;left:0;top:0;width:%(cw_)dpx;height:%(ch)dpx;border-radius:44px;
   background:linear-gradient(180deg,#f0ff6a 0%%,%(lime)s 38%%,#dcf234 100%%);
   box-shadow:inset 0 0 0 7px %(ink)s,0 3px 4px rgba(0,0,0,.28),0 16px 24px rgba(35,30,20,.2);
@@ -186,6 +189,8 @@ def _kf(name: str, pts: list, dur: float) -> str:
 
 
 def _track(comp: Comp, name: str, pts: list) -> str:
+    """A keyframe track over the whole video; it holds its last state to the end."""
+    pts = list(pts) + [(comp.duration, pts[-1][1], None)]
     comp.css(_kf(name, pts, comp.duration))
     return f"animation:{name} {comp.duration:.3f}s linear 0s 1 normal both;"
 
@@ -326,7 +331,7 @@ def _screws(w: int, h: int) -> str:
 
 def _board(inner: str, y: int, h: int) -> str:
     return (f'<div class="mt-board" style="left:{BX}px;top:{y}px;width:{BW}px;height:{h}px">'
-            f'{_screws(BW, h)}<div class="mt-tab" style="left:44px;top:24px;width:12px;height:{h - 48}px"></div>'
+            f'<div class="mt-grain"></div>{_screws(BW, h)}<div class="mt-tab" style="left:44px;top:24px;width:12px;height:{h - 48}px"></div>'
             f'{inner}</div>')
 
 
@@ -386,14 +391,15 @@ def _poster_station(ctx, it: dict, debut: bool, top: float, t_arr: float) -> str
             f'<div class="mt-fig" style="left:20px;right:20px;top:24px;height:552px">{_figure(ctx, it, 552, IW - 48)}</div>'
             f'<div class="abs" style="left:26px;top:588px;width:{w}px">'
             f'<div class="mt-rule"></div>'
-            f'<div class="mt-name" data-fit="{w}" data-lines="2" style="width:{w}px;font-size:48px;margin-top:12px">'
+            f'<div class="mt-name" data-fit="{w}" data-lines="2" style="width:{w}px;font-size:56px;margin-top:12px">'
             f'{esc(it["name"])}</div>'
             f'<div class="mt-kind mt-bd"><i style="background:{col}"></i>'
             f'<span data-fit="{w - 32}" style="display:inline-block">{esc(_kind(it).upper())}</span></div>'
             f'<div class="mt-note mt-mono">{esc(note)}</div></div>')
     if debut:
-        html += (f'<div class="mt-badge" style="left:20px;top:22px;transform-origin:30px 31px;'
-                 f'{_a("mtbadge", t_arr + .45, .36, "cubic-bezier(.3,1.3,.5,1)")}"><b></b><span>NEW THAT DAY</span></div>')
+        html += (f'<div class="mt-badge" style="left:16px;top:16px;'
+                 f'{_a("mtbadge", t_arr + .45, .36, "cubic-bezier(.3,1.3,.5,1)")}">'
+                 f'<span class="a">NEW</span><span class="b">THAT DAY</span></div>')
     return html + "</div>"
 
 
@@ -437,29 +443,41 @@ def _poster_bday(bday: dict, when: str, top: float, t_arr: float) -> str:
             f'<div class="mt-bd" style="font-size:46px;margin-top:14px;color:{INK}">{esc(when.upper())}, {y}</div>'
             f'<div class="mt-note mt-mono" data-fit="{w}" style="font-size:24px;margin-top:10px;white-space:nowrap">'
             f'PC · PLAYSTATION 4 · XBOX ONE</div></div>'
-            f'<div class="mt-badge" style="right:20px;top:28px;background:{INK};transform-origin:80% 50%;'
+            f'<div class="mt-badge" style="right:18px;top:40px;background:{INK};color:#fbfaf6;'
+            f'box-shadow:inset 0 0 0 9px {LIME},0 3px 5px rgba(0,0,0,.22);'
             f'{_a("mtbadge", t_arr + .5, .36, "cubic-bezier(.3,1.3,.5,1)")}">'
-            f'<b style="background:{LIME}"></b><span style="color:#fbfaf6">{bday["age"]} YEARS TODAY</span></div>'
+            f'<span class="a">{bday["age"]}</span><span class="b">YEARS<br>TODAY</span></div>'
             f'</div>')
 
 
 def _poster_outro(ctx, picks: list, top: float) -> str:
-    """The lead picks side by side, each over its year."""
+    """The lead picks, oldest first, each standing over its station on a stretch
+    of the line, its year under it."""
     n = len(picks)
-    cw = (IW - 24) / n
+    cw = (IW - 16) / n
+    ly = 604                                   # the stretch of line across the foot
+    cxs = [8 + cw * (i + .5) for i in range(n)]
+    d = min(cw - 12, 190)
     html = [f'<div class="mt-poster" style="top:{top:.0f}px">']
     for i, (yr, it) in enumerate(picks):
-        x = 12 + i * cw
-        d = min(cw - 16, 200)
-        html.append(f'<div class="mt-circ" style="left:{x + cw / 2 - d / 2:.0f}px;top:{150 + (i % 2) * 40}px;'
-                    f'width:{d:.0f}px;height:{d:.0f}px;background:{_col(it)}"></div>'
-                    f'<div class="mt-fig" style="left:{x:.0f}px;width:{cw:.0f}px;top:40px;height:520px">'
-                    f'{_figure(ctx, it, 500, cw - 10)}</div>'
-                    f'<div class="abs" style="left:{x:.0f}px;width:{cw:.0f}px;top:586px;text-align:center">'
-                    f'<div class="mt-rule" style="margin:0 10px"></div>'
-                    f'<div class="mt-bd" style="font-size:64px;margin-top:14px;color:{INK}">{yr}</div>'
-                    f'<div class="mt-name" data-fit="{cw - 16:.0f}" data-lines="2" style="width:{cw - 16:.0f}px;'
-                    f'margin:8px auto 0;font-size:24px;line-height:1.08;letter-spacing:0;font-weight:800">'
+        cx = cxs[i]
+        html.append(f'<div class="mt-circ" style="left:{cx - d / 2:.0f}px;top:{205 - d / 2 + (i % 2) * 36:.0f}px;'
+                    f'width:{d:.0f}px;height:{d:.0f}px;background:{_col(it)}"></div>')
+    for i, (yr, it) in enumerate(picks):
+        cx = cxs[i]
+        html.append(f'<div class="mt-fig" style="left:{cx - cw / 2:.0f}px;width:{cw:.0f}px;top:50px;height:530px">'
+                    f'{_figure(ctx, it, 530 if n < 3 else 500, cw - 6)}</div>')
+    html.append(f'<svg class="abs" style="left:0;top:{ly - 30}px" width="{IW}" height="60">'
+                f'<path d="M14,30 H{IW - 14}" stroke="{INK}" stroke-width="30" stroke-linecap="round"/>'
+                f'<path d="M14,30 H{IW - 14}" stroke="{LIME}" stroke-width="18" stroke-linecap="round"/>'
+                + "".join(f'<circle cx="{cx:.1f}" cy="30" r="17" fill="#fffdf8" stroke="{INK}" stroke-width="6"/>'
+                          for cx in cxs) + '</svg>')
+    for i, (yr, it) in enumerate(picks):
+        cx = cxs[i]
+        html.append(f'<div class="abs" style="left:{cx - cw / 2:.0f}px;width:{cw:.0f}px;top:{ly + 30}px;text-align:center">'
+                    f'<div class="mt-bd" style="font-size:66px;color:{INK}">{yr}</div>'
+                    f'<div class="mt-name" data-fit="{cw - 14:.0f}" data-lines="2" style="width:{cw - 14:.0f}px;'
+                    f'margin:8px auto 0;font-size:23px;line-height:1.08;letter-spacing:0;font-weight:800">'
                     f'{esc(it["name"])}</div></div>')
     html.append("</div>")
     return "".join(html)
@@ -501,7 +519,7 @@ def on_this_day(ctx, rounds: list, bday, lead: list, third) -> Comp:
     comp.use_fonts(*FONTS)
     comp.css(KIT_CSS)
     comp.css(CSS % dict(grain=tex("metro-grain.png"), lime=LIME, ink=INK, iw=IW, ih=IH, seam=SEAM, lab=LAB_FS,
-                        cl=CAR_L, cw=CAR_W, path=LINE_D, cw_=CW, ch=CH))
+                        cl=CAR_L, cw=CAR_W, path=LINE_D, cw_=CW, ch=CH, grey=GREY))
 
     st = _stations(n)
     t0s = [HOOK + i * r for i in range(n)]
@@ -535,6 +553,7 @@ def on_this_day(ctx, rounds: list, bday, lead: list, third) -> Comp:
         yr = next((rd["year"] for rd, it, _ in rounds if it is third), None)
         if yr is not None:
             picks.append((yr, third))
+    picks.sort(key=lambda p: p[0])
     roll.append(_poster_outro(ctx, picks, (n + 1) * step))
     roll += [f'<div class="mt-seam" style="top:{(j + 1) * step - SEAM}px"></div>' for j in range(n + 1)]
     pts = [(0, "transform:translateY(0)", "linear")]

@@ -722,8 +722,8 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
     it = r["item"]
     times = r["times"]
     inner = ""
-    t_fig = t0 + .32
-    t_count = t0 + 1.25
+    t_fig = t0 + .06
+    t_count = t0 + 1.0
     marks_html, when, t_land = _tally(comp, times, TALLY, t_count, ctx.seed + 17 * rank)
     inner += marks_html
     inner += '<div class="mc-light"></div>'
@@ -734,11 +734,11 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
     feet = FLOOR + 6
     fig_h = feet - FIG_TOP
     inner += _figure(ctx, it, FIG_X, feet, fig_h, FIG_MAXW, t_fig)
-    inner += _words(it["name"], SAFE_LEFT + 2, name_y, size, t0 + .95, brk=brk if lines == 2 else 0)
+    inner += _words(it["name"], SAFE_LEFT + 2, name_y, size, t0 + .62, brk=brk if lines == 2 else 0)
     # rank, top right
     rank_s = f"#{rank}"
     inner += (f'<div class="abs d mc-sh" style="right:{W - RANK_RIGHT}px;top:{RANK_Y}px;font-size:{RANK_SIZE}px;'
-              f'line-height:.9;color:#fff;--r:-4deg;{style_anim(_a("mcpop", t0 + .28, .5, "cubic-bezier(.34,1.56,.64,1)"))}">'
+              f'line-height:.9;color:#fff;--r:-4deg;{style_anim(_a("mcpop", t0 + .2, .5, "cubic-bezier(.34,1.56,.64,1)"))}">'
               f'{rank_s}</div>')
     if r.get("tied"):
         inner += (f'<div class="abs" style="right:{W - RANK_RIGHT + 4}px;top:{RANK_Y + RANK_SIZE * .92:.0f}px;'
@@ -747,7 +747,7 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
                   f'border-radius:6px">TIED</div></div>')
     # the count: IN THE ITEM SHOP / 107 TIMES
     inner += (f'<div class="abs mc-t mc-sh" style="left:{SAFE_LEFT + 2}px;top:{KICK_Y}px;font:800 30px/1 Inter,sans-serif;'
-              f'letter-spacing:.14em;color:rgba(255,255,255,.9);{style_anim(_a("mcrise", t0 + .9, .45))}">'
+              f'letter-spacing:.14em;color:rgba(255,255,255,.9);{style_anim(_a("mcrise", t0 + .55, .45))}">'
               f'{esc(period["kicker"])}</div>')
     num_w = (anton_em(str(times)) - .18) * COUNT_SIZE
     cnt = _counter(comp, when, t_count)
@@ -780,7 +780,7 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
         comp.cue(t_land + .8, "reveal")
     inner = f'<div class="full" style="{style_anim(_a("mcshake", t_land, .3, "linear"))}">{inner}</div>'
     _screen(comp, t0, t0 + R_LEN + WIPE + .05, inner, z=z)
-    comp.cue(t0, "whoosh"); comp.cue(t0 + .3, "stamp"); comp.cue(t_fig + .36, "slam")
+    comp.cue(t0, "whoosh"); comp.cue(t0 + .22, "stamp"); comp.cue(t_fig + .36, "slam")
     for k in range(4):
         comp.cue(t_count + k * .17, "pen")
     t = t_count + .9

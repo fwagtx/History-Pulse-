@@ -82,7 +82,7 @@ SIGN = (170, 1240, 596, 172)        # the code sign: x, y, w, h
 PANEL = (64, 318, 452, 1196)        # PLAYER SELECT: x0, y0, x1, y1
 RCOL = (478, 872)                   # the right-hand column
 YEAR_S, YEAR_Y = 212, 300           # the year's size and line-box top
-NAME_Y, NAME_S = 500, 64
+NAME_Y, NAME_S = 500, 72
 TABLE_Y = 688                       # "HIGH SCORES · SEP 28"
 ROW_S = 36
 
@@ -300,11 +300,11 @@ def _pixel_width(text: str) -> int:
     return _pixel_path(text, 1)[1]
 
 
-def _pixel_title(text: str, cx: float, y: float, p: float, face: str = WHITE, depth: int = 2) -> str:
+def _pixel_title(text: str, cx: float, y: float, p: float, face: str = WHITE, depth: int = 1) -> str:
     """The chunky title: a face and a stepped extrusion down-right."""
     d, wc = _pixel_path(text, p)
     w, h = wc * p + depth * p, 7 * p + depth * p
-    layers = "".join(f'<path d="{d}" fill="{CYAN_D if k > 1 else CYAN}" transform="translate({k * p:g} {k * p:g})"/>'
+    layers = "".join(f'<path d="{d}" fill="{CYAN_D}" transform="translate({k * p:g} {k * p:g})"/>'
                      for k in range(depth, 0, -1))
     return (f'<svg class="abs" width="{w:.0f}" height="{h:.0f}" viewBox="0 0 {w:.0f} {h:.0f}" '
             f'shape-rendering="crispEdges" style="left:{cx - wc * p / 2:.0f}px;top:{y:.0f}px;overflow:visible">'
@@ -366,7 +366,7 @@ CSS = """
 .apx{font-family:'VT323',monospace;line-height:1;white-space:nowrap;letter-spacing:0}
 @keyframes actype{from{clip-path:inset(-25% 100% -25% 0)}to{clip-path:inset(-25% 0 -25% 0)}}
 @keyframes accur{from{transform:translateX(0)}to{transform:translateX(var(--cw))}}
-@keyframes acdrop{0%{transform:translateY(-120px)}62%{transform:translateY(0)}80%{transform:translateY(-14px)}
+@keyframes acdrop{0%{transform:translateY(-56px)}62%{transform:translateY(0)}80%{transform:translateY(-9px)}
   100%{transform:translateY(0)}}
 @keyframes achop{0%,100%{transform:translateY(0)}45%{transform:translateY(-34px)}}
 .acmos{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated}
@@ -469,7 +469,7 @@ def _cabinet() -> str:
              f'height:70px;background:linear-gradient(180deg,#1b1b20,#0d0d10);'
              f'box-shadow:0 14px 22px rgba(0,0,0,.7)"></div>')
     # the stick: its shadow, the dust washer, the shaft, the ball
-    jx, jy = 210, 1560
+    jx, jy = 210, 1612
     L.append(f'<div class="abs" data-safe="ignore" style="left:{jx - 20}px;top:{jy - 26}px;width:150px;height:56px;'
              f'border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),rgba(0,0,0,0));'
              f'transform:skewX(-35deg)"></div>')
@@ -696,7 +696,7 @@ def _stage(ctx, tr: _Tracks, k: int, rd: dict, it: dict, debut: bool, t0: float,
                         [(t_sharp, t1 - .3)], mos))
     # rarity and type, then the banner
     kind = _kind(it)
-    ks, klines = _fit(kind, px1 - px0 - 60, 32, 2, 22)
+    ks, klines = _fit(kind, px1 - px0 - 60, 34, 2, 22)
     t_kind = typing[0] + typing[1] + .12
     ky = 1030
     for j, line in enumerate(klines):
@@ -706,16 +706,16 @@ def _stage(ctx, tr: _Tracks, k: int, rd: dict, it: dict, debut: bool, t0: float,
     by = 1116
     if debut:
         text = "FIRST DAY IN THE SHOP!"
-        bs = 32
+        bs = 36
         bw = len(text) * EM * bs + 30
         on = _blink(t_ban, clear, .5, .22)
-        html.append(f'<div class="abs" style="left:{pcx - bw / 2:.0f}px;top:{by:.0f}px;width:{bw:.0f}px;height:50px;'
+        html.append(f'<div class="abs" style="left:{pcx - bw / 2:.0f}px;top:{by:.0f}px;width:{bw:.0f}px;height:54px;'
                     f'background:{LIME};{_anim(tr.vis(on))}"></div>')
-        html.append(_tc(text, pcx, by + 25 - (BASE - CAP / 2) * bs, bs, INK, _anim(tr.vis(on))))
+        html.append(_tc(text, pcx, by + 27 - (BASE - CAP / 2) * bs, bs, INK, _anim(tr.vis(on))))
         cues.append((t_ban, "ding"))
     else:
         text = "IN THE ITEM SHOP THAT DAY"
-        bs = min(32, (px1 - px0 - 50) / (len(text) * EM))
+        bs = min(34, (px1 - px0 - 50) / (len(text) * EM))
         html.append(_tc(text, pcx, by + 25 - (BASE - CAP / 2) * bs, bs, WHITE, _anim(tr.vis([(t_ban, clear)]))))
         cues.append((t_ban, "pop"))
     # the year, and the name typed into the right-hand column
@@ -844,13 +844,13 @@ def _title(ctx, tr: _Tracks, lead: list, when_short: str, span: str, bday, cues:
     a, b = lead[0], lead[1]
     out = [_pixel_title("ON THIS DAY", MID, 300, 11)]
     # the two lead outfits facing off either side of the date
-    col = 272
-    feet = 1066
+    col = 288
+    feet = 1068
     for i, (rd, it, _) in enumerate((a, b)):
         cx = CX0 + col / 2 if i == 0 else CX1 - col / 2
         hop = _a("achop", .5 + i * .22, .36, "steps(6,end)")
         out.append(_floor(cx, feet - 6, 200))
-        out.append(_sprite(tr, f"ach{i}", ctx.art(it), it, cx, feet, 610, col - 12, [(0, 2.45)],
+        out.append(_sprite(tr, f"ach{i}", ctx.art(it), it, cx, feet, 628, col - 10, [(0, 2.45)],
                            _rez_out(2.45), extra=_anim(hop)))
         out.append(_tc(str(rd["year"]), cx, feet + 8, 44, LIME))
         cues.append((.5 + i * .22, "pop"))
@@ -920,18 +920,19 @@ def _outro(ctx, tr: _Tracks, picks: list, t: float, end: float, cues: list) -> s
     out = []
     q1, q2 = "WHICH YEAR HAD", "THE BEST SHOP?"
     qs = 84
-    out.append(_typed(q1, MID - len(q1) * EM * qs / 2, 300, qs, WHITE, t + .1, .045, tr.vis([(t + .1, end)])))
-    out.append(_typed(q2, MID - len(q2) * EM * qs / 2, 388, qs, LIME, t + .1 + 15 * .045, .045,
-                      tr.vis([(t + .1 + 15 * .045, end)])))
+    out.append(_typed(q1, MID - len(q1) * EM * qs / 2, 300, qs, WHITE, t + .08, .032, tr.vis([(t + .08, end)])))
+    out.append(_typed(q2, MID - len(q2) * EM * qs / 2, 388, qs, LIME, t + .08 + 15 * .032, .032,
+                      tr.vis([(t + .08 + 15 * .032, end)])))
     n = len(picks)
     colw = (CX1 - CX0) / n
     feet, h = 1040, 520 if n == 3 else 560
-    t_pick = t + 1.0
+    t_pick = t + .75
     boxes = []
     for i, (year, it) in enumerate(picks):
         cx = CX0 + colw * (i + .5)
         mos, t_sharp = _rez_in(t_pick + i * .22)
-        out.append(_floor(cx, feet - 6, colw * .7))
+        out.append(f'<div class="abs" style="inset:0;{_anim(tr.vis([(t_pick + i * .22, end)]))}">'
+                   f'{_floor(cx, feet - 6, colw * .7)}</div>')
         out.append(_sprite(tr, f"aco{i}", ctx.art(it), it, cx, feet, h, colw - 26, [(t_sharp, end)], mos))
         out.append(_tc(str(year), cx, feet + 26, 60, LIME, _anim(tr.vis([(t_sharp, end)]))))
         cues.append((t_pick + i * .22, "pop"))
