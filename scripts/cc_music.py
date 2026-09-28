@@ -25,6 +25,7 @@ land on that track's beats; cc_audio mixes the same track under the effects.
 
 import argparse
 import json
+import math
 import os
 import re
 import subprocess
@@ -210,14 +211,29 @@ def season(album: str, title: str) -> str:
 
 def moods(tracks: list) -> None:
     """Sort the library into "hype" (the most energetic third: loud, a beat
-    that hits hard, busy, with bass), "chill" (the calmest quarter) and
-    "drive" (the rest), relative to each other; sets t["energy"] and t["mood"]."""
+    that hits hard, busy, with bass, at a dancing tempo), "chill" (the calmest
+    quarter) and "drive" (the rest), relative to each other; sets t["energy"]
+    and t["mood"]. Runs on every load too (library()), so the ranking can be
+    tuned without rebuilding."""
     if not tracks:
         return
-    def z(key):
-        v = np.array([float(t.get(key, 0)) for t in tracks])
+
+    def z(vals):
+        v = np.array(vals, dtype=float)
         return (v - v.mean()) / (v.std() + 1e-9)
-    score = z("rms") + z("salience") + .5 * z("flux") + .3 * z("low")
+
+    def tempo(bpm: float) -> float:
+        if 110 <= bpm <= 175:
+            return 1.0
+        if 100 <= bpm < 110:
+            return .3
+        return -1.0 if bpm < 95 else 0.0
+
+    score = (z([t.get("rms", 0) for t in tracks])
+             + .6 * z([math.log(max(float(t.get("salience", 1)), 1.0)) for t in tracks])
+             + .5 * z([t.get("flux", 0) for t in tracks])
+             + .3 * z([t.get("low", 0) for t in tracks])
+             + .8 * np.array([tempo(float(t.get("bpm", 0))) for t in tracks]))
     order = np.argsort(-score)
     n = len(tracks)
     for rank, i in enumerate(order):
@@ -346,6 +362,8 @@ def library() -> list:
         else:
             try:
                 _LIB = catalog()
+                if all("salience" in t for t in _LIB):
+                    moods(_LIB)
             except Exception as e:  # noqa: BLE001
                 log(f"music library unavailable ({e!r}); using the synthesized bed")
                 _LIB = []
