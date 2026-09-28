@@ -1,5 +1,5 @@
 {
- "edit_from": null,
- "long_from": null,
- "note": "Days on or after edit_from are built as the five edit-style shorts a day (scripts/cc_lineup.py, in the shop job); before it, the classic three shop videos plus the quiz job's three. From long_from on, the quiz job also makes each weekday's long YouTube video (scripts/cc_long_build.py). null = off. Set by Claude when the switch is made."
+ "edit_from": "2026-10-01",
+ "long_from": "2026-09-30",
+ "note": "Days on or after edit_from are built as the five edit-style shorts a day (scripts/cc_lineup.py, in the shop job); before it, the classic three shop videos plus the quiz releases' videos. From long_from on, the quiz job also makes each weekday's long YouTube video (scripts/cc_long_build.py). null = off. Switched on 2026-09-28 at the owner's request (five shorts a day, five long videos a week)."
 }
