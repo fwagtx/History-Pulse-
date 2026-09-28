@@ -97,7 +97,7 @@ CSS = """
 .cm-dots{position:absolute;-webkit-mask:url('@dots@') no-repeat;mask:url('@dots@') no-repeat;
   -webkit-mask-size:1300px 1300px;mask-size:1300px 1300px}
 .cm-lines{position:absolute;-webkit-mask:url('@lines@') no-repeat;mask:url('@lines@') no-repeat;
-  -webkit-mask-size:1060px 1060px;mask-size:1060px 1060px}
+  -webkit-mask-size:1440px 1440px;mask-size:1440px 1440px}
 .cm-k{font-family:'Kalam',cursive;font-weight:700;text-transform:uppercase;color:@INK@;line-height:1.08}
 .cm-o{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;color:@INK@}
 .cm-a{font-family:'Archivo Black',sans-serif;font-weight:400;text-transform:uppercase;line-height:1}
@@ -220,7 +220,7 @@ def _panel_bg(color: str, x: float, y: float, w: float, h: float, focus: tuple, 
     m = 60                                              # room for the drift
     drift = _a("cmdrift", t0, dur, "linear") if t0 is not None else ""
     mp = f"-webkit-mask-position:{fx + m - 650:.0f}px {fy + m - 650:.0f}px;mask-position:{fx + m - 650:.0f}px {fy + m - 650:.0f}px;"
-    ml = f"-webkit-mask-position:{fx + m - 530:.0f}px {fy + m - 530:.0f}px;mask-position:{fx + m - 530:.0f}px {fy + m - 530:.0f}px;"
+    ml = f"-webkit-mask-position:{fx + m - 720:.0f}px {fy + m - 720:.0f}px;mask-position:{fx + m - 720:.0f}px {fy + m - 720:.0f}px;"
     return (f'<div class="abs" data-safe="ignore" style="left:{x + MX:.0f}px;top:{y + MY:.0f}px;width:{w:.0f}px;'
             f'height:{h:.0f}px;overflow:hidden">'
             f'<div class="abs" style="left:{-m}px;top:{-m}px;width:{w + 2 * m:.0f}px;height:{h + 2 * m:.0f}px;'
@@ -234,14 +234,13 @@ def _panel_bg(color: str, x: float, y: float, w: float, h: float, focus: tuple, 
 
 
 def _tier(color: str) -> str:
-    """Below the row of years, the top of the page's next tier of panels runs on
-    under the apps' captions: dark night-time halftone, nothing to read (and
-    white captions read better on it)."""
+    """Below the row of years the page's next tier of panels runs on under the
+    apps' captions: pale, quiet halftone with nothing to read in it."""
     y = ROW_Y + ROW_H + 38
     h = 1920 - 44 - y
-    base, dot = _mix(color, INK, .74), _mix(color, INK, .42)
+    base, dot = _mix(color, PAPER, .86), _mix(color, PAPER, .5)
     return (_panel_bg(color, 34, y, 352, h, (34 + 352 * .7, y + h * .45), None, 0, 0, base=base, dot=dot)
-            + _panel_bg(color, 410, y, 636, h, (410 + 636 * .3, y + h * .5), None, 0, .5, base=base, dot=dot))
+            + _panel_bg(color, 410, y, 636, h, (410 + 636 * .3, y + h * .5), None, 0, .22, base=base, dot=dot))
 
 
 # ---------------------------------------------------------------- the cosmetic

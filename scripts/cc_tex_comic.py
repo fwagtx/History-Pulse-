@@ -130,7 +130,7 @@ def dots(size=1300, pitch=16.0, seed=3):
     Image.merge("LA", (white, _levels(im, 6))).save(OUT / "comic-dots.png", optimize=True)
 
 
-def lines(size=1300, n=170, seed=5):
+def lines(size=1300, n=200, seed=5):
     """Focus lines: tapered ink strokes from beyond the edge towards the centre."""
     rs = np.random.RandomState(seed)
     ss = 3
@@ -141,7 +141,7 @@ def lines(size=1300, n=170, seed=5):
     R_out = S * .75
     angs = np.sort(rs.uniform(0, 2 * math.pi, n))
     for a in angs:
-        r_in = S * rs.uniform(.25, .40) * (1 + .25 * rs.rand() ** 3)
+        r_in = S * rs.uniform(.17, .29) * (1 + .3 * rs.rand() ** 3)
         wdt = S * rs.uniform(.0025, .011) * (1.6 if rs.rand() < .12 else 1)
         ca, sa = math.cos(a), math.sin(a)
         px, py = -sa, ca

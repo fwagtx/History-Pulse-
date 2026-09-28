@@ -8,7 +8,7 @@ counted down 5 to 1, each one's count painted as tally marks on a dark wall.
       since   a year: only the times in the shop that STARTED in or after that
               year count ("THIS YEAR" when it is the video's own year, else
               "SINCE 2025"); None counts everything since the records began
-      count   how many to count down (3-6)
+      count   how many to count down: 5 (default) or 6 (fewer would leave a long empty outro)
 
   0:00  hook    THE MOST COMMON SKINS IN FORTNITE on a strip of black paint
                 over a wall covered in tally marks, the #1 and #2 in front of
@@ -462,16 +462,17 @@ def _text_w(text: str, size: float, spacing: float = 0.0) -> float:
 
 
 def _fit_name(name: str, width: float = TEXT_W - 6) -> tuple:
-    """(size, lines, first-line words): one line down to 70 px, else two
-    lines up to 84 px, broken where the lines come out most even."""
+    """(size, lines, first-line words): one line down to 58 px, else two
+    lines of up to 60 px (they fit between the floor line and the stats),
+    broken where the lines come out most even."""
     ws = name.upper().split()
     one = (width) / max(anton_em(name) - .18, .1)
-    if one >= 70 or len(ws) == 1:
+    if one >= 58 or len(ws) == 1:
         return min(106, one), 1, len(ws)
     best = None
     for j in range(1, len(ws)):
         a, b = " ".join(ws[:j]), " ".join(ws[j:])
-        s = min(84, width / max(anton_em(a) - .18, anton_em(b) - .18))
+        s = min(60, width / max(anton_em(a) - .18, anton_em(b) - .18))
         if best is None or s > best[0]:
             best = (s, 2, j)
     return best
@@ -729,9 +730,9 @@ def _item_screen(comp: Comp, ctx: Ctx, r: dict, rank: int, n: int, t0: float, R_
     inner += _floor(FLOOR)
     # name and the figure
     size, lines, brk = _fit_name(it["name"])
-    name_y = NAME_Y if lines == 1 else STAT_Y - 14 - lines * size * .92
-    feet = min(FLOOR + 6, name_y + 6)
-    fig_h = max(420, feet - FIG_TOP)
+    name_y = NAME_Y if lines == 1 else NAME_Y - 6
+    feet = FLOOR + 6
+    fig_h = feet - FIG_TOP
     inner += _figure(ctx, it, FIG_X, feet, fig_h, FIG_MAXW, t_fig)
     inner += _words(it["name"], SAFE_LEFT + 2, name_y, size, t0 + .95, brk=brk if lines == 2 else 0)
     # rank, top right
@@ -825,7 +826,7 @@ def _outro(comp: Comp, ctx: Ctx, rows: list, start: float, end: float, ask: tupl
 def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int = 5, **_):
     if kind not in KINDS:
         return None
-    count = max(3, min(6, int(count)))
+    count = max(5, min(6, int(count)))
     _ARTS.clear()
     hist = history()
     period = _period(int(since) if since else None, ctx.day)

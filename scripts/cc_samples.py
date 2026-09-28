@@ -46,7 +46,7 @@ VOICE_LINE = ("This skin has been in the Item Shop exactly once. The last time w
 STYLES = {"calendar": "cc_look_calendar", "arcade": "cc_look_arcade", "comic": "cc_look_comic",
           "metro": "cc_look_metro", "magazine": "cc_look_magazine", "postcard": "cc_look_postcard"}
 # New topics: name -> (module, builder, kwargs for the sample episode).
-TOPICS = {"higher_lower": ("cc_fmt_higher_lower", "build", {}),
+TOPICS = {"higher_lower": ("cc_fmt_higher_lower", "build", {"pool": "ch1"}),
           "overdue": ("cc_fmt_overdue", "build", {}),
           "most_common": ("cc_fmt_most_common", "build", {}),
           "then_now": ("cc_fmt_then_now", "build", {}),
