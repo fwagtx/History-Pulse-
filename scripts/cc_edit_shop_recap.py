@@ -146,9 +146,12 @@ def _roll(frm: int, to: int, size: float, start: float, land: float, lime: bool 
     html = ""
     dur = max(.05, land - start)
     for i in range(steps):
-        p = i / steps
+        # a count up never shows 0 (a price of "0 V-Bucks", even for a few frames, reads as free)
+        p = (i + 1) / (steps + 1) if frm == 0 else i / steps
         v = frm + (to - frm) * (1 - (1 - p) ** 2)
-        v = int(round(v / 10.0)) * 10 if max(frm, to) >= 200 else int(round(v))
+        q = 10 if max(frm, to) >= 200 else 1
+        v = int(round(v / q)) * q
+        v = min(v, to - q) if frm < to else max(v, to + q)     # the landing always changes the figure
         a, b = start + dur * i / steps, start + dur * (i + 1) / steps
         if i == 0 and first is not None:
             a = first
