@@ -78,16 +78,16 @@ ALB_Y = 1300                      # page top
 MNT_Y = 1311                      # mounts' top
 CAP_Y = 1392                      # years' top (26 px: their letters end above y 1420)
 # A year's card (card coordinates).
-ST_W, ST_H, ST_Y = 480, 690, 76   # the stamp (646 tall when the name takes two lines)
-PM_D, PM_X, PM_Y = 210, 130, 128  # the postmark: size, and its circle's centre
+ST_W, ST_H, ST_X, ST_Y = 456, 690, 154, 76   # the stamp, top right (646 tall for a two-line name)
+PM_D, PM_X, PM_Y = 200, 126, 150  # the postmark: size, and its circle's centre (the date on the card)
 TXT_X, TXT_W = 44, 562            # the typed lines
 NOTE_W = 352                      # the pen line (NEW THAT DAY goes beside it)
 
 CARD_T = """
-.pc-air{position:absolute;inset:0;background:%(lip)s;border-radius:4px}
+.pc-air{position:absolute;inset:0;background:@lip@;border-radius:4px}
 .pc-air::before{content:"";position:absolute;inset:6px;background:repeating-linear-gradient(-45deg,
-  %(red)s 0 18px,%(lip)s 18px 27px,%(blue)s 27px 45px,%(lip)s 45px 54px)}
-.pc-stock{position:absolute;inset:%(edge)spx;background:url(%(card)s) 0 0/600px 600px;
+  @red@ 0 18px,@lip@ 18px 27px,@blue@ 27px 45px,@lip@ 45px 54px)}
+.pc-stock{position:absolute;inset:@edge@px;background:url(@card@) 0 0/600px 600px;
   box-shadow:inset 0 0 0 1px rgba(120,96,60,.12)}
 """
 
@@ -96,48 +96,54 @@ CSS = """
   box-shadow:0 1px 1px rgba(0,0,0,.4),0 6px 10px rgba(0,0,0,.3),0 24px 42px rgba(0,0,0,.38)}
 .pc-age{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 80% 70% at 48% 45%,rgba(0,0,0,0) 62%,rgba(140,104,52,.13) 100%)}
-.pc-type{font-family:'Special Elite',monospace;color:%(ink)s;white-space:nowrap;line-height:1.12;
+.pc-type{font-family:'Special Elite',monospace;color:@ink@;white-space:nowrap;line-height:1.12;
   text-shadow:0 0 .7px rgba(34,31,41,.55)}
-.pc-pen{font-family:'Caveat',cursive;font-weight:700;color:%(pen)s;white-space:nowrap;line-height:1}
-.pc-print{font-family:'Playfair Display',serif;font-weight:700;color:%(print)s;letter-spacing:.42em;
+.pc-pen{font-family:'Caveat',cursive;font-weight:700;color:@pen@;white-space:nowrap;line-height:1}
+.pc-print{font-family:'Playfair Display',serif;font-weight:700;color:@print@;letter-spacing:.42em;
   white-space:nowrap}
 .pc-rule{position:absolute;height:0;border-top:1.5px solid rgba(122,107,88,.55)}
-.pc-lbl{position:absolute;background:%(lime)s;border-radius:3px;
+.pc-lbl{position:absolute;background:@lime@;border-radius:3px;
   box-shadow:0 1px 1px rgba(0,0,0,.45),0 4px 7px rgba(0,0,0,.38),0 16px 28px rgba(0,0,0,.42)}
-.pc-lbl::before{content:"";position:absolute;inset:0;border-radius:3px;background:url(%(card)s) 0 0/300px 300px;
+.pc-lbl::before{content:"";position:absolute;inset:0;border-radius:3px;background:url(@card@) 0 0/300px 300px;
   mix-blend-mode:multiply;opacity:.55}
 .pc-lbl-in{position:absolute;inset:9px;border:3px solid #111;display:flex;flex-direction:column;
   align-items:center;justify-content:center}
 .pc-lbl-in::after{content:"";position:absolute;inset:4px;border:1px solid #111}
-.pc-hand{font-family:Oswald,sans-serif;color:%(red)s;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;border:5px solid %(red)s;border-radius:8px;outline:2px solid %(red)s;outline-offset:-12px;
-  -webkit-mask:url(%(ink_m)s) 0 0/800px 400px;mask:url(%(ink_m)s) 0 0/800px 400px}
+.pc-hand{font-family:Oswald,sans-serif;color:@red@;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;border:5px solid @red@;border-radius:8px;outline:2px solid @red@;outline-offset:-12px;
+  -webkit-mask:url(@ink_m@) -40px -20px/1400px 700px;mask:url(@ink_m@) -40px -20px/1400px 700px}
 .pc-big{font-family:'Playfair Display',serif;font-weight:900;color:#f7c948;line-height:.9;white-space:nowrap;
   font-variant-numeric:lining-nums;text-align:center}
-@keyframes pcslide{0%%{transform:translate(-1010px,40px) rotate(-7deg)}
-  70%%{transform:translate(12px,-3px) rotate(.45deg)}86%%{transform:translate(-3px,0) rotate(-.15deg)}
-  100%%{transform:none}}
-@keyframes pcflipout{0%%{transform:perspective(2600px) rotateY(0) scale(1)}
-  100%%{transform:perspective(2600px) rotateY(90deg) scale(1.05)}}
-@keyframes pcflipin{0%%{transform:perspective(2600px) rotateY(-90deg) scale(1.05)}
-  70%%{transform:perspective(2600px) rotateY(5deg) scale(1.004)}100%%{transform:none}}
-@keyframes pcslam{0%%{opacity:0;transform:scale(1.32) rotate(var(--r,0deg))}
-  1%%{opacity:1}55%%{opacity:1;transform:scale(.982) rotate(var(--r,0deg))}
-  100%%{opacity:1;transform:scale(1) rotate(var(--r,0deg))}}
-@keyframes pcjolt{0%%,100%%{transform:none}35%%{transform:translateY(3px) scale(.996)}}
-@keyframes pcnudge{0%%,100%%{transform:none}40%%{transform:translate(-7px,5px) rotate(-.9deg)}
-  75%%{transform:translate(1px,-1px) rotate(.12deg)}}
-@keyframes pcmount{0%%{opacity:0;transform:translateY(-74px) rotate(-9deg) scale(1.14)}
-  22%%{opacity:1}72%%{opacity:1;transform:translateY(3px) rotate(.6deg) scale(.99)}
-  100%%{opacity:1;transform:none}}
-@keyframes pcplace{0%%{opacity:0;transform:translate(8px,-46px) scale(1.12) rotate(calc(var(--r,0deg) - 7deg))}
-  25%%{opacity:1}70%%{opacity:1;transform:translate(0,2px) scale(.99) rotate(var(--r,0deg))}
-  100%%{opacity:1;transform:rotate(var(--r,0deg))}}
+@keyframes pcslide{0%{transform:translate(-1010px,40px) rotate(-7deg)}
+  70%{transform:translate(12px,-3px) rotate(.45deg)}86%{transform:translate(-3px,0) rotate(-.15deg)}
+  100%{transform:none}}
+@keyframes pcflipout{0%{transform:perspective(2600px) rotateY(0) scale(1)}
+  100%{transform:perspective(2600px) rotateY(90deg) scale(1.05)}}
+@keyframes pcflipin{0%{transform:perspective(2600px) rotateY(-90deg) scale(1.05)}
+  70%{transform:perspective(2600px) rotateY(5deg) scale(1.004)}100%{transform:none}}
+@keyframes pcslam{0%{opacity:0;transform:scale(1.32) rotate(var(--r,0deg))}
+  1%{opacity:1}55%{opacity:1;transform:scale(.982) rotate(var(--r,0deg))}
+  100%{opacity:1;transform:scale(1) rotate(var(--r,0deg))}}
+@keyframes pcjolt{0%,100%{transform:none}35%{transform:translateY(3px) scale(.996)}}
+@keyframes pcnudge{0%,100%{transform:none}40%{transform:translate(-7px,5px) rotate(-.9deg)}
+  75%{transform:translate(1px,-1px) rotate(.12deg)}}
+@keyframes pcmount{0%{opacity:0;transform:translateY(-74px) rotate(-9deg) scale(1.14)}
+  22%{opacity:1}72%{opacity:1;transform:translateY(3px) rotate(.6deg) scale(.99)}
+  100%{opacity:1;transform:none}}
+@keyframes pcplace{0%{opacity:0;transform:translate(8px,-46px) scale(1.12) rotate(calc(var(--r,0deg) - 7deg))}
+  25%{opacity:1}70%{opacity:1;transform:translate(0,2px) scale(.99) rotate(var(--r,0deg))}
+  100%{opacity:1;transform:rotate(var(--r,0deg))}}
 @keyframes pcout{to{transform:translate(1150px,60px) rotate(9deg)}}
-@keyframes pcpress{0%%,100%%{transform:rotate(var(--r)) scale(1)}35%%{transform:rotate(var(--r)) scale(1.045)}
-  70%%{transform:rotate(var(--r)) scale(.985)}}
+@keyframes pcpress{0%,100%{transform:rotate(var(--r)) scale(1)}35%{transform:rotate(var(--r)) scale(1.045)}
+  70%{transform:rotate(var(--r)) scale(.985)}}
 @keyframes pcink{from{color:#8d7f6c}to{color:#1d1b22}}
 """
+
+
+def _fill(css: str, **kw) -> str:
+    for k, v in kw.items():
+        css = css.replace(f"@{k}@", str(v))
+    return css
 
 
 def _a(name: str, t: float, dur: float, ease: str = "cubic-bezier(.2,.9,.25,1)", extra: str = "") -> str:
@@ -369,12 +375,21 @@ def _postmark(top: str, bottom: str, l1: str, l2: str, d: float = PM_D, wave: fl
 
 def _handstamp(l1: str, l2: str, w: float, h: float, f1: float, f2: float) -> str:
     """A red rubber handstamp: a double-ruled box, `l1` big over `l2`."""
-    return (f'<div class="pc-hand" style="width:{w:.0f}px;height:{h:.0f}px;opacity:.9">'
+    return (f'<div class="pc-hand" style="width:{w:.0f}px;height:{h:.0f}px;opacity:.95">'
             f'<div style="font-weight:700;font-size:{f1:.0f}px;line-height:.95;letter-spacing:.04em;'
             f'white-space:nowrap">{esc(l1)}</div>'
             + (f'<div style="font-weight:500;font-size:{f2:.0f}px;line-height:1.05;letter-spacing:.2em;'
                f'white-space:nowrap;padding-left:.2em">{esc(l2)}</div>' if l2 else "")
             + '</div>')
+
+
+def _centred(text: str, top: float, fit: float, cls: str, style: str, rot: float = 0, anim: str = "",
+             left: float = 0, width: float = CW) -> str:
+    """One line of text centred in [left, left + width], shrunk to `fit` px if
+    it is wider (the fit is measured on the text itself, not on the box)."""
+    return (f'<div class="abs" style="left:{left:.0f}px;width:{width:.0f}px;top:{top:.0f}px;text-align:center;'
+            f'transform:rotate({rot}deg)"><div class="{cls}" data-fit="{fit:.0f}" style="display:inline-block;'
+            f'white-space:nowrap;{style};{anim}">{esc(text)}</div></div>')
 
 
 def _typed(text: str, seed: int) -> str:
@@ -411,6 +426,53 @@ def _desk() -> str:
             f'center/1080px 1920px"></div>')
 
 
+def _props() -> str:
+    """A magnifier and a fountain pen on the desk right of the card, below the
+    label (pure decoration; they run under the button rail)."""
+    desk = tex("postcard-desk.jpg")
+    lx, ly, lr = 872, 700, 92                     # the magnifier's lens
+    mag = (f'<div class="abs" style="left:{lx + 40}px;top:{ly - 26}px;width:250px;height:52px;border-radius:26px;'
+           f'transform-origin:0 26px;transform:rotate(-24deg);background:linear-gradient(180deg,#5a3a22 0,#8c5c34 30%,'
+           f'#4a2e1a 70%,#2a180c 100%);box-shadow:0 10px 16px rgba(0,0,0,.45)"></div>'
+           f'<div class="abs" style="left:{lx + 60}px;top:{ly - 21}px;width:52px;height:42px;transform-origin:-20px 21px;'
+           f'transform:rotate(-24deg);background:linear-gradient(180deg,#8a6a2a,#f0d78e 35%,#9a7430 70%,#5a4212);'
+           f'border-radius:6px"></div>'
+           f'<div class="abs" style="left:{lx - lr}px;top:{ly - lr}px;width:{2 * lr}px;height:{2 * lr}px;'
+           f'border-radius:50%;box-shadow:0 14px 26px rgba(0,0,0,.5),0 3px 5px rgba(0,0,0,.45);'
+           f'background:conic-gradient(from 20deg,#6d5220,#f2dc98,#9c7a34,#5a4214,#e6c878,#8a6a28,#6d5220)"></div>'
+           f'<div class="abs" style="left:{lx - lr + 13}px;top:{ly - lr + 13}px;width:{2 * lr - 26}px;'
+           f'height:{2 * lr - 26}px;border-radius:50%;overflow:hidden;background:url({desk}) '
+           f'{-(lx - lr + 13) * 1.7 + (lr - 13) * .7:.0f}px {-(ly - lr + 13) * 1.7 + (lr - 13) * .7:.0f}px/1836px 3264px;'
+           f'box-shadow:inset 0 0 18px rgba(0,0,0,.55),inset 0 0 3px rgba(255,255,255,.35)">'
+           f'<div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 32% 28%,'
+           f'rgba(255,255,255,.3) 0,rgba(255,255,255,.1) 22%,rgba(255,255,255,0) 46%),radial-gradient(circle at 50% 50%,'
+           f'rgba(0,0,0,0) 70%,rgba(255,255,255,.14) 93%,rgba(0,0,0,0) 100%)"></div></div>')
+    # the pen: drawn lying along +x, nib first, then turned into place
+    pen = ('<svg width="640" height="64" viewBox="0 -32 640 64" style="position:absolute;left:0;top:0;overflow:visible">'
+           '<defs><linearGradient id="pcg" x1="0" y1="-1" x2="0" y2="1" gradientUnits="objectBoundingBox">'
+           '<stop offset="0" stop-color="#6e5320"/><stop offset=".3" stop-color="#f3dd98"/>'
+           '<stop offset=".6" stop-color="#a47e34"/><stop offset="1" stop-color="#4f3a10"/></linearGradient>'
+           '<linearGradient id="pcl" x1="0" y1="0" x2="0" y2="1">'
+           '<stop offset="0" stop-color="#3a0b10"/><stop offset=".22" stop-color="#a3323a"/>'
+           '<stop offset=".42" stop-color="#6d161d"/><stop offset="1" stop-color="#1c0406"/></linearGradient>'
+           '<linearGradient id="pcb" x1="0" y1="0" x2="0" y2="1">'
+           '<stop offset="0" stop-color="#1a1a1a"/><stop offset=".25" stop-color="#5a5a5a"/>'
+           '<stop offset=".5" stop-color="#151515"/><stop offset="1" stop-color="#050505"/></linearGradient></defs>'
+           '<path d="M0,0 L60,-10 L60,10 Z" fill="url(#pcg)"/>'
+           '<path d="M6,0 L44,0" stroke="#4a3610" stroke-width="1.6"/><circle cx="44" cy="0" r="2.6" fill="#4a3610"/>'
+           '<rect x="58" y="-13" width="58" height="26" rx="7" fill="url(#pcb)"/>'
+           '<rect x="114" y="-16" width="8" height="32" fill="url(#pcg)"/>'
+           '<rect x="120" y="-17" width="300" height="34" rx="9" fill="url(#pcl)"/>'
+           '<rect x="418" y="-18" width="10" height="36" fill="url(#pcg)"/>'
+           '<rect x="426" y="-19" width="184" height="38" rx="17" fill="url(#pcl)"/>'
+           '<rect x="446" y="-25" width="146" height="8" rx="4" fill="url(#pcg)"/>'
+           '<circle cx="592" cy="-21" r="6" fill="url(#pcg)"/>'
+           '</svg>')
+    pen = (f'<div class="abs" style="left:752px;top:1236px;width:640px;height:64px;transform-origin:0 32px;'
+           f'transform:rotate(-57deg);filter:drop-shadow(8px 14px 9px rgba(0,0,0,.5))">{pen}</div>')
+    return f'<div class="full" data-safe="ignore" style="z-index:1">{mag}{pen}</div>'
+
+
 def _label(press: float | None = None) -> str:
     """USE CODE: BAD as a lime airmail label stuck on the desk. The outer box
     is the unturned box around it (the safe-zone check measures it)."""
@@ -429,7 +491,7 @@ def _label(press: float | None = None) -> str:
             '</div></div></div>')
 
 
-def _album(ctx, slots: list, fills: list, t_end: float) -> str:
+def _album(ctx, slots: list, fills: list, marks: list, t_end: float) -> str:
     """The stamp album along the foot: a printed box and the year under it for
     every year; at fills[i] that year's used stamp drops into a black mount and
     the pen underlines the year until the next one comes in. slots: (year,
@@ -465,13 +527,13 @@ def _album(ctx, slots: list, fills: list, t_end: float) -> str:
                    f'rgba(255,255,255,.06) 34%,rgba(255,255,255,0) 35%,rgba(255,255,255,0) 100%)"></div></div>')
         out.append(f'<div class="abs" style="left:{cx - s / 2:.1f}px;width:{s:.1f}px;top:{CAP_Y}px;text-align:center;'
                    f'font-family:Oswald,sans-serif;font-weight:500;font-size:26px;line-height:1.1;letter-spacing:.04em;'
-                   f'color:#8d7f6c;{_a("pcink", t, .3, "linear")}">{year}</div>')
-        t_off = fills[i + 1] if i + 1 < len(fills) else t_end
+                   f'color:#8d7f6c;{_a("pcink", marks[i], .3, "linear")}">{year}</div>')
+        t_on, t_off = marks[i], (marks[i + 1] if i + 1 < len(marks) else t_end)
         d, L = rough_line(cx - 30, 1420, cx + 30, 1419, seed=year, bow=.06)
         L = int(L) + 4
         out.append(f'<svg class="abs" data-safe="ignore" width="1080" height="1920" style="left:0;top:0;overflow:visible">'
                    f'<path d="{d}" fill="none" stroke="{PEN}" stroke-width="4.5" stroke-linecap="round" '
-                   f'style="stroke-dasharray:{L};stroke-dashoffset:{L};animation:lkdraw .3s ease-out {t + .25:.3f}s 1 '
+                   f'style="stroke-dasharray:{L};stroke-dashoffset:{L};animation:lkdraw .3s ease-out {t_on:.3f}s 1 '
                    f'normal both,lkout .15s linear {t_off:.3f}s 1 normal both"/></svg>')
     return "".join(out)
 
@@ -499,18 +561,21 @@ def _year_card(ctx, rd, it, debut, when_short: str, t0: float, k: int) -> tuple:
     rnd = random.Random(y * 31 + k)
     lines, size = _name_lines(it["name"], TXT_W)
     sh = ST_H if len(lines) == 1 else ST_H - 44
-    sx = (CW - ST_W) / 2
     html = [_card_frame(),
-            f'<div class="abs" style="left:{sx:.0f}px;top:{ST_Y}px;width:{ST_W}px;height:{sh}px">'
-            f'{_stamp(ctx.art(it), it, y, ST_W, sh)}</div>']
+            f'<div class="abs" style="left:{ST_X}px;top:{ST_Y}px;width:{ST_W}px;height:{sh}px;'
+            f'transform:rotate({rnd.uniform(-1.4, 1.2):.2f}deg)">{_stamp(ctx.art(it), it, y, ST_W, sh)}</div>']
+    html.append(f'<div class="abs pc-print" style="left:{ST_X / 2 - 150:.0f}px;top:{ST_Y + sh - 330:.0f}px;width:300px;'
+                f'text-align:center;font-size:22px;letter-spacing:.5em;transform:rotate(-90deg);opacity:.8">'
+                f'POST CARD</div>')
     # the postmark, slammed over the stamp's top-left corner
     t_pm = t0 + .42
-    rot = rnd.uniform(-9, 5)
+    rot = rnd.uniform(-22, -12)
     px, py = PM_X + rnd.uniform(-5, 5), PM_Y + rnd.uniform(-4, 4)
-    html.append(f'<div class="abs" style="left:{px - PM_D / 2:.0f}px;top:{py - PM_D / 2:.0f}px;width:{PM_D + 310}px;'
+    html.append(f'<div class="abs" style="left:{px - PM_D / 2:.0f}px;top:{py - PM_D / 2:.0f}px;width:{PM_D + 330}px;'
                 f'height:{PM_D}px;transform-origin:{PM_D / 2:.0f}px {PM_D / 2:.0f}px;--r:{rot:.1f}deg;'
                 f'transform:rotate({rot:.1f}deg);{_a("pcslam", t_pm, .2, "cubic-bezier(.3,.7,.4,1)")}">'
-                + _postmark("ON THIS DAY", "ITEM SHOP", when_short, str(y), seed=y) + '</div>')
+                + _postmark("ON THIS DAY", "ITEM SHOP", when_short, str(y), d=PM_D, wave=330, wy=-34, seed=y)
+                + '</div>')
     # typed on the address lines: the name, then its rarity and type
     ty = ST_Y + sh + 22
     t_type = t0 + .8
@@ -562,13 +627,7 @@ def _picture_card(ctx, lead: list, when_short: str, span: str, bday) -> str:
                       + [f"{i}px {i}px 0 #b0452b" for i in range(3, 11)]
                       + ["11px 11px 0 #2a1810", "14px 18px 16px rgba(0,0,0,.28)"])
     html = [f'<div style="position:absolute;inset:0;background:#f5efe2 url({tex("postcard-card.jpg")}) 0 0/600px"></div>',
-            f'<div style="{pic}">',
-            # a few printed clouds
-            '<div class="abs" style="left:40px;top:118px;width:220px;height:56px;border-radius:50%;'
-            'background:rgba(255,250,236,.5)"></div>'
-            '<div class="abs" style="left:380px;top:70px;width:190px;height:44px;border-radius:50%;'
-            'background:rgba(255,250,236,.42)"></div>'
-            '</div>',
+            f'<div style="{pic}"></div>',
             f'<div class="abs" style="left:18px;right:18px;top:52px;text-align:center;font-family:\'Playfair Display\','
             f'serif;font-style:italic;font-weight:700;font-size:62px;line-height:1.1;color:#fff8ea;'
             f'text-shadow:2px 2px 0 #183a4c,3px 3px 0 #183a4c,5px 7px 8px rgba(0,0,0,.25)">Greetings from the</div>',
@@ -588,11 +647,9 @@ def _picture_card(ctx, lead: list, when_short: str, span: str, bday) -> str:
                 f'transform-origin:90px 90px">'
                 + _postmark("ON THIS DAY", "ITEM SHOP", when_short, "EVERY YEAR", d=180, wave=0, seed=7) + '</div>')
     if bday:
-        html.append(f'<div class="abs pc-pen" data-fit="560" style="left:0;right:0;top:968px;text-align:center;'
-                    f'font-size:64px;transform:rotate(-2deg)">Fortnite turns {bday["age"]}!</div>')
+        html.append(_centred(f"Fortnite turns {bday['age']}!", 968, 560, "pc-pen", "font-size:66px", -2))
     else:
-        html.append('<div class="abs pc-pen" data-fit="580" style="left:0;right:0;top:978px;text-align:center;'
-                    'font-size:48px;transform:rotate(-1.5deg)">one outfit from this date, every year</div>')
+        html.append(_centred("one outfit from this date, every year", 980, 584, "pc-pen", "font-size:48px", -1.5))
         # the pen comes back and underlines "every year"
         d, L = rough_line(458, 1022, 618, 1017, seed=5, bow=.05)
         html.append(f'<svg class="abs" data-safe="ignore" width="{CW}" height="{CH}" style="left:0;top:0;overflow:visible">'
@@ -612,7 +669,7 @@ def _bday_card(bday: dict, t0: float) -> tuple:
             'padding-left:.42em">POST CARD</div>',
             f'<div class="pc-rule" style="left:60px;width:530px;top:92px"></div>',
             f'<div class="abs" style="left:92px;top:118px;--r:-5deg;{_a("pcslam", t_hand, .2, "cubic-bezier(.3,.7,.4,1)")}">'
-            + _handstamp(f"{bday['age']} YEARS", "TODAY", 470, 178, 104, 44) + '</div>',
+            + _handstamp(f"{bday['age']} YEARS", "TODAY", 470, 196, 96, 40) + '</div>',
             f'<div class="abs pc-pen" data-fit="560" style="left:46px;top:890px;font-size:62px;transform:rotate(-2deg);'
             f'{write_on(t0 + 2.45, .9, 20)}">Happy birthday, Fortnite!</div>']
     ew, eh = 846, 512
@@ -627,22 +684,19 @@ def _bday_card(bday: dict, t0: float) -> tuple:
            f'box-shadow:inset 0 0 0 5px #f7f2e7,inset 0 0 0 6px {NAVY}"></div>'
            f'<div class="abs" style="left:30px;width:530px;top:56px;text-align:center;font-family:Oswald,sans-serif;'
            f'font-weight:500;font-size:26px;letter-spacing:.32em;padding-left:.32em;color:{RED}">FIRST DAY COVER</div>'
-           f'<div class="abs" data-fit="470" style="left:30px;width:530px;top:98px;text-align:center;'
-           f'font-family:\'Playfair Display\',serif;font-weight:900;font-size:84px;line-height:1;color:{NAVY}">FORTNITE</div>'
-           f'<div class="abs" data-fit="470" style="left:30px;width:530px;top:186px;text-align:center;'
-           f'font-family:\'Playfair Display\',serif;font-weight:900;font-size:54px;line-height:1;color:{NAVY}">'
-           f'BATTLE ROYALE</div>'
-           f'<div class="abs" style="left:110px;width:370px;top:262px;border-top:2px solid {RED}"></div>'
-           f'<div class="abs" data-fit="470" style="left:30px;width:530px;top:284px;text-align:center;'
-           f'font-family:Oswald,sans-serif;font-weight:500;font-size:30px;letter-spacing:.08em;color:{NAVY}">'
-           f'RELEASED SEPTEMBER 26, {bday["year"]}</div>'
-           f'<div class="abs" data-fit="470" style="left:30px;width:530px;top:340px;text-align:center;'
-           f'font-family:\'Playfair Display\',serif;font-style:italic;font-weight:700;font-size:38px;color:{NAVY}">'
-           f'PC · PlayStation 4 · Xbox One</div>'
-           f'<div class="abs" style="left:614px;top:36px;width:196px;height:256px;transform:rotate(1.5deg)">{stamp}</div>'
-           f'<div class="abs" style="left:{612 - 98}px;top:{268 - 98}px;width:{196 + 130}px;height:196px;--r:-6deg;'
+           + _centred("FORTNITE", 96, 470, "", f"font-family:'Playfair Display',serif;font-weight:900;"
+                      f"font-size:86px;line-height:1;color:{NAVY}", 0, left=30, width=530)
+           + _centred("BATTLE ROYALE", 186, 470, "", f"font-family:'Playfair Display',serif;font-weight:900;"
+                      f"font-size:54px;line-height:1;color:{NAVY}", 0, left=30, width=530)
+           + f'<div class="abs" style="left:110px;width:370px;top:262px;border-top:2px solid {RED}"></div>'
+           + _centred(f"RELEASED SEPTEMBER 26, {bday['year']}", 284, 470, "", "font-family:Oswald,sans-serif;"
+                      f"font-weight:500;font-size:30px;letter-spacing:.08em;color:{NAVY}", 0, left=30, width=530)
+           + _centred("PC · PlayStation 4 · Xbox One", 338, 470, "", "font-family:'Playfair Display',serif;"
+                      f"font-style:italic;font-weight:700;font-size:38px;color:{NAVY}", 0, left=30, width=530)
+           + f'<div class="abs" style="left:614px;top:36px;width:196px;height:256px;transform:rotate(1.5deg)">{stamp}</div>'
+           f'<div class="abs" style="left:{648 - 98}px;top:{384 - 98}px;width:{196 + 96}px;height:196px;--r:-8deg;'
            f'transform-origin:98px 98px;{_a("pcslam", t_pm, .2, "cubic-bezier(.3,.7,.4,1)")}">'
-           + _postmark("FIRST DAY OF ISSUE", "BATTLE ROYALE", "SEP 26", str(bday["year"]), d=196, wave=130, wy=-62,
+           + _postmark("FIRST DAY OF ISSUE", "BATTLE ROYALE", "SEP 26", str(bday["year"]), d=196, wave=96, wy=-4,
                        seed=26)
            + '</div></div>')
     sounds = [(t_pm, "stamp"), (t_hand, "stamp"), (t0 + 2.45, "pen")]
@@ -655,10 +709,9 @@ def _outro_card(ctx, picks: list, when_short: str, span: str, t: float) -> tuple
             'padding-left:.42em">POST CARD</div>',
             f'<div class="pc-rule" style="left:60px;width:530px;top:86px"></div>']
     for i, line in enumerate(("Which year had", "the best shop?")):
-        html.append(f'<div class="abs pc-pen" data-fit="560" style="left:0;right:0;top:{102 + i * 84}px;'
-                    f'text-align:center;font-size:88px;transform:rotate(-2deg);'
-                    f'{write_on(t + .35 + i * .55, .55, 14)}">{esc(line)}</div>')
-    sounds = [(t + .35, "pen"), (t + .9, "pen")]
+        html.append(_centred(line, 100 + i * 86, 560, "pc-pen", "font-size:88px", -2,
+                             write_on(t + .08 + i * .55, .55, 14)))
+    sounds = [(t + .08, "pen"), (t + .63, "pen")]
     if len(picks) >= 3:
         spots = [(40, 300, 262, 360, -4), (348, 312, 262, 360, 3), (56, 682, 262, 330, -2)]
         pm = (470, 850, 236)
@@ -666,13 +719,13 @@ def _outro_card(ctx, picks: list, when_short: str, span: str, t: float) -> tuple
         spots = [(34, 304, 286, 400, -4), (330, 322, 286, 400, 3)]
         pm = (325, 860, 236)
     for i, ((rd, it), (x, y0, w, h, rot)) in enumerate(zip(picks, spots)):
-        tt = t + 1.35 + i * .28
+        tt = t + 1.15 + i * .28
         html.append(f'<div class="abs" style="left:{x}px;top:{y0}px;width:{w}px;height:{h}px;--r:{rot}deg;'
                     f'{_a("pcplace", tt, .42, "cubic-bezier(.25,.8,.3,1)")}">{_stamp(ctx.art(it), it, rd["year"], w, h)}'
                     f'</div>')
         sounds.append((tt, "paper"))
     cx, cy, d = pm
-    t_pm = t + 1.35 + len(picks) * .28 + .35
+    t_pm = t + 1.15 + len(picks) * .28 + .35
     html.append(f'<div class="abs" style="left:{cx - d / 2:.0f}px;top:{cy - d / 2:.0f}px;width:{d}px;height:{d}px;'
                 f'--r:8deg;transform-origin:{d / 2:.0f}px {d / 2:.0f}px;'
                 f'{_a("pcslam", t_pm, .2, "cubic-bezier(.3,.7,.4,1)")}">'
@@ -693,9 +746,9 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     comp = Comp(pad_to(content_end))
     comp.use_fonts(*FONTS)
     comp.css(KIT_CSS)
-    comp.css(CARD_T % {"lip": LIP, "red": AIR_RED, "blue": AIR_BLUE, "edge": EDGE, "card": tex("postcard-card.jpg")})
-    comp.css(CSS % {"ink": INK, "pen": PEN, "print": PRINT, "lime": LIME, "card": tex("postcard-card.jpg"),
-                    "red": RED, "ink_m": tex("postcard-ink.png")})
+    comp.css(_fill(CARD_T, lip=LIP, red=AIR_RED, blue=AIR_BLUE, edge=EDGE, card=tex("postcard-card.jpg")))
+    comp.css(_fill(CSS, ink=INK, pen=PEN, print=PRINT, lime=LIME, card=tex("postcard-card.jpg"), red=RED,
+                   ink_m=tex("postcard-ink.png")))
     span = f"{years[0]}–{years[-1]}"
 
     # page k: from t0 = HOOK + k r, its card slid in over the one before
@@ -721,7 +774,9 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
         fills.append(t_fill)
 
     comp.add(_desk())
-    comp.add(f'<div class="full" style="z-index:70">{_album(ctx, slots, fills, content_end)}</div>')
+    comp.add(_props())
+    marks = [starts[0] + .1] + [t + .12 for t in starts[1:]]
+    comp.add(f'<div class="full" style="z-index:70">{_album(ctx, slots, fills, marks, content_end)}</div>')
     comp.add(f'<div class="full" style="z-index:90">{_label(content_end + 2.75)}</div>')
     comp.add(PREP_JS)
 

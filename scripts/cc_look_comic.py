@@ -126,7 +126,10 @@ CSS = """
 
 # ---------------------------------------------------------------- helpers
 
-def _a(name: str, t: float, dur: float, ease: str = "cubic-bezier(.2,.8,.2,1)", extra: str = "") -> str:
+def _a(name: str, t, dur: float, ease: str = "cubic-bezier(.2,.8,.2,1)", extra: str = "") -> str:
+    """One animation at an absolute time; t=None: none (the element at rest)."""
+    if t is None:
+        return extra
     return f"animation:{name} {dur:.3f}s {ease} {t:.3f}s 1 normal both;{extra}"
 
 
@@ -271,16 +274,32 @@ FIG_JS = """<script>(() => {
         st.margin = (-P) + 'px';
       } catch (e) {}
     }
+    // a turning page is a still copy of its page: its cosmetic is the same picture
+    for (const img of document.querySelectorAll('img[data-cmcopy]')) {
+      try {
+        const o = document.querySelector('img[data-cmid="' + img.dataset.cmcopy + '"]');
+        if (!o) continue;
+        img.src = o.src;
+        if (img.decode) { await img.decode(); }
+        for (const k of ['width', 'height', 'margin', 'maxWidth', 'maxHeight']) img.style[k] = o.style[k];
+      } catch (e) {}
+    }
   })();
 })();</script>"""
 
 
-def _figure(ctx, it: dict, cx: float, bottom: float, mw: float, mh: float, anim: str = "") -> str:
-    """The cosmetic, inked, standing on `bottom`, centred on cx, fitted to mw x mh."""
+def _figure(ctx, it: dict, cx: float, bottom: float, mw: float, mh: float, anim: str = "", key: str = "",
+            copy: bool = False) -> str:
+    """The cosmetic, inked, standing on `bottom`, centred on cx, fitted to mw x mh.
+    copy: the same figure on a turning page's still copy (FIG_JS fills in the
+    picture baked for `key`, so the art is embedded once)."""
     art = ctx.art(it)
-    if art:
+    if art and copy:
+        pic = (f'<img data-cmcopy="{key}" data-name="{esc(it["name"])}" alt="" style="display:block;'
+               f'max-width:{mw:.0f}px;max-height:{mh:.0f}px">')
+    elif art:
         tr = 'data-trim="figure"' if trim_for(it) == "figure" else "data-trim"
-        pic = (f'<img {tr} data-cmfig="{INK_FILTER}" data-mw="{mw:.0f}" data-mh="{mh:.0f}" '
+        pic = (f'<img {tr} data-cmfig="{INK_FILTER}" data-cmid="{key}" data-mw="{mw:.0f}" data-mh="{mh:.0f}" '
                f'data-name="{esc(it["name"])}" src="{art}" style="display:block;max-width:{mw:.0f}px;'
                f'max-height:{mh:.0f}px">')
     else:
@@ -440,75 +459,77 @@ def _kf_turn() -> str:
             + "@keyframes cmcast{" + "".join(shadow) + "}")
 
 
-def _page(inner: str, t_turn, cast_at=None) -> str:
-    """A whole printed page: paper, `inner`, grain over the inks. It turns away
-    at t_turn (None: it never does); cast_at: when the page before it turns
-    away (its shadow sweeps across this one)."""
-    turn = shade = ""
-    if t_turn is not None:
-        turn = f"animation:cmturn {TURN:.3f}s linear {t_turn:.3f}s 1 normal both;"
-        shade = _a("cmshade", t_turn, TURN, "cubic-bezier(.6,0,.9,.6)")
-    cast = ""
-    if cast_at is not None:
-        cast = (f'<div class="abs" data-safe="ignore" style="left:0;top:0;width:620px;height:1920px;'
-                f'background:linear-gradient(90deg,rgba(28,20,6,.66),rgba(28,20,6,.3) 28%,rgba(28,20,6,0));'
-                f'animation:cmcast {TURN:.3f}s linear {cast_at:.3f}s 1 normal both"></div>')
-    return (f'<div class="full" style="perspective:2600px;perspective-origin:540px 960px">'
+def _page(inner: str) -> str:
+    """A whole printed page: newsprint and what's printed on it."""
+    return f'<div class="full cm-paper" style="overflow:hidden">{inner}</div>'
+
+
+def _turning(inner: str, t_turn: float) -> str:
+    """A still copy of a page (its final state) that turns over at t_turn: it
+    swings towards the viewer about its left edge, darkening, and its shadow
+    runs ahead of its edge across the page below. Only this copy carries the 3D
+    turn, and it's only on screen while it turns: a page with a pending 3D
+    animation costs every frame it's visible."""
+    cast = (f'<div class="abs" data-safe="ignore" style="left:0;top:0;width:620px;height:1920px;'
+            f'background:linear-gradient(90deg,rgba(28,20,6,.66),rgba(28,20,6,.3) 28%,rgba(28,20,6,0));'
+            f'animation:cmcast {TURN:.3f}s linear {t_turn:.3f}s 1 normal both"></div>')
+    return (f'{cast}<div class="full" style="perspective:2600px;perspective-origin:540px 960px">'
             f'<div class="full cm-paper" style="transform-origin:0 50%;backface-visibility:hidden;'
-            f'-webkit-backface-visibility:hidden;overflow:hidden;{turn}">'
-            f'{inner}{cast}'
+            f'-webkit-backface-visibility:hidden;overflow:hidden;'
+            f'animation:cmturn {TURN:.3f}s linear {t_turn:.3f}s 1 normal both">{inner}'
             f'<div class="abs" data-safe="ignore" style="inset:0;background:linear-gradient(90deg,'
-            f'rgba(30,22,8,.14),rgba(30,22,8,.74));opacity:0;{shade}"></div>'
+            f'rgba(30,22,8,.14),rgba(30,22,8,.74));{_a("cmshade", t_turn, TURN, "cubic-bezier(.6,0,.9,.6)")}"></div>'
             f'</div></div>')
 
 
-def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list, r: float, when: str) -> tuple:
+def _page_year(ctx, rd, it, debut, t0: float, idx: int, years: list, r: float, when: str,
+               still: bool = False) -> tuple:
     y = rd["year"]
     col = _rarity(it)
     kind = " ".join(x for x in (it.get("rarity_label") or "", it.get("type") or "") if x).strip()
-    rev = t0 - TURN_LEAD                                    # this page starts to show
+    T = (lambda dt: None) if still else (lambda dt: t0 + dt)
     # a two-line name makes the banner taller: the cosmetic stands on it, a bit smaller
     lift = 0 if _name_fit(it["name"])[1] == 1 else 86
-    html = [_panel_bg(col, PX, PY, PW, PH, FOCUS, rev, r + TURN_LEAD),
+    html = [_panel_bg(col, PX, PY, PW, PH, FOCUS, None, 0),
             _figure(ctx, it, FIG_CX, FIG_BOTTOM - lift, FIG_W, FIG_H - lift,
-                    _a("cmrise", t0 - .05, .55, "cubic-bezier(.25,.8,.3,1)")),
-            _caption(f"{when.upper()}, {y} —", X0, CAP_Y, -1.5, t0 + .02),
-            _year(y, col, t0 + .2),
-            _banner(it["name"], kind.upper(), col, t0 + .55),
-            _row(years, idx, t0 + .3),
+                    _a("cmrise", T(-.05), .55, "cubic-bezier(.25,.8,.3,1)"), f"p{idx}", still),
+            _caption(f"{when.upper()}, {y} —", X0, CAP_Y, -1.5, T(.02)),
+            _year(y, col, T(.2)),
+            _banner(it["name"], kind.upper(), col, T(.55)),
+            _row(years, idx, T(.3)),
             _tier(col)]
     sounds = [(t0 + .02, "paper"), (t0 + .2, "slam"), (t0 + .55, "whoosh"), (t0 + .87, "pop")]
     if debut:
-        html.append(_new_burst(t0 + 1.15, y * 7 + idx))
+        html.append(_new_burst(T(1.15), y * 7 + idx))
         sounds.append((t0 + 1.15, "slam"))
     else:
-        html.append(_note("in the Item Shop that day", t0 + 1.1))
+        html.append(_note("in the Item Shop that day", T(1.1)))
         sounds.append((t0 + 1.1, "paper"))
     return "".join(html), sounds
 
 
-def _page_origin(bday: dict, t0: float, years: list, r: float, when: str) -> tuple:
+def _page_origin(bday: dict, t0: float, years: list, r: float, when: str, still: bool = False) -> tuple:
     """Sep 26: the ORIGIN STORY splash page -- Battle Royale comes out."""
     y = bday["year"]
-    rev = t0 - TURN_LEAD
+    T = (lambda dt: None) if still else (lambda dt: t0 + dt)
     col = "#f39a1e"
     title = "".join(
-        f'<div style="{_a("cmprint", t0 + .35 + i * .14, .34, "cubic-bezier(.25,.9,.3,1)")}">'
+        f'<div style="{_a("cmprint", T(.35 + i * .14), .34, "cubic-bezier(.25,.9,.3,1)")}">'
         + _block(line, size, "#fff", 13, 10) + '</div>'
         for i, (line, size) in enumerate((("FORTNITE", 104), ("BATTLE ROYALE", 86), ("COMES OUT!", 104))))
-    html = [_panel_bg(col, PX, PY, PW, PH, (480, 900), rev, r + TURN_LEAD, lines=.85, tint=.7),
-            _caption(f"{when.upper()}, {y} —", X0, CAP_Y, -1.5, t0 + .02),
-            _year(y, RED, t0 + .2),
+    html = [_panel_bg(col, PX, PY, PW, PH, (480, 900), None, 0, lines=.85, tint=.7),
+            _caption(f"{when.upper()}, {y} —", X0, CAP_Y, -1.5, T(.02)),
+            _year(y, RED, T(.2)),
             # the splash's title tab, on the panel's top edge
             f'<div class="abs" style="left:{X0 + 6}px;top:{PY - 30}px;--r:-2deg;transform:rotate(-2deg);'
-            f'{_a("cmplace", t0 + .25, .34)}">'
+            f'{_a("cmplace", T(.25), .34)}">'
             + _box(f'<div class="cm-a" style="font-size:44px;line-height:1.1;color:#fff;letter-spacing:.04em">'
                    f'ORIGIN STORY</div>', INK, "position:relative", "6px 20px 4px", 8, 5) + '</div>',
             f'<div class="abs" style="left:{X0}px;top:716px;width:{XR - X0}px;display:flex;flex-direction:column;'
             f'align-items:center;gap:0;transform:rotate(-2deg)">{title}</div>',
             f'<div class="abs" style="left:{X0}px;top:1030px;width:{XR - X0}px;display:flex;'
             f'justify-content:center">'
-            f'<div style="--r:1deg;transform:rotate(1deg);{_a("cmplace", t0 + .95, .34)}">'
+            f'<div style="--r:1deg;transform:rotate(1deg);{_a("cmplace", T(.95), .34)}">'
             + _box('<div class="cm-o" style="font-size:40px;line-height:1.15;letter-spacing:.04em;'
                    'white-space:nowrap">PC · PLAYSTATION 4 · XBOX ONE</div>', CAP, "position:relative",
                    "6px 22px 4px") + '</div></div>',
@@ -516,15 +537,15 @@ def _page_origin(bday: dict, t0: float, years: list, r: float, when: str) -> tup
                    f'paint-order:stroke fill">HAPPY {_ordinal(bday["age"])}</div>'
                    f'<div class="cm-a" style="font-size:58px;line-height:1.05;color:#fff;-webkit-text-stroke:8px {INK};'
                    f'paint-order:stroke fill">BIRTHDAY!</div>', 478, 1212, 500, 214, RED, 99, -4,
-                   _a("cmslam", t0 + 1.5, .44, "cubic-bezier(.2,.8,.3,1)"), 18),
-            _row(years, 0, t0 + .3),
+                   _a("cmslam", T(1.5), .44, "cubic-bezier(.2,.8,.3,1)"), 18),
+            _row(years, 0, T(.3)),
             _tier(col)]
     sounds = [(t0 + .02, "paper"), (t0 + .2, "slam"), (t0 + .35, "whoosh"), (t0 + .95, "paper"),
               (t0 + 1.5, "slam"), (t0 + 1.7, "clap")]
     return "".join(html), sounds
 
 
-def _cover(ctx, lead: list, years: list, when_short: str, bday) -> str:
+def _cover(ctx, lead: list, years: list, when_short: str, bday, copy: bool = False) -> str:
     """Frame 0: the comic's cover, complete."""
     a, b = lead[0][1], lead[1][1]
     span = f"{years[0]}–{years[-1]}"
@@ -535,8 +556,8 @@ def _cover(ctx, lead: list, years: list, when_short: str, bday) -> str:
             + f'<div style="margin-top:-18px;margin-left:34px">' + _block("DAY", 208, CAP, 18, 14, grad=face)
             + '</div></div>')
     html = [_panel_bg(BLUE, PX, PY, PW, PH, (470, 900), None, 0, lines=.8, tint=.72),
-            _figure(ctx, b, 612, 1230, 360, 640),
-            _figure(ctx, a, 300, 1236, 420, 684),
+            _figure(ctx, b, 612, 1230, 360, 640, key="c1", copy=copy),
+            _figure(ctx, a, 300, 1236, 420, 684, key="c0", copy=copy),
             logo]
     if bday:
         html.append(_burst(f'<div class="cm-a" style="font-size:52px;line-height:1;color:#fff;'
@@ -609,7 +630,7 @@ def _outro(ctx, picks: list, t: float, years: list) -> tuple:
            + _block("THE END", 84, "#fff", 13, 10)
            + f'<div class="cm-k" style="font-size:120px;line-height:.8;color:{RED};-webkit-text-stroke:8px {INK};'
              f'paint-order:stroke fill;transform:rotate(12deg)">?</div></div>')
-    html = (_panel_bg(CAP, PX, PY, PW, PH, (480, 900), t - TURN_LEAD, 9, lines=.7, tint=.72)
+    html = (_panel_bg(CAP, PX, PY, PW, PH, (480, 900), None, 0, lines=.7, tint=.72)
             + "".join(figs) + "".join(tags) + balloon + end + _row(years, -1) + _tier(CAP))
     sounds = [(t + .05, "pop"), (t + .45, "whoosh")] + [(t + .75 + i * .18, "pop") for i in range(len(tags))]
     sounds += [(t + 2.2, "slam")]
@@ -643,36 +664,43 @@ def on_this_day(ctx, rounds: list, bday: dict, lead: list, third) -> Comp:
     comp.add(PREP_JS)
     comp.add(FIG_JS)
 
-    # ---- the pages, each over the next: the cover, (the origin story,) the years, the last page
+    # ---- the pages, each over the next: the cover, (the origin story,) the years, the last page.
+    # Each page is a still scene; when it's done, a still copy of it turns over
+    # (a scene of its own, only on screen while it turns) and the next page is under it.
     z = 80
+
+    def turn(inner_still: str, t_turn: float, z_: int):
+        comp.scene(t_turn - .02, t_turn + TURN + .02, _turning(inner_still, t_turn), fade_in=.01, fade_out=.01,
+                   z=z_)
+        comp.cue(t_turn, "flip"); comp.cue(t_turn + .25, "paper")
+
     t_turn = HOOK - TURN_LEAD
-    comp.scene(0, t_turn + TURN + .02, _page(_cover(ctx, lead, years, when_short, bday), t_turn),
-               fade_in=.01, fade_out=.01, z=z)
-    comp.cue(t_turn, "flip"); comp.cue(t_turn + .25, "paper")
+    comp.scene(0, t_turn, _page(_cover(ctx, lead, years, when_short, bday)), fade_in=.01, fade_out=.01, z=z)
+    turn(_cover(ctx, lead, years, when_short, bday, copy=True), t_turn, z)
     pages = []
     if bday:
-        pages.append(_page_origin(bday, HOOK, years, r, when))
+        pages.append((_page_origin(bday, HOOK, years, r, when), _page_origin(bday, HOOK, years, r, when, True)))
     for j, (rd, it, debut) in enumerate(rounds):
         k = len(pages)
-        pages.append(_page_year(ctx, rd, it, debut, HOOK + k * r, k, years, r, when))
-    for i, (html, sounds) in enumerate(pages):
+        t0 = HOOK + k * r
+        pages.append((_page_year(ctx, rd, it, debut, t0, k, years, r, when),
+                      _page_year(ctx, rd, it, debut, t0, k, years, r, when, True)))
+    for i, ((html, sounds), (still, _)) in enumerate(pages):
         t0 = HOOK + i * r
         t_out = t0 + r - TURN_LEAD
-        comp.scene(t0 - TURN_LEAD - .02, t_out + TURN + .02, _page(html, t_out, cast_at=t0 - TURN_LEAD),
-                   fade_in=.01, fade_out=.01, z=z - 1 - i)
-        for s in sounds:
-            comp.cue(*s)
-        comp.cue(t_out, "flip"); comp.cue(t_out + .25, "paper")
+        comp.scene(t0 - TURN_LEAD - .02, t_out, _page(html), fade_in=.01, fade_out=.01, z=z - 1 - i)
+        turn(still, t_out, z - 1 - i)
+        for s_ in sounds:
+            comp.cue(*s_)
 
     # ---- the last page
     yr_of = {id(it): rd["year"] for rd, it, _ in rounds}
     picks = [(x[1], x[0]["year"]) for x in lead] + ([(third, yr_of.get(id(third)))] if third else [])
     t = content_end
     html, sounds = _outro(ctx, picks, t, years)
-    comp.scene(t - TURN_LEAD - .02, comp.duration, _page(html, None, cast_at=t - TURN_LEAD),
-               fade_in=.01, fade_out=.01, z=z - 1 - len(pages))
-    for s in sounds:
-        comp.cue(*s)
+    comp.scene(t - TURN_LEAD - .02, comp.duration, _page(html), fade_in=.01, fade_out=.01, z=z - 1 - len(pages))
+    for s_ in sounds:
+        comp.cue(*s_)
 
     # ---- the price box: above every page, in every frame
     comp.add(f'<div class="full" style="z-index:95;{_a("cmthump", t + .1, .4, "ease-out")}'

@@ -36,9 +36,12 @@ y 285). The cover is 880x1144 at x 100-980, y 246-1390; its right strip below
 y 740 (under the apps' buttons) carries only backdrop and the barcode, which is
 marked as decoration. The table and the older covers' edges run to the edges.
 
-Render cost: covers only move by transform (the drop) and are still after it;
-shadows are box-shadows or a pre-blurred sprite; the stars' shadows and the
-text fitting are drawn once, before frame 0 (MG_JS).
+Render cost: covers only move by transform while they drop and are still
+after it; the covers have square corners and the gloss sweep animates its
+background (paint only), because a composited child inside a rounded, clipped
+cover costs a mask layer on every frame; the nudge moves margins for the same
+reason. Shadows are box-shadows or a pre-blurred sprite; the stars' shadows
+and the text fitting are drawn once, before frame 0 (MG_JS).
 """
 
 import math
@@ -128,19 +131,19 @@ CSS = """
 .mg-drop,.mg-fall{position:absolute;inset:0}
 .mg-far{position:absolute;left:-90px;top:-90px;width:1060px;height:1324px;
   background:url('@shadow@') center/100% 100%;opacity:0}
-.mg-contact{position:absolute;inset:0;border-radius:3px;
+.mg-contact{position:absolute;inset:0;
   box-shadow:0 1px 1.5px rgba(0,0,0,.42),0 5px 9px rgba(0,0,0,.24),0 16px 30px -4px rgba(0,0,0,.42)}
-.mg-cover{position:absolute;inset:0;overflow:hidden;border-radius:3px}
+.mg-cover{position:absolute;inset:0;overflow:hidden}
 .mg-cover>.fx{position:absolute;inset:0;pointer-events:none;z-index:20}
 .mg-grain{background:url('@grain@') 0 0/256px 256px;opacity:.5}
 .mg-gloss{background:linear-gradient(122deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.05) 24%,
   rgba(255,255,255,0) 42%,rgba(255,255,255,0) 68%,rgba(0,0,0,.07) 100%)}
-.mg-edge{border-radius:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 0 0 2px rgba(0,0,0,.05)}
+.mg-edge{box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 0 0 2px rgba(0,0,0,.05)}
 .mg-spine{right:auto!important;width:16px;
   background:linear-gradient(90deg,rgba(0,0,0,.20),rgba(0,0,0,.05) 70%,rgba(255,255,255,.18) 88%,rgba(255,255,255,0))}
-.mg-sweep{position:absolute;left:0;top:-30%;width:330px;height:160%;pointer-events:none;z-index:21;
-  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.13) 34%,rgba(255,255,255,.24) 50%,
-  rgba(255,255,255,.13) 66%,rgba(255,255,255,0));transform:translateX(-520px) rotate(14deg)}
+.mg-sweep{position:absolute;inset:0;pointer-events:none;z-index:21;background-repeat:no-repeat;
+  background-image:linear-gradient(104deg,rgba(255,255,255,0) 43%,rgba(255,255,255,.12) 46.5%,rgba(255,255,255,.23) 50%,
+  rgba(255,255,255,.12) 53.5%,rgba(255,255,255,0) 57%);background-size:300% 100%;background-position:100% 0}
 .mg-mast{position:absolute;left:0;width:100%;text-align:center;font-family:'Playfair Display';font-weight:900;
   line-height:1;letter-spacing:-.02em;text-indent:-.02em;white-space:nowrap}
 .mg-line{position:absolute;font-family:'Inter';font-weight:700;font-size:25px;line-height:1;letter-spacing:.09em;
@@ -175,13 +178,14 @@ CSS = """
 .mg-code .b{font-family:'Barlow Condensed';font-weight:800;font-size:152px;line-height:.86;letter-spacing:.01em}
 .mg-code .h{font-family:'Inter';font-weight:700;font-size:21px;line-height:1;letter-spacing:.02em;margin:0 0 10px}
 @keyframes mgshow{from{visibility:hidden}to{visibility:visible}}
+@keyframes mghide{from{visibility:visible}to{visibility:hidden}}
 @keyframes mgslide{0%{transform:translate(var(--sx),var(--sy)) rotate(var(--sr))}
   100%{transform:translate(var(--x),var(--y)) rotate(var(--r))}}
 @keyframes mgfall{0%{transform:scale(var(--s0))}100%{transform:scale(1)}}
 @keyframes mgfar{0%{opacity:.95;transform:translate(78px,120px) scale(1.04)}100%{opacity:0;transform:translate(6px,9px)}}
 @keyframes mgland{from{opacity:0}to{opacity:1}}
-@keyframes mgnudge{from{transform:translate(0,0)}to{transform:translate(var(--nx),var(--ny))}}
-@keyframes mgsweep{from{transform:translateX(-520px) rotate(14deg)}to{transform:translateX(1140px) rotate(14deg)}}
+@keyframes mgnudge{from{margin-left:0;margin-top:0}to{margin-left:var(--nx);margin-top:var(--ny)}}
+@keyframes mgsweep{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes mgpress{0%,100%{transform:rotate(var(--r)) scale(var(--k))}28%{transform:rotate(var(--r)) scale(calc(var(--k) * .968))}}
 @keyframes mgslap{0%{opacity:0;transform:translate(26px,-40px) scale(calc(var(--k) * 1.22)) rotate(calc(var(--r) + 7deg))}
   1%{opacity:1}
@@ -257,7 +261,8 @@ def _star(uri: str, name: str, box: tuple, z: int = 2, anchor: str = "head") -> 
     pos = f"left:{x}px;top:{y}px;width:{w}px;height:{h}px;z-index:{z}"
     if not uri:
         initial = next((c for c in name if c.isalnum()), "?").upper()
-        return f'<div class="abs mg-ph" style="{pos}"><div>{esc(initial)}</div></div>'
+        return (f'<div class="abs mg-ph" style="{pos}"><div style="font-size:{min(560, h * .62, w * 1.1):.0f}px">'
+                f'{esc(initial)}</div></div>')
     return (f'<div class="abs" style="{pos}"><img class="mg-star" data-trim="figure" data-mgstar="{anchor}" '
             f'data-name="{esc(name)}" src="{uri}" style="left:0;top:0;width:{w}px;height:{h}px;object-fit:contain">'
             f'</div>')
@@ -299,16 +304,20 @@ def _flash(lines: list, x: float, y: float, d: float, rot: float, t=None) -> str
             f'transform:rotate({rot}deg);z-index:7;{anim}">{inner}</div>')
 
 
-def _cover(content: str, theme: dict, i: int, t_imp=None, nudge=None, sweep_t=None) -> str:
+def _cover(content: str, theme: dict, i: int, t_imp=None, nudge=None, sweep_t=None, hide_t=None) -> str:
     """One cover on the pile. t_imp: when it hits the pile (None: there from
-    frame 0). nudge: (t, dx, dy) when the next cover knocks it a little."""
+    frame 0). nudge: (t, dx, dy) when the next cover knocks it a little.
+    hide_t: when the third cover above it lands; from then on it is switched
+    off (the three above hide it), so the renderer never draws a deep pile."""
     dx, dy, rot = POSES[i % len(POSES)]
     slot_anim = ""
     if nudge:
         tn, nx, ny = nudge
         slot_anim = (f"--nx:{nx:.1f}px;--ny:{ny:.1f}px;"
                      f"animation:{_a('mgnudge', tn, .16, 'cubic-bezier(.2,.8,.3,1)', 'forwards')};")
-    drop_style = f"transform:translate({dx}px,{dy}px) rotate({rot}deg);"
+    hide = f",{_a('mghide', hide_t, .01, 'steps(1,end)', 'forwards')}" if hide_t is not None else ""
+    drop_style = (f"transform:translate({dx}px,{dy}px) rotate({rot}deg);"
+                  + (f"animation:{hide[1:]};" if hide else ""))
     fall_style = far = ""
     contact = '<div class="mg-contact"></div>'
     if t_imp is not None:
@@ -316,7 +325,7 @@ def _cover(content: str, theme: dict, i: int, t_imp=None, nudge=None, sweep_t=No
         sx, sy, sr = [(640, -1560, 12), (-640, -1560, -12)][i % 2]
         drop_style = (f"--sx:{dx + sx}px;--sy:{dy + sy}px;--sr:{rot + sr}deg;--x:{dx}px;--y:{dy}px;--r:{rot}deg;"
                       f"animation:{_a('mgslide', t0, FALL + SKID, 'cubic-bezier(.22,.62,.3,1)')},"
-                      f"{_a('mgshow', t0, .01, 'steps(1,end)')};")
+                      f"{_a('mgshow', t0, .01, 'steps(1,end)')}{hide};")
         fall_style = f"--s0:1.13;animation:{_a('mgfall', t0, FALL, 'cubic-bezier(.5,0,.92,.55)')};"
         far = f'<div class="mg-far" style="animation:{_a("mgfar", t0, FALL, "cubic-bezier(.5,0,.92,.55)")}"></div>'
         contact = f'<div class="mg-contact" style="animation:{_a("mgland", t_imp - .06, .1)}"></div>'
@@ -458,10 +467,10 @@ def _teaser(ctx, picks: list) -> str:
                f'<i style="background:{RED};height:3px"></i></div>'
                f'<div class="abs mg-name" data-mgfit="812" data-lines="2" style="left:34px;top:112px;width:812px;'
                f'font-size:112px;line-height:.96;color:{INK};z-index:4">Which year had the best shop?</div>')
-    cols = [(36, 240), (293, 240), (550, 240)][:len(picks)]
+    cols = [(36, 240), (293, 240), (550, 240)] if len(picks) > 2 else [(164, 240), (421, 240)]
     for (x, w), (it, year) in zip(cols, picks):
-        content += _star(ctx.art(it), it["name"], (x, 330, w, 420), 2, "floor")
-        content += (f'<div class="abs" style="left:{x}px;top:762px;width:{w}px;text-align:center;z-index:4">'
+        content += _star(ctx.art(it), it["name"], (x, 316, w, 398), 2, "floor")
+        content += (f'<div class="abs" style="left:{x}px;top:724px;width:{w}px;text-align:center;z-index:4">'
                     f'<div class="mg-year" style="position:relative;font-size:70px;line-height:.9;color:{RED}">{year}</div>'
                     f'<div class="mg-cl" data-mgfit="{w}" data-lines="2" style="font-size:34px;color:{INK};margin-top:6px">'
                     f'{_words(it["name"])}</div></div>')
@@ -489,7 +498,7 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
 
     # The pile: the special issue (frame 0), one issue per year, the NEXT ISSUE page.
     covers = [dict(content=_special(ctx, lead, span, when_short, bday), theme=SPECIAL, t=None)]
-    sounds = [(.12, "paper")]
+    sounds = [(.15, "stamp")]
     k = 0
     if bday:
         c, s = _collector(bday, 1, n, when_up, HOOK)
@@ -514,14 +523,15 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
         nxt = covers[i + 1]["t"] if i + 1 < len(covers) else None
         rnd = random.Random(ctx.seed * 7 + i)
         nudge = (nxt - .02, rnd.uniform(-7, 2.5), rnd.uniform(2, 6)) if nxt else None
-        html.append(_cover(cv["content"], cv["theme"], i, cv["t"], nudge, .35 if i == 0 else None))
+        hide_t = covers[i + 3]["t"] + .02 if i + 3 < len(covers) else None
+        html.append(_cover(cv["content"], cv["theme"], i, cv["t"], nudge, .35 if i == 0 else None, hide_t))
         if cv["t"] is not None:
             sounds += [(cv["t"] - FALL + .02, "whoosh"), (cv["t"] - .2, "flip")]
     comp.add('<div class="full" style="z-index:10">' + "".join(html) + "</div>")
 
     # The code: the small sticker in every frame (it gives a little under each
     # landing); at the outro a bigger one is slapped over it.
-    impacts = [cv["t"] for cv in covers if cv["t"] is not None]
+    impacts = [.15] + [cv["t"] for cv in covers if cv["t"] is not None]
     press = "animation:" + ",".join(_a("mgpress", t, .24, "cubic-bezier(.3,.7,.4,1)", "none") for t in impacts) + ";"
     comp.add(f'<div class="full" style="z-index:90">{_code(CODE_CX, CODE_CY, 1.0, press)}</div>')
     t_big = content_end + .6

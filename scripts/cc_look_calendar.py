@@ -44,8 +44,8 @@ from cc_motion import RARITY, Comp, esc
 
 HOOK = 3.0
 R = 6.5
-TEAR = 1.0                  # lift .42 s, rip, tossed away by 1.0 s
-T_RIP = .42                 # the rip, into the tear
+TEAR = .85                  # lift .41 s, the rip, tossed off the frame by .85 s
+T_RIP = .43                 # the rip, into the tear
 FONTS = ("Oswald", "Old Standard TT", "Special Elite", "Caveat")
 
 # The calendar's print
@@ -98,17 +98,17 @@ CSS = """
 @keyframes calgr{0%%{transform:translate(0,0)}25%%{transform:translate(-131px,77px)}50%%{transform:translate(53px,-173px)}
   75%%{transform:translate(-201px,-29px)}}
 @keyframes caltear{
-  0%%{transform:translate(0,0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  0%%{transform:translate(0,0) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
     animation-timing-function:cubic-bezier(.45,0,.55,1)}
-  40%%{transform:translate(0,0) rotateX(50deg) rotateY(-13deg) rotateZ(2deg);
+  48%%{transform:translate(0,0) scale(.9) rotateX(50deg) rotateY(-12deg) rotateZ(2deg);
     animation-timing-function:cubic-bezier(.25,0,.45,1)}
-  49%%{transform:translate(-22px,28px) rotateX(57deg) rotateY(-8deg) rotateZ(-5deg);
+  56%%{transform:translate(-24px,30px) scale(.9) rotateX(56deg) rotateY(-8deg) rotateZ(-5deg);
     animation-timing-function:cubic-bezier(.3,.15,.6,1)}
-  72%%{transform:translate(-470px,150px) rotateX(66deg) rotateY(18deg) rotateZ(-16deg);
+  76%%{transform:translate(-560px,170px) scale(.92) rotateX(68deg) rotateY(18deg) rotateZ(-17deg);
     animation-timing-function:cubic-bezier(.45,0,.9,.65)}
-  100%%{transform:translate(-1260px,560px) rotateX(104deg) rotateY(36deg) rotateZ(-40deg)}}
-@keyframes calshine{0%%{opacity:0}40%%{opacity:1}72%%{opacity:.8}100%%{opacity:.5}}
-@keyframes callift{0%%{opacity:0}40%%{opacity:1}55%%{opacity:.7}78%%{opacity:0}100%%{opacity:0}}
+  100%%{transform:translate(-1320px,560px) scale(.95) rotateX(104deg) rotateY(36deg) rotateZ(-40deg)}}
+@keyframes calshine{0%%{opacity:0}48%%{opacity:1}76%%{opacity:.8}100%%{opacity:.5}}
+@keyframes callift{0%%{opacity:0}48%%{opacity:1}60%%{opacity:.7}82%%{opacity:0}100%%{opacity:0}}
 @keyframes calout{0%%{transform:translate(0,0) rotate(0deg)}
   100%%{transform:translate(-760px,18px) rotate(-7deg)}}
 @keyframes calin{0%%{transform:translate(-760px,18px) rotate(-7deg)}
@@ -147,7 +147,7 @@ FIX_JS = """<script>(() => {
 PRINT_BAKE = ("url(#calcut) drop-shadow(0 2px 1.5px rgba(40,25,10,.30)) "
               "drop-shadow(5px 10px 9px rgba(40,25,10,.20))")
 STANDEE_BAKE = ("url(#calboard) drop-shadow(0 3px 2px rgba(30,18,8,.35)) "
-                "drop-shadow(16px 10px 10px rgba(30,18,8,.30))")
+                "drop-shadow(11px 5px 6px rgba(30,18,8,.32))")
 
 
 # ------------------------------------------------------------------ helpers
@@ -497,24 +497,27 @@ def _page_year(ctx, rd: dict, it: dict, debut: bool, t0: float) -> tuple:
 
 
 def _page_birthday(ctx, bday: dict, t0: float) -> tuple:
+    """The sheet for the day Battle Royale came out, and the birthday stamp."""
     day = ctx.day
     by = bday["year"]
-    x, y = _L(LX0 + 4, 506)
+    x, y = _L(LX0 + 4, 520)
+    cw = LX1 - LX0 - 10
     when = date(by, day.month, day.day).strftime("%B %-d, %Y") if _weekday(day, by) else f"{by}"
     html = [_band(day.strftime("%B").upper()), _date_block(day, by),
             f'<div class="abs" style="left:{RX0 - SX - 12}px;top:{FIG_Y0 - SY + 10}px;width:1.5px;'
-            f'height:{BLOCK[1] - FIG_Y0 - 40}px;background:rgba(35,29,24,.18)"></div>',
-            f'<div class="abs cal-num" data-fit="{LX1 - LX0 - 10}" data-lines="3" style="left:{x}px;top:{y}px;'
-            f'width:{LX1 - LX0 - 10}px;font-size:96px;line-height:1.02;white-space:normal;color:{INK}">'
-            f'FORTNITE BATTLE ROYALE COMES OUT</div>',
-            f'<div class="abs cal-old" style="left:{x}px;top:{y + 330}px;width:{LX1 - LX0 - 10}px;'
-            f'font-style:italic;font-size:44px;color:{INK}">{esc(when)}</div>',
-            f'<div class="abs cal-type" data-fit="{LX1 - LX0 - 10}" style="left:{x}px;top:{y + 396}px;'
-            f'font-size:34px;color:{MUTED};white-space:nowrap">PC · PlayStation 4 · Xbox One</div>']
-    sx, sy = _L(LX0 + 10, 1010)
+            f'height:{905 - FIG_Y0}px;background:rgba(35,29,24,.18)"></div>',
+            f'<div class="abs cal-num" data-fit="{cw}" style="left:{x}px;top:{y}px;font-size:80px;line-height:1.04;'
+            f'color:{INK}">FORTNITE<br>BATTLE ROYALE<br>COMES OUT</div>',
+            f'<div class="abs" style="left:{x + 2}px;top:{y + 262}px;width:{cw - 40}px;height:2px;'
+            f'background:rgba(35,29,24,.5)"></div>',
+            f'<div class="abs cal-old" style="left:{x}px;top:{y + 284}px;width:{cw}px;'
+            f'font-style:italic;font-size:46px;color:{INK}">{esc(when)}</div>',
+            f'<div class="abs cal-type" data-fit="{cw}" style="left:{x}px;top:{y + 350}px;'
+            f'font-size:33px;color:{MUTED};white-space:nowrap">PC · PlayStation 4 · Xbox One</div>']
+    sx, sy = _L(LX0 + 16, 1026)
     html.append(f'<div class="abs" style="left:{sx}px;top:{sy}px">'
-                + _stamp([("HAPPY BIRTHDAY", 58, 700, .04), (f"{bday['age']} YEARS TODAY", 34, 500, .22)],
-                         440, 150, -6, t0 + .75) + '</div>')
+                + _stamp([("HAPPY BIRTHDAY", 60, 700, .04), (f"{bday['age']} YEARS TODAY", 36, 500, .22)],
+                         448, 158, -6, t0 + .75) + '</div>')
     return "".join(html), [(t0 + .75, "stamp")]
 
 
@@ -526,7 +529,7 @@ def _page_cover(ctx, span: str, bday) -> str:
     if bday:
         html.append(f'<div class="abs cal-hand" data-fit="{LX1 - LX0 - 10}" data-lines="2" style="left:{lx}px;'
                     f'top:{ly - 8}px;width:{LX1 - LX0 - 10}px;font-size:92px;line-height:.92;color:{RED};'
-                    f'transform:rotate(-3deg)">Fortnite turns {bday["age"]}!</div>')
+                    f'transform:rotate(-3deg)">Fortnite<br>turns {bday["age"]}!</div>')
     else:
         html.append(f'<div class="abs cal-old" data-fit="{LX1 - LX0 - 10}" data-lines="2" style="left:{lx}px;'
                     f'top:{ly}px;width:{LX1 - LX0 - 10}px;font-style:italic;font-size:54px;line-height:1.08;'
@@ -605,12 +608,19 @@ def _sheet(inner: str, seed: int, t_tear) -> str:
 
 def _standee(ctx, it: dict, cx: float, h: float, w: float, anim: str) -> str:
     """A cosmetic as a die-cut cardboard standee on the desk, in front of the
-    calendar (its shadow falls on the calendar)."""
-    return (f'<div class="abs" style="left:{cx - w / 2:.0f}px;top:{STANDEE_FEET - h:.0f}px;width:{w:.0f}px;'
-            f'height:{h:.0f}px;{anim}">'
-            f'<div class="abs" style="left:{w * .18:.0f}px;top:{h - 14:.0f}px;width:{w * .64:.0f}px;height:26px;'
-            f'border-radius:50%;background:rgba(25,12,4,.5);filter:blur(6px)"></div>'
-            + _picture(ctx.art(it), it, w, h, STANDEE_BAKE, 40) + '</div>')
+    calendar (its shadow falls on the calendar). The baked picture carries a
+    transparent margin for its edge and shadow; a clip box cuts it off at the
+    feet and at the safe box's left edge, so only the standee itself counts."""
+    x0 = cx - w / 2
+    cl, cr = max(62, x0 - 36), x0 + w + 46
+    ct, cb = STANDEE_FEET - h - 40, STANDEE_FEET + 9
+    return (f'<div class="full" style="{anim}">'
+            f'<div class="abs" style="left:{x0 + w * .16:.0f}px;top:{STANDEE_FEET - 14:.0f}px;width:{w * .68:.0f}px;'
+            f'height:26px;border-radius:50%;background:rgba(25,12,4,.5);filter:blur(6px)"></div>'
+            f'<div class="abs" style="left:{cl:.0f}px;top:{ct:.0f}px;width:{cr - cl:.0f}px;height:{cb - ct:.0f}px;'
+            f'overflow:hidden"><div class="abs" style="left:{x0 - cl:.0f}px;top:{STANDEE_FEET - h - ct:.0f}px;'
+            f'width:{w:.0f}px;height:{h:.0f}px">'
+            + _picture(ctx.art(it), it, w, h, STANDEE_BAKE, 28) + '</div></div></div>')
 
 
 # ------------------------------------------------------------------ the video
@@ -682,9 +692,10 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     # ---- the title sheet (frame 0) and the two lead standees
     a, b = lead[0][1], lead[1][1]
     cover = _sheet(_page_cover(ctx, span, bday), 11, tears[0])
-    comp.scene(0, HOOK + .05, f'<div class="full" style="{persp}">{cover}</div>', fade_in=.01, fade_out=.01, z=40)
-    stand = (_standee(ctx, b, 440, 736, 280, _a("calout", 1.62, .5, "cubic-bezier(.5,0,.85,.4)"))
-             + _standee(ctx, a, 236, 784, 336, _a("calout", 1.72, .5, "cubic-bezier(.5,0,.85,.4)")))
+    comp.scene(0, HOOK + .01, f'<div class="full" style="{persp}">{cover}</div>', fade_in=.01, fade_out=.01, z=40)
+    ha, hb = (700, 660) if bday else (784, 736)      # the birthday line is two lines of handwriting: room for it
+    stand = (_standee(ctx, b, 446, hb, 272, _a("calout", 1.62, .5, "cubic-bezier(.5,0,.85,.4)"))
+             + _standee(ctx, a, 244, ha, 324, _a("calout", 1.72, .5, "cubic-bezier(.5,0,.85,.4)")))
     comp.scene(0, 2.3, f'<div class="full">{stand}</div>', fade_in=.01, fade_out=.01, z=65)
     comp.cue(1.62, "paper")
     comp.cue(tears[0] + .05, "paper"); comp.cue(rips[0], "paper"); comp.cue(rips[0] + .12, "whoosh")
@@ -698,7 +709,7 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     for k, (html, sounds) in enumerate(pages):
         show = tears[k]                      # visible from when the sheet above starts to lift
         sheet = _sheet(html, 100 + k, tears[k + 1])
-        comp.scene(show, tears[k + 1] + TEAR + .02, f'<div class="full" style="{persp}">{sheet}</div>',
+        comp.scene(show, tears[k + 1] + TEAR + .01, f'<div class="full" style="{persp}">{sheet}</div>',
                    fade_in=.01, fade_out=.01, z=39 - k)
         for s in sounds:
             comp.cue(*s)
@@ -717,7 +728,7 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
                fade_in=.01, fade_out=.01, z=39 - n - 1)
     for s in sounds:
         comp.cue(*s)
-    spots = [(204, 640, 276), (362, 690, 286), (462, 600, 236)]
+    spots = [(214, 640, 272), (366, 690, 280), (466, 600, 226)]
     outro = ""
     for i, (it, (cx, h, w)) in enumerate(zip(picks, spots)):
         outro += _standee(ctx, it, cx, h, w, _a("calin", t + 1.3 + i * .22, .55, "cubic-bezier(.2,.75,.3,1)"))
