@@ -46,7 +46,6 @@ with image-rendering: pixelated. No filters or blend modes on anything that
 moves.
 """
 
-import math
 import random
 
 from cc_looks import LIME, PREP_JS, pad_to, tex
@@ -406,9 +405,8 @@ def _cabinet() -> str:
                  f'box-shadow:0 0 0 1px rgba(0,0,0,.5)"></div>')
 
     # ---- the marquee: a printed, backlit panel between two metal strips
-    L.append(f'<div class="abs" data-safe="ignore" style="left:30px;top:20px;width:878px;height:208px;'
-             f'background:#060607;box-shadow:0 10px 16px rgba(0,0,0,.6);border-radius:4px"></div>')
-    title_w = 820
+    L.append('<div class="abs" data-safe="ignore" style="left:30px;top:20px;width:878px;height:208px;'
+             'background:#060607;box-shadow:0 10px 16px rgba(0,0,0,.6);border-radius:4px"></div>')
     L.append(f'<div class="abs" data-safe="ignore" style="left:38px;top:40px;width:862px;height:168px;'
              f'background:#07080a;overflow:hidden">'
              # speed stripes either side of the title, printed flat
