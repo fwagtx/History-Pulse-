@@ -524,14 +524,14 @@ def make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: in
 def _thumb(fmt: str, levels: list, theme: str) -> dict:
     easy = [lvl["a"] for lvl in levels[:20]]
     if fmt == "which_first":
-        pair = levels[3]["pair"]
-        return {"family": "versus", "words": ["WHICH CAME FIRST?", "40 LEVELS"], "pair": tuple(pair),
+        pairs = [tuple(lvl["pair"]) for lvl in levels[:20]]      # each lead skin's own pair
+        return {"family": "versus", "words": ["WHICH CAME FIRST?", "40 LEVELS"], "pair": pairs[3], "pairs": pairs,
                 "rows": easy, "theme": theme}
     if fmt == "zoomed_in":
         return {"family": "zoom", "words": ["ZOOMED", "IN"], "tag": "40 LEVELS", "rows": easy, "theme": theme}
     if fmt == "guess_season":
-        return {"family": "hero_stat", "kicker": "GUESS THE", "stat": lambda r: "SEASON?", "stamp": "WHICH SEASON?",
-                "rows": easy, "theme": theme}
+        return {"family": "hero_stat", "kicker": "GUESS THE", "stat": lambda r: "SEASON?", "stamp": "GUESS THE",
+                "sub": "40 LEVELS", "rows": easy, "theme": theme}
     words = ["GUESS THE", "HALLOWEEN SKIN"] if theme else ["GUESS THE", "SKIN"]
     return {"family": "silhouette", "words": words, "tag": "40 LEVELS", "rows": easy, "theme": theme}
 

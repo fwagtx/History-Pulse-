@@ -198,12 +198,13 @@ def silhouette(spec, rows, hero, flip=False):
     hx = 880 if not flip else 400
     html = _bg(c, "68% 45%" if not flip else "32% 45%") + _hero(hero["uri"], hx, 40, 1060, cls="th-sil")
     qx = 1120 if not flip else 150
-    html += _outline("?", qx - 110, 60, 330, LIME, width=240, align="center")
-    tx = 44 if not flip else 720
+    html += _outline("?", qx - 110, 110, 330, LIME, width=240, align="center")   # below the hover buttons
+    tx = 44 if not flip else 690
     w1, w2 = (spec["words"] + [""])[:2]
-    s1 = _fit(w1, 560, 118, 70)
+    lo = MIN_TEXT if flip else 70          # mirrored, the words run up to the right edge: they must fit
+    s1 = _fit(w1, 560, 118, lo)
     html += _outline(w1, tx, 110, s1, "#fff", width=600)
-    s2 = _fit(w2, 560, 150, 70) if w2 else 0
+    s2 = _fit(w2, 560, 150, lo) if w2 else 0
     if w2:
         html += _outline(w2, tx, 110 + s1 * 1.1, s2, "#fff", width=600)
     if spec.get("tag"):
@@ -212,7 +213,7 @@ def silhouette(spec, rows, hero, flip=False):
 
 
 def versus(spec, rows, hero, flip=False):
-    a, b = spec["pair"]
+    a, b = next((p for p in spec.get("pairs") or [] if hero["key"] in (p[0]["key"], p[1]["key"])), spec["pair"])
     c = _colors(a)
     c2 = _colors(b)
     html = (f'<div class="full" style="background:linear-gradient(105deg,{c[0]} 0%,{c[1]} 49.6%,#000 49.6%,#000 50.4%,'
@@ -238,7 +239,7 @@ def zoom(spec, rows, hero, flip=False):
             f'<img class="th-hero" data-trim="figure" src="{hero["uri"]}" style="left:50%;top:-40px;height:2600px;'
             f'transform:translateX(-50%)"></div>')
     html += lens
-    html += _outline("?", 1020, 380, 300, LIME, width=240, align="center")
+    html += _outline("?", 1020, 150, 300, LIME, width=240, align="center")   # clear of the length badge
     w1, w2 = (spec["words"] + [""])[:2]
     s1 = _fit(w1, 470, 120, 70)
     html += _outline(w1, 40, 120, s1, "#fff", width=500)
@@ -255,7 +256,7 @@ LAYOUTS = {"stamp": stamp, "hero_stat": hero_stat, "podium": podium, "calendar":
 # "top" shows #1 as #1, so only rows[0] can lead it.
 ALTERNATES = {"stamp": ["stamp", "hero_stat", "podium"], "hero_stat": ["hero_stat", "stamp", "podium"],
               "podium": ["podium", "hero_stat", "stamp"], "calendar": ["calendar", "podium", "hero_stat"],
-              "silhouette": ["silhouette", "zoom", "silhouette"], "versus": ["versus", "silhouette", "versus"],
+              "silhouette": ["silhouette", "zoom", "silhouette"], "versus": ["versus", "versus", "silhouette"],
               "zoom": ["zoom", "silhouette", "zoom"]}
 NEEDS_TOP = {"podium"}
 
