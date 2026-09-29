@@ -2,7 +2,8 @@
 
 > **Already done.** The Routine `Daily @usecodebad script + shop video` is live (7:00 AM
 > Central) and its prompt matches the one below (updated 2026-09-28 for the five short
-> videos a day and the weekday long YouTube video). This page is the record of what it runs.
+> videos a day and the weekday long YouTube video, and 2026-09-29 for Threads). This page
+> is the record of what it runs.
 
 I can't attach the Metricool connector to a Routine from inside Claude Code (this org doesn't
 allow it), so this one has to be created from the website. It's a few clicks.
@@ -25,13 +26,15 @@ Then tell me it's set up and I'll delete the older script-only Routine so you do
 ```
 Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script,
 schedule today's auto-made short videos (FIVE a day in the edit style from the switch day
-in creator-code/lineup.json, three before it), keep the auto-made quiz videos scheduled,
-and schedule each weekday's LONG YouTube video - all in Metricool, posting automatically.
+in creator-code/lineup.json, three before it; two a day also go to Threads), keep the
+auto-made quiz videos scheduled, and schedule each weekday's LONG YouTube video - all in
+Metricool, posting automatically.
 
 === ACCOUNT ISOLATION - NON-NEGOTIABLE ===
 This account has TWO Metricool brands. You may ONLY touch brand id 7066444
-(TikTok usecodebad, YouTube UCA9fkJZbLeR5uXTU82Ur74Q, and the usecodebad Facebook Page and
-Instagram account connected to it on 2026-09-23).
+(TikTok usecodebad, YouTube UCA9fkJZbLeR5uXTU82Ur74Q, the usecodebad Facebook Page and
+Instagram account connected to it on 2026-09-23, and the Threads account connected to it
+on 2026-09-29).
 The other brand belongs to an unrelated venture. NEVER read it, write to it,
 schedule to it, or mention it. Before ANY Metricool call, verify the brandId/blogId is
 exactly 7066444. If it is not, stop and do nothing.
@@ -86,7 +89,9 @@ whatever "videos" it lists, each at its own time.
     tiktokData.title of a post in that list (no duplicates). Compare titles, not video
     links: Metricool stores its own copy of each video, so the links never match.
     Likewise skip a video's Instagram post (3d) if a post in the list has instagram among
-    its providers and its text equals the entry's "ig_caption".
+    its providers and its text equals the entry's "ig_caption", and its Threads post (3d)
+    if a post in the list has threads among its providers and its text equals the entry's
+    "threads_caption".
 3d. For each remaining entry whose post_at_local is still at least 15 minutes in the
     future in America/Chicago, call createScheduledPost with:
   blogId: "7066444"   <- verify before calling
@@ -130,9 +135,22 @@ whatever "videos" it lists, each at its own time.
      "instagramData": {"type": "REEL", "showReelOnFeed": true, "isAiGenerated": false}}
   If the entry has no "ig_caption", skip Instagram for it and say so in the summary. If
   the Instagram call fails, the main post is unaffected: name the error in the summary.
+  THREADS (owner's go-ahead 2026-09-29) gets its own post for each entry whose "threads"
+  is true - two a day: today's shop video and the game on it - because Threads allows
+  only 500 characters. Call createScheduledPost once more with the same blogId
+  "7066444", date and publicationDate, and info:
+    {"providers": [{"network": "threads"}], "media": [<the entry's url>],
+     "text": <the entry's "threads_caption", exactly as given>, "draft": false,
+     "autoPublish": true, "threadsData": {"allowedCountryCodes": []}}
+  Skip Threads for an entry whose "threads" is not true, or whose "threads_caption" is
+  missing or lacks "#EpicPartner" or "#usecodebad" (the build sets "threads" true only
+  when that copy fits Threads' limit). Never put a quiz video or a long video on
+  Threads. If the Threads call fails, the other posts are unaffected: name the error in
+  the summary.
 3e. Call getScheduledPosts again and confirm each new post is there with the right time
     and title, draft false, all three networks (tiktok, youtube, facebook) on the main
-    post, and its Instagram post beside it.
+    post, its Instagram post beside it, and - for entries with "threads" true - its
+    Threads post.
 3f. FROM edit_from ON, RETIRE TODAY'S OLD QUIZ POSTS. Posts queued before the switch
     (from the quiz releases' "videos") would make today more than five. Do this only if
     today is on or after edit_from AND the shop manifest's "lineup" is "edit" AND at
@@ -143,8 +161,8 @@ whatever "videos" it lists, each at its own time.
     and the post whose providers are only instagram and whose text equals its
     "ig_caption" (its Instagram post). For each post found that is still draft false,
     call updateScheduledPost with blogId "7066444", its id and uuid, and its full
-    existing content unchanged except "draft": true. Never touch any other post. Say
-    in the summary how many old posts you set to draft.
+    existing content unchanged except "draft": true. Never touch any other post (a
+    Threads post included). Say in the summary how many old posts you set to draft.
 3g. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
     America/Chicago). Posts stay in that list after they go out: a network that posted
     shows status "PUBLISHED" under "providers". Name any post where a network shows any
@@ -199,22 +217,22 @@ release per quiz day:
                     "madeForKids": false, "category": "GAMING", "tags": <youtube.tags>,
                     "isAiGeneratedContent": false}
   }
-  YouTube ONLY: never add TikTok, Facebook or Instagram to a long video. If the call is
-  rejected because of the thumbnail (for example VIDEO_THUMBNAIL_NOT_APPLICABLE), make it
-  once more without videoThumbnailUrl and say so in the summary (custom thumbnails need a
-  verified YouTube channel). isAiGeneratedContent is false: the narrator is a generic
-  text-to-speech voice, not anyone's real voice, over graphics - YouTube only asks for the
-  label on realistic content that could be mistaken for real people or events.
+  YouTube ONLY: never add TikTok, Facebook, Instagram or Threads to a long video. If the
+  call is rejected because of the thumbnail (for example VIDEO_THUMBNAIL_NOT_APPLICABLE),
+  make it once more without videoThumbnailUrl and say so in the summary (custom thumbnails
+  need a verified YouTube channel). isAiGeneratedContent is false: the narrator is a
+  generic text-to-speech voice, not anyone's real voice, over graphics - YouTube only asks
+  for the label on realistic content that could be mistaken for real people or events.
 4f. Call getScheduledPosts again and confirm each quiz post you added is there with its
     Instagram post, and each long video is there on YouTube only, at 3 PM Central, draft
     false.
 
 STEP 5 - SUMMARY. Short and plain: format used for the script and its hook line, whether
 the script pushed, for each of today's short videos its time, format and the networks it
-is scheduled on (or why not), how many old quiz posts you set to draft (3f), how many quiz
-posts you added and the furthest day now queued, each long video scheduled (its day,
-title and time) or why a weekday's long video is missing, and any of yesterday's posts
-that did not go out.
+is scheduled on, Threads included (or why not), how many old quiz posts you set to draft
+(3f), how many quiz posts you added and the furthest day now queued, each long video
+scheduled (its day, title and time) or why a weekday's long video is missing, and any of
+yesterday's posts that did not go out.
 ```
 
 ---

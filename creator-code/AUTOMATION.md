@@ -2,11 +2,12 @@
 
 **Nothing to set up. It runs by itself every day, and posts by itself, for years.**
 
-From **October 1, 2026**: **5 short videos every day** (TikTok, YouTube Shorts, Facebook Reels,
-Instagram Reels) and, from **September 30, 2026**, **1 long video every weekday** on YouTube — all
-in the edit style picked on 2026-09-28: real music cut to the beat, big app-style
-captions, a camera that moves with the music, each cosmetic on its tile over a blurred
-copy of itself, and **USE CODE: BAD** on screen the whole time.
+From **October 1, 2026**: **5 short videos every day** (TikTok, YouTube Shorts, Facebook
+Reels, Instagram Reels, and the two shop videos on **Threads** too) and, from **September
+30, 2026**, **1 long video every weekday** on YouTube — all in the edit style picked on
+2026-09-28: real music cut to the beat, big app-style captions, a camera that moves with the
+music, each cosmetic on its tile over a blurred copy of itself, and **USE CODE: BAD** on
+screen the whole time.
 
 ---
 
@@ -20,9 +21,9 @@ day's five from fresh data and puts them online as a release (`shop-YYYY-MM-DD`)
 | Time (Central) | What it is |
 |---|---|
 | 8:00 AM | **Quiz** — Who's That Skin?, Zoomed In, Which Came First?, Guess the Season or a Season Throwback, from the quiz plan. **Every day in October: the Fortnitemares edition; in December: Winterfest** |
-| 11:00 AM | **Today's shop** — Shop Recap (or OG Check / Last Chance on a thin day) |
+| 11:00 AM | **Today's shop** — Shop Recap (or OG Check / Last Chance on a thin day). *Also on Threads* |
 | 1:00 PM | **On This Day** — the Item Shop on today's date, a year per beat, every year since 2018 |
-| 4:00 PM | **A game on today's shop**, rotating: Back After · OG Check · Guess the Price · Last Chance · This or That |
+| 4:00 PM | **A game on today's shop**, rotating: Back After · OG Check · Guess the Price · Last Chance · This or That. *Also on Threads* |
 | 7:00 PM | **From the shop's history**, rotating: Higher or Lower · Most Common · Rarest · Gone the Longest (skins, pickaxes, emotes, back blings, gliders) |
 
 Both shop videos post before the shop resets, so none ever shows items that are gone. The
@@ -80,11 +81,13 @@ then YouTube ignores custom thumbnails (the video still posts, with a frame YouT
 ## Before the switch (until September 30)
 
 Three shop videos a day from the nightly shop build, plus the quiz releases' quizzes, On
-This Day and the seasonal videos (built two weeks ahead). Quiz posts were already queued
-in Metricool through October 11 when the switch was made. From October 1, each morning
-the Routine first schedules the day's five new videos and **then** sets that day's old
-queued quiz posts to **draft**, so no day gets more than five — and if the new videos
-ever fail to build, the old ones still go out and the day is never empty.
+This Day and the seasonal videos (built two weeks ahead). Threads started on September 29
+with the day's shop game and Last Chance; on September 30 it gets the 10 AM shop video and
+the 1:30 PM game. Quiz posts were already queued in Metricool through October 11 when the
+switch was made. From October 1, each morning the Routine first schedules the day's five new
+videos and **then** sets that day's old queued quiz posts to **draft**, so no day gets more
+than five — and if the new videos ever fail to build, the old ones still go out and the day
+is never empty.
 
 ---
 
@@ -125,6 +128,13 @@ ever fail to build, the old ones still go out and the day is never empty.
   description, with the hashtags cut to `#EpicPartner #usecodebad #creatorcodebad #codebad
   #fortnite`. So in Metricool's planner every video shows twice at the same time, and
   that's intended: don't tick Instagram on the main post, or Instagram gets it twice
+- On **Threads** (added 2026-09-29), the two videos about today's shop go out in their own
+  posts too, with a shorter copy because Threads allows only **500 characters**: the title
+  lines, the first items of the list, the question, `#fortnite #usecodebad #creatorcodebad
+  #codebad` (Threads makes the first hashtag, #fortnite, the post's topic), then
+  `💚 Creator Code: BAD · #EpicPartner` and Epic's notice. No music credit there (the music is
+  public domain and owes none). Quizzes, On This Day, the history videos and the long
+  videos don't go to Threads
 - Never the word "discount" — the code isn't one
 - No "Made with AI" labels: TikTok's AI-generated flag, YouTube's "altered or synthetic
   content" flag and Instagram's "AI info" flag are all off on every post (checked on
@@ -161,6 +171,8 @@ schedules a video when all of these hold, and skips it otherwise:
 - a long video: its link and thumbnail work, it's 3–14.5 minutes, its YouTube title is
   within 100 characters and its description carries `#EpicPartner` and `#usecodebad`;
   it goes to YouTube only
+- a Threads post: only for the two videos the build marks for Threads, and only when its
+  copy fits in 500 characters with `#EpicPartner` and `#usecodebad` in it
 
 Each morning it also reports any of yesterday's posts that didn't go out. To go back to
 drafts, say so and the Routine's `draft` setting flips back to `true`.
@@ -180,3 +192,4 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 | Nothing scheduled in Metricool | The release didn't exist at 7 AM; the Routine skips rather than guessing |
 | A post shows an error in Metricool | TikTok or YouTube refused it; the next morning's Routine summary names it |
 | A video went to TikTok and YouTube but not Facebook | Facebook refused it, or the Page came unlinked in Metricool. The Routine posts to the other two anyway and names the error; if it says the Page is disconnected, reconnect it in Metricool |
+| A shop video is everywhere except Threads | Threads refused it, or the Threads account came unlinked in Metricool. Nothing else is affected; the next morning's Routine summary names the error. If it says Threads is disconnected, reconnect it in Metricool |

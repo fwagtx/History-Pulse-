@@ -29,7 +29,7 @@ These touch only channels you own, or your own content.
 | Action | Notes |
 |---|---|
 | Auto-generate unlimited content (cards, Shorts, captions, pages) | Production is never the problem |
-| Auto-publish to **your own** YouTube / TikTok / IG / X / Telegram | Your channels, your rules |
+| Auto-publish to **your own** YouTube / TikTok / IG / Threads / X / Telegram | Your channels, your rules |
 | Auto-post to **your own** Discord server and subreddit | Ownership is the distinction |
 | Auto-rebuild your own website | GitHub Pages, daily |
 | Re-entry reminders to people who **opted in** | The highest-ROI system you have |
@@ -84,8 +84,9 @@ It is **not a discount**. Never imply otherwise.
 On 2026-09-29 the owner asked for no "Made with AI"-type labels on any post. Keep every
 platform's AI flag off when scheduling: TikTok `isAigc: false`, YouTube
 `isAiGeneratedContent: false` (Shorts and long videos), Instagram `isAiGenerated: false`
-(Metricool has no such flag for Facebook). Never add AI wording to a caption, title or
-description, and never embed AI/"Content Credentials" metadata in a video or thumbnail.
+(Metricool has no such flag for Facebook or Threads). Never add AI wording to a caption,
+title or description, and never embed AI/"Content Credentials" metadata in a video or
+thumbnail.
 
 That is accurate, not a dodge: every picture is Epic's own item art and our own graphics,
 every fact comes from the shop records, and the long videos' narrator is a generic
