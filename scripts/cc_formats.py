@@ -130,6 +130,54 @@ def ig_caption(caption: str) -> str:
     return body + "\n" + " ".join("#" + t for t in IG_TAGS)
 
 
+# Threads allows 500 characters and makes a post's first hashtag its one topic
+# tag, so Threads gets its own short copy: the hook, as much of the list as
+# fits (from the top, the last line cut at a " · " if that makes it fit; a
+# section heading never left without its lines), the ask, #fortnite first
+# then our three tags, and the code with #EpicPartner and Epic's notice -- the
+# notice drops only if even the bare hook can't fit. The music credit stays
+# off (the tracks are CC0: no credit is owed).
+THREADS_MAX = 500
+THREADS_TAGS = ["fortnite"] + BRAND_TAGS
+
+
+def _heading(line: str) -> bool:
+    """A section heading like "⭐ STANDOUT ITEMS": capitals, not a numbered line."""
+    return any(ch.isalpha() for ch in line) and line == line.upper() and not line[:1].isdigit()
+
+
+def threads_caption(caption: str) -> str:
+    blocks = [[ln for ln in b.strip().split("\n") if not ln.startswith("🎵")]
+              for b in re.sub(r"#(\d)", r"\1", caption).strip().split("\n\n")]
+    blocks = ["\n".join(b) for b in blocks if b]
+    hook = blocks[0]
+    ask = next((b for b in blocks if b.startswith("💬")), "")
+    body = [b.split("\n") for b in blocks[1:] if not b.startswith(("💬", CODE_CREDIT, "#", EPIC_NOTE[:20]))]
+    note = EPIC_NOTE if EPIC_NOTE in caption else ""
+    tags = " ".join("#" + t for t in THREADS_TAGS)
+
+    def build(body, with_note):
+        parts = [hook] + ["\n".join(b) for b in body] + ([ask] if ask else [])
+        parts += [tags, f"{CODE_CREDIT} · {DISCLOSE}" + (f"\n{note}" if with_note else "")]
+        return "\n\n".join(parts)
+
+    for with_note in ((True, False) if note else (False,)):
+        left = [list(b) for b in body]
+        while True:
+            text = build(left, with_note)
+            if _u16(text) <= THREADS_MAX:
+                return text
+            if not left:
+                break
+            if " · " in left[-1][-1]:           # "▸ Stella · Outfit · 800" -> "▸ Stella · Outfit"
+                left[-1][-1] = left[-1][-1].rsplit(" · ", 1)[0]
+                continue
+            left[-1].pop()
+            if not left[-1] or (len(left[-1]) == 1 and _heading(left[-1][0])):
+                left.pop()
+    return build([], False)
+
+
 def hashtag_count(text: str) -> int:
     return len(re.findall(r"#\w*[^\W\d_]\w*", text))
 

@@ -48,6 +48,10 @@ SLOTS = [
     {"slot": 3, "name": "afternoon", "at": (17, 0)},
 ]
 
+# Threads gets two videos a day: today's shop and the game on it (the edit
+# lineup's slots 2 and 4; the classic three's recap and game).
+THREADS_SLOTS = {"edit": {2, 4}, "classic": {1, 2}}
+
 # What each slot tries, in order. The first entry rotates by weekday; the rest
 # are fallbacks when the day's data can't support a format.
 MORNING = ["shop_recap", "new_this_week", "this_or_that"]
@@ -211,6 +215,12 @@ def post_problems(v) -> list:
     return problems
 
 
+def threads_ok(text: str) -> bool:
+    """A Threads copy that can post: within 500 characters, disclosure and our tags in it."""
+    return (F._u16(text) <= F.THREADS_MAX and "#EpicPartner" in text
+            and all(f"#{t}" in text.split() for t in F.BRAND_TAGS))
+
+
 def build_all(shop: dict, art, day: date, only: list | None) -> list:
     ctx = F.Ctx(shop=shop, art=art, day=day, seed=int(day.strftime("%Y%m%d")))
     chosen, used = [], set()
@@ -361,6 +371,7 @@ def main():
 
     videos = []
     for (slot, v, safe), (_, _, stem, *_rest) in zip(chosen, jobs):
+        th = F.threads_caption(v.caption)
         if edit:
             import cc_lineup
             post = cc_lineup.slot_time(day, slot)
@@ -385,6 +396,8 @@ def main():
             "yt_title": v.yt_title,
             "caption": v.caption,
             "ig_caption": F.ig_caption(v.caption),     # Instagram allows 5 hashtags
+            "threads": slot["slot"] in THREADS_SLOTS["edit" if edit else "classic"] and threads_ok(th),
+            "threads_caption": th,                      # Threads allows 500 characters
             "hashtags": v.hashtags,
             "safe_zones": S.note(safe),
         })
