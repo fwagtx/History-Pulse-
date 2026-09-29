@@ -126,6 +126,11 @@ ever fail to build, the old ones still go out and the day is never empty.
   #fortnite`. So in Metricool's planner every video shows twice at the same time, and
   that's intended: don't tick Instagram on the main post, or Instagram gets it twice
 - Never the word "discount" — the code isn't one
+- No "Made with AI" labels: TikTok's AI-generated flag, YouTube's "altered or synthetic
+  content" flag and Instagram's "AI info" flag are all off on every post (checked on
+  2026-09-29 across the whole queue), no caption mentions AI, and the files carry no AI
+  metadata the apps could read. None of it is needed: the art is Epic's, the facts are the
+  shop's records, and the long videos' narrator is a generic voice, not anyone real's
 
 ---
 

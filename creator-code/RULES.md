@@ -79,6 +79,20 @@ partner."
 
 It is **not a discount**. Never imply otherwise.
 
+## No "made with AI" labels
+
+On 2026-09-29 the owner asked for no "Made with AI"-type labels on any post. Keep every
+platform's AI flag off when scheduling: TikTok `isAigc: false`, YouTube
+`isAiGeneratedContent: false` (Shorts and long videos), Instagram `isAiGenerated: false`
+(Metricool has no such flag for Facebook). Never add AI wording to a caption, title or
+description, and never embed AI/"Content Credentials" metadata in a video or thumbnail.
+
+That is accurate, not a dodge: every picture is Epic's own item art and our own graphics,
+every fact comes from the shop records, and the long videos' narrator is a generic
+text-to-speech voice (not an imitation of any real person) over graphics. The platforms
+only require the label for realistic AI-made people, voices or scenes. If that ever changes
+(a cloned voice, AI-generated footage), the label is required and the owner decides.
+
 ---
 
 ## If something goes wrong
