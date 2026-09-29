@@ -41,6 +41,22 @@ from cc_build import COVER_T, _render_one, art_fn, fetch_today, post_problems  #
 from cc_common import CC_DIR, log  # noqa: E402
 from cc_formats import Ctx, ig_caption  # noqa: E402
 
+V2_SAMPLES = {   # sample name -> (show, episode or None for the day's own)
+    "long_data": ("data", None),
+    "long_overdue": ("data", {"series": "overdue", "kind": "outfit"}),
+    "long_comebacks": ("data", {"series": "comebacks", "kind": "outfit"}),
+    "long_wrapped": ("data", {"series": "wrapped"}),
+    "long_countdown": ("countdown", None),
+    "long_rarest_skins": ("countdown", {"series": "countdown", "metric": "rarest", "kind": "outfit"}),
+    "long_rarest_marvel": ("countdown", {"series": "collection", "field": "series", "value": "MARVEL SERIES",
+                                         "nice": "Marvel"}),
+    "long_quiz": ("quiz", None),
+    "long_whos_that": ("quiz", {"series": "quiz", "format": "whos_that"}),
+    "long_which_first": ("quiz", {"series": "quiz", "format": "which_first"}),
+    "long_zoomed_in": ("quiz", {"series": "quiz", "format": "zoomed_in"}),
+    "long_guess_season": ("quiz", {"series": "quiz", "format": "guess_season"}),
+    "long_fortnitemares_quiz": ("quiz", {"series": "quiz", "format": "whos_that", "event": "fortnitemares"}),
+}
 VOICES = ["am_michael", "am_fenrir", "af_heart", "bm_george"]
 VOICE_LINE = ("This skin has been in the Item Shop exactly once. The last time was September fifteenth, "
               "twenty eighteen. These are the rarest skins in Fortnite, going by the Item Shop's own records.")
@@ -267,6 +283,37 @@ def main():
                          megabytes=round((out / f"{stem}.mp4").stat().st_size / 1e6, 1))
         report["long_series"] = entry
 
+    report["long_v2"] = []
+    for name in sorted(w for w in what if w in V2_SAMPLES):
+        # One of the three-a-week long videos (cc_long_v2), exactly as the
+        # nightly job makes it, for the sample day: its show, or one episode.
+        import cc_long_build as LB
+        show, ep = V2_SAMPLES[name]
+        if ep and ep.get("series") == "wrapped":
+            prev = day.replace(day=1) - timedelta(days=1)
+            ep = dict(ep, year=prev.year, month=prev.month)
+        os.environ["CC_LONG_SHOW"] = show
+        os.environ["CC_LONG_EPISODE"] = json.dumps(ep) if ep else ""
+        t0 = time.time()
+        try:
+            entry = LB.make(day, out / "long", "", art)
+        finally:
+            os.environ.pop("CC_LONG_SHOW", None)
+            os.environ.pop("CC_LONG_EPISODE", None)
+        if entry:
+            stem = f"sample-{name.replace('_', '-')}-{day.isoformat()}"
+            moves = [(entry["file"], f"{stem}.mp4"), (entry["thumbnail"], f"{stem}-thumbnail.png"),
+                     (entry["file"].replace(".mp4", "-qa.jpg"), f"{stem}-qa.jpg")]
+            for k, url in zip("bc", entry.get("thumbnail_variants") or []):
+                moves.append((url.rsplit("/", 1)[-1], f"{stem}-{k}-thumbnail.png"))
+            for src, dst in moves:
+                if (out / "long" / src).exists():
+                    (out / "long" / src).rename(out / dst)
+            entry.update(file=f"{stem}.mp4", thumbnail=f"{stem}-thumbnail.png", sample=name,
+                         seconds_to_build=round(time.time() - t0),
+                         megabytes=round((out / f"{stem}.mp4").stat().st_size / 1e6, 1))
+        report["long_v2"].append(entry or {"sample": name, "failed": True})
+
     if "voices" in what:
         import cc_voice as V
         for voice in VOICES:
@@ -279,7 +326,8 @@ def main():
     # Runs for styles and topics can publish to the same release at once: each
     # keeps its own report.
     parts = [k for k in ("styles", "topics", "edits", "lineup") if report[k]] + (
-        [f"long-{report['long_series']['day']}"] if report["long_series"] else [])
+        [f"long-{report['long_series']['day']}"] if report["long_series"] else []) + [
+        e["sample"].replace("_", "-") for e in report["long_v2"]]
     name = f"samples-{'-'.join(parts)}.json" if parts else "samples.json"
     (out / name).write_text(json.dumps(report, indent=1, ensure_ascii=False))
     log(f"samples: {[s.get('file') for s in report['shorts'] + report['styles'] + report['topics'] + report['edits']]} "

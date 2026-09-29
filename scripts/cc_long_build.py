@@ -1,6 +1,9 @@
 """
-The weekday long video for YouTube (cc_long_series.py): built, checked and
-rendered by the nightly quiz job, never posted by anything here.
+The long video for YouTube: built, checked and rendered by the nightly quiz
+job, never posted by anything here. Before lineup.json's "long_v2_from" day,
+one every weekday (cc_long_series.py); from it, three a week -- Monday,
+Wednesday, Saturday -- with their three shows and thumbnails (cc_long_v2.py,
+cc_long_quiz.py, cc_long_thumbs.py).
 
 When: the quiz job that builds quiz day D+14 runs at 01:40 UTC on day D. It
 also makes day D's long video (Monday to Friday), from the Item Shop's records
@@ -57,9 +60,10 @@ def due(build_day: date) -> date | None:
     forced = os.environ.get("CC_LONG_DAY", "").strip()
     if forced:
         return date.fromisoformat(forced)
+    import cc_long_v2 as V2
     today = datetime.now(timezone.utc).date()
     start = long_from()
-    if build_day != today + timedelta(days=14) or not start or today < start or today.weekday() > 4:
+    if build_day != today + timedelta(days=14) or not start or today < start or not V2.show_for(today):
         return None
     return today
 
@@ -120,6 +124,58 @@ def _qa_sheet(comp, times: list, dest: Path) -> Path:
     return dest
 
 
+def recent_thumbs(day: date, weeks: int = 13) -> tuple:
+    """(heroes, hashes) of the v2 long videos of the last `weeks` weeks, from
+    their manifests in the quiz releases (the video for day X rides in
+    quiz-X+14): what a new thumbnail must not repeat. Empty off GitHub and for
+    samples."""
+    import urllib.request
+    import cc_long_v2 as V2
+    heroes, hashes = set(), []
+    start = V2.v2_from()
+    if os.environ.get("GITHUB_ACTIONS") != "true" or os.environ.get("CC_LONG_SHOW") or not start:
+        return heroes, hashes
+    repo = os.environ.get("GITHUB_REPOSITORY", "fwagtx/History-Pulse-")
+    for back in range(1, weeks * 7 + 1):
+        d = day - timedelta(days=back)
+        if d < start or d.weekday() not in V2.V2_DAYS:
+            continue
+        tag = f"quiz-{(d + timedelta(days=14)).isoformat()}"
+        try:
+            with urllib.request.urlopen(f"https://github.com/{repo}/releases/download/{tag}/manifest.json",
+                                        timeout=20) as r:
+                m = json.loads(r.read())
+        except Exception:  # noqa: BLE001 - a day without one
+            continue
+        for e in m.get("long_videos") or []:
+            heroes.update(h for h in [e.get("thumb_hero")] if h)
+            hashes += [int(h, 16) for h in e.get("thumb_hashes") or []]
+    return heroes, hashes
+
+
+def v2_thumbnails(out: dict, day: date, work: Path, out_dir: Path, stem: str) -> list:
+    """The main thumbnail and two alternates as PNGs under 2 MB:
+    [(file name, layout, hero, hash)]; the main first. Never none: when every
+    layout trips a check, the rules loosen (a recent look, then the corners)."""
+    import cc_long_thumbs as TH
+    import cc_long_v2 as V2
+    heroes, hashes = recent_thumbs(day)
+    dest = [work / f"thumb-{k}.jpg" for k in "abc"]
+    res = TH.render(out["thumb"], dest, heroes, hashes, variant=V2._week(day))
+    if not res:
+        log("  thumbnails: none passed with the recent ones ruled out; trying without")
+        res = TH.render(out["thumb"], dest, variant=V2._week(day))
+    if not res:
+        print("::warning::long video thumbnail: no layout passed its checks; posting the plainest", file=sys.stderr)
+        res = TH.render(out["thumb"], dest[:1], variant=V2._week(day), check=False)
+    names = [f"{stem}-cover.png", f"{stem}-b-cover.png", f"{stem}-c-cover.png"]
+    got = []
+    for r, name in zip(res, names):
+        _png_under(Path(r["path"]), out_dir / name)
+        got.append((name, r["layout"], r["hero"], r["hash"]))
+    return got
+
+
 def make(day: date, out_dir: Path, base_url: str, art, no_video: bool = False) -> dict | None:
     """Build, check and render `day`'s long video into out_dir; its manifest
     entry, or None (a weekend, or nothing passed the gate)."""
@@ -128,10 +184,14 @@ def make(day: date, out_dir: Path, base_url: str, art, no_video: bool = False) -
     import cc_fmt_rarity as FR
     import cc_long as L
     import cc_long_series as SER
+    import cc_long_v2 as V2
     import cc_safe as S
-    if day.weekday() > 4:
-        log(f"{day} is a weekend: no long video")
+    show = V2.show_for(day)
+    if not show:
+        log(f"{day:%A}: no long video that day")
         return None
+    v2 = show != "classic"
+    maker = V2 if v2 else SER
     t0 = time.time()
     if not B.ensure_tts() or not B.ensure_pillow():
         print("::error::long video: the narration voice (kokoro-onnx) or Pillow couldn't be installed",
@@ -146,7 +206,7 @@ def make(day: date, out_dir: Path, base_url: str, art, no_video: bool = False) -
     checked = {}
 
     def accept(o):
-        meta = SER.describe(o, day)
+        meta = maker.describe(o, day)
         bad = problems(o, meta)
         if bad:
             log(f"  {'; '.join(bad)}")
@@ -158,8 +218,8 @@ def make(day: date, out_dir: Path, base_url: str, art, no_video: bool = False) -
         checked.update(meta=meta, safe=safe)
         return True
 
-    log(f"Long video for {day:%A %Y-%m-%d}")
-    out = SER.build(day, hist, art, work, accept=accept)
+    log(f"Long video for {day:%A %Y-%m-%d}" + (f" ({show})" if v2 else ""))
+    out = maker.build(day, hist, art, work, accept=accept)
     if not out:
         print(f"::warning::long video {day}: no topic passed the quality gate", file=sys.stderr)
         return None
@@ -167,8 +227,13 @@ def make(day: date, out_dir: Path, base_url: str, art, no_video: bool = False) -
     log(f"  {meta['title']} -- {comp.duration / 60:.1f} min, {len(out['rows'])} items, safe zones OK "
         f"({time.time() - t0:.0f}s so far)")
     stem = f"bad-quiz-long-{day.isoformat()}"
-    SER.thumbnail(out, work / "thumb.jpg")
-    _png_under(work / "thumb.jpg", out_dir / f"{stem}-cover.png")
+    thumbs = []
+    if v2:
+        thumbs = v2_thumbnails(out, day, work, out_dir, stem)
+        log(f"  thumbnails: {[(t[1], t[2]) for t in thumbs]}")
+    else:
+        SER.thumbnail(out, work / "thumb.jpg")
+        _png_under(work / "thumb.jpg", out_dir / f"{stem}-cover.png")
     times = [0.0, 4.0] + [round(comp.duration * k / 10, 2) for k in range(1, 10)] + [round(comp.duration - 1, 2)]
     _qa_sheet(comp, times, out_dir / f"{stem}-qa.jpg")
     if not no_video:
@@ -178,6 +243,11 @@ def make(day: date, out_dir: Path, base_url: str, art, no_video: bool = False) -
         log(f"  rendered in {(time.time() - t1) / 60:.1f} min, {mb:.0f} MB")
     hh, mm = SER.POST_AT
     post = datetime(day.year, day.month, day.day, hh, mm, tzinfo=LOCAL_TZ)
+    extra = {}
+    if v2:
+        extra = {"show": show, "episode": {k: v for k, v in out["episode"].items() if k != "show"},
+                 "thumbnail_variants": [base_url + t[0] for t in thumbs[1:]], "thumb_layout": thumbs[0][1],
+                 "thumb_hero": thumbs[0][2], "thumb_hashes": [t[3] for t in thumbs]}
     return {
         "kind": "long",
         "day": day.isoformat(),
@@ -196,6 +266,7 @@ def make(day: date, out_dir: Path, base_url: str, art, no_video: bool = False) -
         "chapters": [[round(t, 2), name] for t, name in meta["chapters"]],
         "music": getattr(comp, "music_used", []),
         "safe_zones": S.note(checked["safe"]),
+        **extra,
     }
 
 

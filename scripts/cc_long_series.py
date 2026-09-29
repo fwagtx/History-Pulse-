@@ -487,9 +487,10 @@ def month_years(hist: R.History, day: date) -> list:
     return [y for y in range(day.year - 2, 2017, -1) if len(_debuts(hist, y, day.month)) >= 14]
 
 
-def _make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: int):
+def _make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: int, cadence: str = ""):
     """(LongEdit, rows, topic, hook, thumb) for one episode, or None. thumb:
-    (title lines, the lime line) for the thumbnail."""
+    (title lines, the lime line) for the thumbnail. `cadence` (cc_long_v2):
+    the outro's line about when the next video comes, instead of every weekday."""
     when = f"{day:%B %Y}"
     as_of = two("Straight from the Item Shop's own records, as of {d}. 👇", d=day)
 
@@ -498,10 +499,15 @@ def _make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: i
                    min_len=10)
 
     def close(lv, question, rows):
-        lv.segment(["And that's the list.", question,
-                    "If you want more like this, subscribe. There's a new one every weekday. 🔔",
-                    ("And if you're buying anything in the Item Shop, use code B, A, D. See you tomorrow.",
-                     "And if you're buying anything in the Item Shop, use code BAD. See you tomorrow! 💚")],
+        if cadence:
+            ending = [f"If you want more like this, subscribe. {cadence} 🔔",
+                      ("And if you're buying anything in the Item Shop, use code B, A, D. See you next time.",
+                       "And if you're buying anything in the Item Shop, use code BAD. See you next time! 💚")]
+        else:
+            ending = ["If you want more like this, subscribe. There's a new one every weekday. 🔔",
+                      ("And if you're buying anything in the Item Shop, use code B, A, D. See you tomorrow.",
+                       "And if you're buying anything in the Item Shop, use code BAD. See you tomorrow! 💚")]
+        lv.segment(["And that's the list.", question] + ending,
                    lambda lv_, s: outro_screen(lv_, s, rows, question.lower()), chapter="Outro", min_len=11)
 
     series = ep["series"]
@@ -608,9 +614,12 @@ def _make(ep: dict, day: date, hist: R.History, art, rnd: random.Random, seed: i
         return lv, rows, label, hook, (f"{month}\n{y}", "every new skin: then and now" if every else "then and now")
 
     if series == "collection":
-        cols = collections(hist, day)
-        for k in range(3):
-            field, value, nice = cols[(ep["index"] + k) % len(cols)]
+        if "field" in ep:
+            picks = [(ep["field"], ep["value"], ep["nice"])]
+        else:
+            cols = collections(hist, day)
+            picks = [cols[(ep["index"] + k) % len(cols)] for k in range(3)]
+        for field, value, nice in picks:
             rows = rows_by_times(hist, day, COUNT, art,
                                  lambda key, raw: (_raw_kind(raw) == "outfit" and _raw_value(raw, field) == value
                                                    and _aged(hist, key, day)), True)

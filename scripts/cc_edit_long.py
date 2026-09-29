@@ -66,6 +66,7 @@ class Seg:
     lines_at: list = field(default_factory=list)
     voice: list = field(default_factory=list)
     data: dict = field(default_factory=dict)
+    pauses: dict = field(default_factory=dict)      # line index -> extra seconds of silence after it
 
 
 class LongEdit:
@@ -137,9 +138,9 @@ class LongEdit:
             s.voice = V.say([speakable(ln[0] if isinstance(ln, tuple) else ln) for ln in s.lines], out_dir / "voice",
                             self.voice, self.speed)
             s.t0, s.lines_at, cur = t, [], t + s.lead
-            for _, secs in s.voice:
+            for i, (_, secs) in enumerate(s.voice):
                 s.lines_at.append((cur, cur + secs))
-                cur += secs + s.gap
+                cur += secs + s.gap + s.pauses.get(i, 0.0)
             s.t1 = max(cur - s.gap + s.tail, s.t0 + s.min_len)
             t = s.t1
         end0 = t
