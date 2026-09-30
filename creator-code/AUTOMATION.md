@@ -156,7 +156,7 @@ this account on September 29. Three pieces do the job now, all free:
 
 | Piece | What it does | Where |
 |---|---|---|
-| **Video bucket** | Holds every video, cover and list. Metricool fetches each video from its public link | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev` |
+| **Video bucket** | Holds every video, cover and list. Metricool fetches each video from its public link | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev`. Keeps each day's folder for 7 days (see below) |
 | **Nightly build** | Makes the day's shorts and long video and uploads them, at 00:22, 03:22 and 06:22 UTC, right after the shop resets (7:22 PM, 10:22 PM and 1:22 AM Central; an hour earlier after November 1). Each run finishes what an earlier one couldn't | The Claude Code session *usecodebad · nightly build (automatic, keep)*, woken by the Routine *Nightly @usecodebad video build* |
 | **7 AM posting** | Writes the day's filming script and schedules what the nightly build made, in Metricool, at 6:53 AM Central | The Claude Code session *usecodebad · daily posting (automatic, keep)*, woken by the Routine *usecodebad · daily posting 7 AM Central* |
 
@@ -191,12 +191,22 @@ The workspace (**USECODEBAD**: cloud icon above the message box → hover
 The bucket's name, account and public link aren't secrets; they're in
 `creator-code/storage.json`.
 
+**The bucket stays inside the free 10 GB by itself.** Each day adds about 0.24 GB, so on
+September 30, 2026 the owner added two lifecycle rules in Cloudflare (R2 → `usecodebad-media`
+→ Settings → Object Lifecycle Rules): **Delete old shop videos** (prefix `shop-`) and
+**Delete old long videos** (prefix `quiz-`), each deleting files 7 days after upload. Nothing
+is lost: every video is scheduled within hours of being made, and Metricool plays each post
+from its own copy, made when it was scheduled. The music (`music-library/`), the item data
+(`cosmetics-data/`) and the status note (`_status/`) don't start with those names, so the
+rules never touch them. The third rule there, *Default Multipart Abort Rule*, is
+Cloudflare's own: it only clears half-finished uploads. Leave all three as they are.
+
 ## Check on it
 
 - **Last night's build:** open `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/_status/nightly.json`. `"ok": true` with a count per
   folder under `"published"` means it worked. Otherwise `"problems"` says why in plain
   words, and `"log"` links the full log.
-- **A day's videos:** open `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/shop-YYYY-MM-DD/manifest.json` (the date in UTC). It lists
+- **A day's videos** (the last 7 days): open `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/shop-YYYY-MM-DD/manifest.json` (the date in UTC). It lists
   the videos with their links, times and captions. Each video's `-qa.jpg` quick-look sheet
   sits beside it.
 - **Build again now:** ask Claude to run the nightly build Routine. It skips anything
