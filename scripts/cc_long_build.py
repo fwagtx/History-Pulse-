@@ -143,8 +143,10 @@ def recent_thumbs(day: date, weeks: int = 13) -> tuple:
         tag = f"quiz-{(d + timedelta(days=14)).isoformat()}"
         try:
             m = json.loads(cc_store.fetch(tag, "manifest.json", timeout=20))
-        except Exception:  # noqa: BLE001 - a day without one
-            continue
+        except Exception:  # noqa: BLE001 - a day without one, or its folder cleared from the bucket
+            m = cc_store._published(tag).get("manifest")   # the nightly build's copy in the repo
+            if not m:
+                continue
         for e in m.get("long_videos") or []:
             heroes.update(h for h in [e.get("thumb_hero")] if h)
             hashes += [int(h, 16) for h in e.get("thumb_hashes") or []]
