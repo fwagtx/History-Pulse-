@@ -157,14 +157,20 @@ this account on September 29. Three pieces do the job now, all free:
 | **Nightly build** | Makes the day's shorts and long video and uploads them, at 00:30, 03:30 and 06:30 UTC (7:30 PM, 10:30 PM and 1:30 AM Central). Each run finishes what an earlier one couldn't | A Claude Code Routine, *Nightly @usecodebad video build (R2)*, in the **Default** workspace that holds the bucket's keys |
 | **7 AM Routine** | Schedules what the nightly build made, in Metricool | A Cowork scheduled task. It needs no keys: it reads each day's list from the copy the nightly build saves in the project (`creator-code/published/`) |
 
-The nightly build's workspace needs two settings (cloud icon above the message box →
-hover **Default** → gear):
+The nightly build's workspace (**USECODEBAD**: cloud icon above the message box → hover
+**USECODEBAD** → gear) needs two settings:
 
-- **Environment variables:** `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, the R2 API
-  token's two keys. They're secrets: they live only there.
+- **Environment variables:** only Code Bad's key, from the `usecodebad-pipelineR2` token:
+  `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` (or the clearer
+  `CODEBAD_R2_ACCESS_KEY_ID` and `CODEBAD_R2_SECRET_ACCESS_KEY`, which win when both pairs
+  are there). They're secrets: they live only there. Code Bad reads no other storage
+  variable: `R2_BUCKET`, `R2_PUBLIC_URL`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID` and
+  `R2_SECRET_ACCESS_KEY` are ignored, so another project's settings in the same workspace
+  can never point it at another bucket. (Since September 30, 2026; `python3
+  scripts/cc_store.py where` shows what it uses.)
 - **Network access:** **Custom**, with the default list included, plus `fortnite-api.com`
-  (the item pictures), `*.r2.dev` (the bucket's public link), `archive.org` and
-  `*.archive.org` (the music library).
+  (the item pictures), `*.r2.cloudflarestorage.com` (uploading to the bucket), `*.r2.dev`
+  (the bucket's public link), `archive.org` and `*.archive.org` (the music library).
 
 The bucket's name, account and public link aren't secrets; they're in
 `creator-code/storage.json`.

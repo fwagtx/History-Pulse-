@@ -2,15 +2,19 @@
 of the GitHub releases the pipeline used before. Metricool picks each video up
 from the bucket's public URL, exactly as it did from a release.
 
-Settings. The two keys only ever come from the environment's variables (they
-are secrets); the other three aren't secret, so they live in
-creator-code/storage.json, and an environment variable of the same name wins:
+Settings, all Code Bad's own. Nothing is read from a generic name that another
+project sharing the workspace could set (R2_BUCKET, R2_PUBLIC_URL, R2_ACCOUNT_ID,
+R2_ACCESS_KEY_ID ... are ignored):
 
-    AWS_ACCESS_KEY_ID      an R2 API token's Access Key ID (32 characters)
-    AWS_SECRET_ACCESS_KEY  that token's Secret Access Key (64 characters)
-    R2_ACCOUNT_ID          the Cloudflare account id (32 hex characters)   storage.json "account_id"
-    R2_BUCKET              the bucket's name                               storage.json "bucket"
-    R2_PUBLIC_URL          its public URL, e.g. https://pub-....r2.dev     storage.json "public_url"
+    creator-code/storage.json      the bucket's name, the Cloudflare account id and
+                                   its public URL (not secrets, so committed)
+    CODEBAD_R2_ACCESS_KEY_ID       the usecodebad-pipelineR2 token's Access Key ID
+    CODEBAD_R2_SECRET_ACCESS_KEY   that token's Secret Access Key
+
+The key is the only setting in the environment (it is a secret). Until the
+CODEBAD_ names are set, AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are used.
+Either way nothing is built unless the key can write, read and delete in Code
+Bad's bucket (check()), so a key for anything else stops the build.
 
 A "tag" (shop-2026-10-01, quiz-2026-10-14, music-library, cosmetics-data) is a
 folder in the bucket, the way it was a release on GitHub. Without the R2
@@ -24,6 +28,7 @@ every file in the folder is checked in the bucket. That is how the 7 AM Routine,
 which runs in a workspace without the keys, reads what the nightly build made.
 
     python3 scripts/cc_store.py check                 # can we reach and write the bucket?
+    python3 scripts/cc_store.py where                 # which bucket, link and key are in use
     python3 scripts/cc_store.py put DIR TAG [GLOB..]  # upload DIR's files into TAG/
     python3 scripts/cc_store.py ls [TAG]
     python3 scripts/cc_store.py cat TAG/FILE
@@ -43,21 +48,30 @@ REPO = os.environ.get("GITHUB_REPOSITORY", "fwagtx/History-Pulse-")
 CONFIG = Path(__file__).resolve().parent.parent / "creator-code" / "storage.json"
 PUBLISHED = CONFIG.parent / "published"
 FIELDS = {"R2_ACCOUNT_ID": "account_id", "R2_BUCKET": "bucket", "R2_PUBLIC_URL": "public_url"}
+KEY_NAMES = (("CODEBAD_R2_ACCESS_KEY_ID", "CODEBAD_R2_SECRET_ACCESS_KEY"),   # Code Bad's own
+             ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"))                # the older names
 TYPES = {".mp4": "video/mp4", ".webm": "video/webm", ".png": "image/png", ".jpg": "image/jpeg",
          ".json": "application/json", ".mp3": "audio/mpeg", ".gz": "application/gzip"}
 
 
 def setting(name: str) -> str:
-    """A setting: the environment's variable, else (for the three that aren't
-    secret) creator-code/storage.json's field."""
-    if os.environ.get(name):
-        return os.environ[name]
+    """One of the bucket's three settings, from creator-code/storage.json only
+    (never the environment's variable of the same name)."""
     if name not in FIELDS:
         return ""
     try:
         return str(json.loads(CONFIG.read_text()).get(FIELDS[name]) or "")
     except (OSError, ValueError):
         return ""
+
+
+def keys() -> tuple:
+    """(access key id, secret, where they came from): Code Bad's own variable
+    names first, then the older ones; ("", "", "") if neither pair is set."""
+    for kid, secret in KEY_NAMES:
+        if os.environ.get(kid) and os.environ.get(secret):
+            return os.environ[kid], os.environ[secret], f"{kid} / {secret}"
+    return "", "", ""
 
 
 def enabled() -> bool:
@@ -67,7 +81,7 @@ def enabled() -> bool:
 
 def has_keys() -> bool:
     """We can write to the bucket (and read it directly)."""
-    return bool(setting("AWS_ACCESS_KEY_ID") and setting("AWS_SECRET_ACCESS_KEY"))
+    return bool(keys()[0])
 
 
 def base_url(tag: str) -> str:
@@ -90,8 +104,9 @@ def _client():
             subprocess.run([sys.executable, "-m", "pip", "install", "-q", "boto3"], check=True)
             import boto3
         from botocore.config import Config
-        endpoint = os.environ.get("R2_ENDPOINT") or f"https://{setting('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
-        _S3 = boto3.client("s3", endpoint_url=endpoint,
+        endpoint = os.environ.get("CC_R2_ENDPOINT") or f"https://{setting('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
+        kid, secret, _ = keys()
+        _S3 = boto3.client("s3", endpoint_url=endpoint, aws_access_key_id=kid, aws_secret_access_key=secret,
                            region_name="auto",
                            config=Config(retries={"max_attempts": 5, "mode": "standard"}, connect_timeout=20,
                                          read_timeout=120))
@@ -219,15 +234,18 @@ def fetch(tag: str, name: str, timeout: int = 120) -> bytes:
 def check() -> list:
     """What's missing or wrong, in plain words ([] = ready)."""
     problems = []
-    for k, n in (("R2_ACCOUNT_ID", 32), ("AWS_ACCESS_KEY_ID", 32), ("AWS_SECRET_ACCESS_KEY", 64)):
-        v = setting(k)
-        if not v:
-            problems.append(f"{k} isn't set")
-        elif len(v) != n:
-            problems.append(f"{k} is {len(v)} characters; an R2 one is {n} (is it a placeholder?)")
-    for k in ("R2_BUCKET", "R2_PUBLIC_URL"):
+    kid, secret, names = keys()
+    if not kid:
+        problems.append("the bucket's key isn't set: CODEBAD_R2_ACCESS_KEY_ID and CODEBAD_R2_SECRET_ACCESS_KEY "
+                        "(the usecodebad-pipelineR2 token) in the workspace's environment variables")
+    else:
+        for label, v, n in (("access key id", kid, 32), ("secret access key", secret, 64)):
+            if len(v) != n:
+                problems.append(f"the {label} ({names}) is {len(v)} characters; an R2 one is {n} "
+                                "(is it a placeholder?)")
+    for k in ("R2_ACCOUNT_ID", "R2_BUCKET", "R2_PUBLIC_URL"):
         if not setting(k):
-            problems.append(f"{k} isn't set")
+            problems.append(f"creator-code/storage.json has no {FIELDS[k]}")
     if problems:
         return problems
     try:
@@ -238,10 +256,8 @@ def check() -> list:
         assert get("_check/ok.json") == b'{"ok": true}'
         _client().delete_object(Bucket=_bucket(), Key="_check/ok.json")
     except Exception as e:  # noqa: BLE001
-        msg = str(e)
-        for k in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"):
-            msg = msg.replace(os.environ.get(k) or "\0", "***")
-        problems.append(f"writing to the bucket failed: {msg[:240]}")
+        msg = str(e).replace(kid, "***").replace(secret, "***")
+        problems.append(f"writing to {setting('R2_BUCKET')} with the key in {names} failed: {msg[:240]}")
     return problems
 
 
@@ -255,9 +271,17 @@ def main(argv: list) -> int:
         urls = put_dir(Path(argv[2]), argv[3], tuple(argv[4:]) or ("*",))
         print("\n".join(urls))
         return 0
+    if cmd == "where":
+        print(f"bucket:      {setting('R2_BUCKET')}  (creator-code/storage.json)")
+        print(f"public link: {setting('R2_PUBLIC_URL')}  (creator-code/storage.json)")
+        print(f"key:         {keys()[2] or 'not set (CODEBAD_R2_ACCESS_KEY_ID / CODEBAD_R2_SECRET_ACCESS_KEY)'}")
+        ignored = [k for k in (*FIELDS, "R2_ENDPOINT", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY") if os.environ.get(k)]
+        if ignored:
+            print(f"ignored:     {', '.join(ignored)} (set in this environment; Code Bad doesn't read them)")
+        return 0
     if cmd == "ls":
         if not has_keys():
-            print("Listing the bucket needs its keys (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).")
+            print("Listing the bucket needs its key (CODEBAD_R2_ACCESS_KEY_ID, CODEBAD_R2_SECRET_ACCESS_KEY).")
             return 1
         for k, size in ls(argv[2] if len(argv) > 2 else ""):
             print(f"{size:>12,}  {k}")
