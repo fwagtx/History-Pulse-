@@ -30,6 +30,28 @@ SHOP_FILES = ("bad-*.mp4", "bad-*-cover.png", "bad-*-qa.jpg", "manifest.json")
 QUIZ_FILES = ("bad-quiz-*.mp4", "bad-quiz-*-cover.png", "bad-quiz-*-qa.jpg", "manifest.json")
 
 
+def _reachable(url: str) -> bool:
+    import urllib.error
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "usecodebad"}, method="GET")
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return r.status < 500
+    except urllib.error.HTTPError as e:      # the site answered: it's reachable
+        return e.code < 500
+    except Exception:  # noqa: BLE001 - blocked or down
+        return False
+
+
+def preflight() -> list:
+    """What would make tonight's videos wrong, in plain words ([] = go)."""
+    problems = STORE.check()
+    if not _reachable("https://fortnite-api.com/v2/cosmetics/br/search?name=Peely"):
+        problems.append("fortnite-api.com isn't reachable from this environment (its network access): "
+                        "the videos would have no item pictures, so nothing is built")
+    return problems
+
+
 def _utc_today() -> date:
     return datetime.now(timezone.utc).date()
 
@@ -110,11 +132,11 @@ def music(folder: Path) -> bool:
 
 
 def main(argv: list) -> int:
-    problems = STORE.check()
-    if problems:
-        print("R2 isn't ready:\n  " + "\n  ".join(problems))
-        return 2
     what = argv[1] if len(argv) > 1 else "all"
+    problems = preflight() if what in ("all", "shop", "quiz", "records") else STORE.check()
+    if problems:
+        print("Not building:\n  " + "\n  ".join(problems))
+        return 2
     t0 = time.time()
     if what == "shop":
         ok = shop(date.fromisoformat(argv[2]) if len(argv) > 2 else None)
