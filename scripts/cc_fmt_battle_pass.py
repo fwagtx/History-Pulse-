@@ -105,7 +105,8 @@ def _all_cosmetics() -> list:
         if os.environ.get("CC_HISTORY"):
             path = os.environ["CC_HISTORY"]
         else:
-            fresh = os.environ.get("GITHUB_ACTIONS") == "true"
+            from cc_common import on_runner
+            fresh = on_runner()
             path = str(OUT_DIR / "_data" / ("br-fresh.json" if fresh else "br-full.json.gz"))
         _RAW = R.load(path)
     return _RAW

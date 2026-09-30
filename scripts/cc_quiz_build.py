@@ -38,7 +38,8 @@ import cc_end_card as E  # noqa: E402
 import cc_quiz as Q  # noqa: E402
 import cc_safe as S  # noqa: E402
 import cc_long_build as LB  # noqa: E402
-from cc_build import COVER_T, REPO, _render_one, edit_lineup, post_problems  # noqa: E402
+import cc_store as STORE  # noqa: E402
+from cc_build import COVER_T, _render_one, edit_lineup, post_problems  # noqa: E402
 from cc_common import CC_DIR, OUT_DIR, log, write_json  # noqa: E402
 from cc_formats import MIN_SECONDS, Ctx, ig_caption  # noqa: E402
 
@@ -125,7 +126,7 @@ def main():
     out = OUT_DIR / f"quiz-{day.isoformat()}"
     out.mkdir(parents=True, exist_ok=True)
     tag = args.release or f"quiz-{day.isoformat()}"
-    base = f"https://github.com/{REPO}/releases/download/{tag}/"
+    base = STORE.base_url(tag)
     jobs = []
     for spec, v, _ in built:
         stem = f"bad-quiz-{day.isoformat()}-{spec['slot']}-{v.format.replace('_', '-')}"

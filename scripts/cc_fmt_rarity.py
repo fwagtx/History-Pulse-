@@ -62,7 +62,8 @@ def history() -> R.History:
         if os.environ.get("CC_HISTORY"):
             _hist = R.History(R.load(os.environ["CC_HISTORY"]))
         else:
-            _hist = R.History(R.load(fresh=os.environ.get("GITHUB_ACTIONS") == "true"))
+            from cc_common import on_runner
+            _hist = R.History(R.load(fresh=on_runner()))
     return _hist
 
 

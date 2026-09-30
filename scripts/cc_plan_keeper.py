@@ -14,7 +14,6 @@ and tries again the next night.
 """
 
 import json
-import os
 import subprocess
 import sys
 from datetime import date, timedelta
@@ -49,7 +48,8 @@ def load_plan(extend_to: date | None = None) -> dict:
         return plan
     plan = json.loads(PLAN.read_text())
     log(f"  the plan now runs to {_last(plan)}")
-    if os.environ.get("GITHUB_ACTIONS") == "true":
+    from cc_common import on_runner
+    if on_runner():
         _push(f"Plan: extend the quiz and series plan to {_last(plan)} (automatic)")
     return plan
 

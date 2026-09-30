@@ -127,24 +127,22 @@ def _qa_sheet(comp, times: list, dest: Path) -> Path:
 def recent_thumbs(day: date, weeks: int = 13) -> tuple:
     """(heroes, hashes) of the v2 long videos of the last `weeks` weeks, from
     their manifests in the quiz releases (the video for day X rides in
-    quiz-X+14): what a new thumbnail must not repeat. Empty off GitHub and for
-    samples."""
-    import urllib.request
+    quiz-X+14): what a new thumbnail must not repeat. Empty off the build
+    machine and for samples."""
     import cc_long_v2 as V2
+    import cc_store
+    from cc_common import on_runner
     heroes, hashes = set(), []
     start = V2.v2_from()
-    if os.environ.get("GITHUB_ACTIONS") != "true" or os.environ.get("CC_LONG_SHOW") or not start:
+    if not on_runner() or os.environ.get("CC_LONG_SHOW") or not start:
         return heroes, hashes
-    repo = os.environ.get("GITHUB_REPOSITORY", "fwagtx/History-Pulse-")
     for back in range(1, weeks * 7 + 1):
         d = day - timedelta(days=back)
         if d < start or d.weekday() not in V2.V2_DAYS:
             continue
         tag = f"quiz-{(d + timedelta(days=14)).isoformat()}"
         try:
-            with urllib.request.urlopen(f"https://github.com/{repo}/releases/download/{tag}/manifest.json",
-                                        timeout=20) as r:
-                m = json.loads(r.read())
+            m = json.loads(cc_store.fetch(tag, "manifest.json", timeout=20))
         except Exception:  # noqa: BLE001 - a day without one
             continue
         for e in m.get("long_videos") or []:

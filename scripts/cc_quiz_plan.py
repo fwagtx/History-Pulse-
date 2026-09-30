@@ -36,7 +36,6 @@ import json
 import random
 import re
 import sys
-import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -370,9 +369,9 @@ def load_db(path: str | None) -> list:
     if not path:
         cache = OUT_DIR / "_data" / "br-full.json.gz"
         cache.parent.mkdir(parents=True, exist_ok=True)
-        log(f"Downloading {DB_URL}")
-        with urllib.request.urlopen(DB_URL, timeout=180) as resp:
-            cache.write_bytes(resp.read())
+        import cc_store
+        log("Downloading the weekly copy of the records (cosmetics-data)")
+        cache.write_bytes(cc_store.fetch("cosmetics-data", "br-full.json.gz", timeout=180))
         path = str(cache)
     opener = gzip.open if path.endswith(".gz") else open
     with opener(path, "rt", encoding="utf-8") as f:

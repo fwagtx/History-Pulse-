@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cc_end_card as E
 import cc_formats as F
 import cc_safe as S
+import cc_store as STORE
 from cc_common import OUT_DIR, load_config, log, today_stamp, write_json
 
 LOCAL_TZ = ZoneInfo("America/Chicago")
@@ -347,7 +348,7 @@ def main():
         raise SystemExit("No video could be built today.")
 
     tag = args.release or f"shop-{day.isoformat()}"
-    base = f"https://github.com/{REPO}/releases/download/{tag}/"
+    base = STORE.base_url(tag)
     rot = rotation(day)
     ext = "webm" if args.preview else "mp4"
     jobs = []

@@ -28,6 +28,13 @@ def log(msg: str):
     print(f"[{ts}] {msg}", flush=True)
 
 
+def on_runner() -> bool:
+    """True on the machine that builds the published videos: GitHub's runners
+    before, a scheduled Claude session now (CC_RUNNER=1). There the build
+    fetches today's records fresh instead of the weekly copy."""
+    return os.environ.get("GITHUB_ACTIONS") == "true" or os.environ.get("CC_RUNNER") == "1"
+
+
 def today_stamp() -> str:
     """Shop rotates at 00:00 UTC, so dating by UTC keeps filenames aligned with the rotation."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")

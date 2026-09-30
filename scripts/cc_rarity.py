@@ -47,9 +47,13 @@ def load(path: str | None = None, fresh: bool = False) -> list:
             return json.load(f)["data"]
     cache = OUT_DIR / "_data" / ("br-fresh.json" if fresh else "br-full.json.gz")
     cache.parent.mkdir(parents=True, exist_ok=True)
-    url = FRESH_URL if fresh else RELEASE_URL
-    log(f"Downloading {url}")
-    req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "usecodebad"})
+    if not fresh:
+        import cc_store
+        log("Downloading the weekly copy of the records (cosmetics-data)")
+        cache.write_bytes(cc_store.fetch("cosmetics-data", "br-full.json.gz", timeout=240))
+        return load(str(cache))
+    log(f"Downloading {FRESH_URL}")
+    req = urllib.request.Request(FRESH_URL, headers={"Accept": "application/json", "User-Agent": "usecodebad"})
     with urllib.request.urlopen(req, timeout=240) as resp:
         cache.write_bytes(resp.read())
     return load(str(cache))

@@ -324,7 +324,8 @@ def catalog(dest: Path = CACHE, max_age: float = 6 * 3600) -> list:
     dest.mkdir(parents=True, exist_ok=True)
     cat = dest / "catalog.json"
     if not cat.exists() or time.time() - cat.stat().st_mtime > max_age:
-        cat.write_bytes(_get(f"https://github.com/{REPO}/releases/download/{TAG}/catalog.json"))
+        import cc_store
+        cat.write_bytes(cc_store.fetch(TAG, "catalog.json"))
     raw = cat.read_bytes()
     folder = str(dest / hashlib.sha1(raw).hexdigest()[:10])
     return [dict(t, _dir=folder) for t in json.loads(raw.decode("utf-8"))["tracks"]]
@@ -337,7 +338,8 @@ def ensure(t: dict, dest: Path | None = None) -> dict | None:
     f = dest / t["file"]
     if not f.exists():
         try:
-            f.write_bytes(_get(f"https://github.com/{REPO}/releases/download/{TAG}/{t['file']}", timeout=120))
+            import cc_store
+            f.write_bytes(cc_store.fetch(TAG, t["file"], timeout=120))
         except Exception as e:  # noqa: BLE001
             log(f"music: {t['file']} unavailable ({e!r})")
             return None
