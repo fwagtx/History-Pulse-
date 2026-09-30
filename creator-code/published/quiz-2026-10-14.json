@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-10-14",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-14/",
+ "checked_at": "2026-09-30T14:30:20+00:00",
+ "files": {
+  "bad-quiz-long-2026-09-30-cover.png": 583516,
+  "bad-quiz-long-2026-09-30-qa.jpg": 213963,
+  "bad-quiz-long-2026-09-30.mp4": 130062700,
+  "manifest.json": 4468
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-14",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-14",
+  "generated_utc": "2026-09-30T14:30:14Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-09-30",
+    "series": "season",
+    "topic": "Chapter 1, Season 1",
+    "file": "bad-quiz-long-2026-09-30.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-14/bad-quiz-long-2026-09-30.mp4",
+    "thumbnail": "bad-quiz-long-2026-09-30-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-14/bad-quiz-long-2026-09-30-cover.png",
+    "duration": 618.19,
+    "post_at_local": "2026-09-30T15:00:00",
+    "post_at_iso": "2026-09-30T15:00:00-05:00",
+    "post_at_utc": "2026-09-30T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Chapter 1, Season 1 Item Shop Skins: Where Are They Now? (Fortnite)",
+     "description": "Number 1 has been in the Item Shop just twice.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Sep 30, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 Raptor\n3:28 #20 Special Forces\n6:50 #10 Devastator\n8:16 #5 Ranger\n9:41 #1 Codename E.L.F.\n9:56 Outro\n\nThe list\n#1 Codename E.L.F.\n#2 Aerial Assault Trooper\n#3 Renegade Raider\n#4 Tracker\n#5 Ranger\n#6 Crackshot\n#7 Scout\n#8 Ghoul Trooper\n#9 Red-Nosed Raider\n#10 Devastator\n#11 Yuletide Ranger\n#12 Pathfinder\n#13 Nog Ops\n#14 Ginger Gunner\n#15 Recon Scout\n#16 Infiltrator\n#17 Merry Marauder\n#18 Desperado\n#19 Trooper\n#20 Special Forces\n#21 Funk Ops\n#22 First strike Specialist\n#23 Circuit Breaker\n#24 Skull Trooper\n#25 Dominator\n#26 Brawler\n#27 Absolute Zero\n#28 Recon Expert\n#29 Munitions Expert\n#30 Raptor\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Walk in the forest\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Action2 - Army Approaching\" by Juhani Junkala; \"Sweet Sun\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"03 L'été sera chaud\" by Monplaisir; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Disco Cat\" by Komiku; \"Together to play !\" by Komiku; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"Level 3\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite chapter 1 season 1",
+      "fortnite season skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Codename E.L.F.",
+      "Aerial Assault Trooper",
+      "Renegade Raider",
+      "Tracker",
+      "Ranger",
+      "Crackshot",
+      "Scout",
+      "Ghoul Trooper"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.34,
+      "#30 Raptor"
+     ],
+     [
+      208.09,
+      "#20 Special Forces"
+     ],
+     [
+      410.15,
+      "#10 Devastator"
+     ],
+     [
+      496.83,
+      "#5 Ranger"
+     ],
+     [
+      581.14,
+      "#1 Codename E.L.F."
+     ],
+     [
+      596.1,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-walk-in-the-forest",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "juhani-junkala-action2-army-approaching",
+     "loyalty-freak-music-sweet-sun",
+     "loyalty-freak-music-roller-fever",
+     "monplaisir-03-l-t-sera-chaud",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "komiku-disco-cat",
+     "komiku-together-to-play",
+     "juhani-junkala-town2-where-time-stands-still",
+     "juhani-junkala-level-3"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
