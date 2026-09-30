@@ -2,8 +2,15 @@
 
 > **Already done.** The Routine `Daily @usecodebad script + shop video` is live (7:00 AM
 > Central) and its prompt matches the one below (updated 2026-09-28 for the five short
-> videos a day and the weekday long YouTube video, and 2026-09-29 for Threads). This page
-> is the record of what it runs.
+> videos a day and the weekday long YouTube video, 2026-09-29 for Threads, and 2026-09-30
+> for the Cloudflare R2 bucket that replaced GitHub releases). This page is the record of
+> what it runs.
+>
+> It was made from Cowork's **Scheduled** page, so it runs in Cowork's own workspace,
+> which doesn't have the bucket's keys. It doesn't need them: `scripts/cc_store.py` reads
+> the bucket's public link, or, where that's blocked, the copy of each folder's list that
+> the nightly build commits to `creator-code/published/`. See AUTOMATION.md, "Where it
+> runs".
 
 I can't attach the Metricool connector to a Routine from inside Claude Code (this org doesn't
 allow it), so this one has to be created from the website. It's a few clicks.
@@ -70,19 +77,22 @@ The owner asked (2026-09-23) for these to go live on their own at their times, w
 manual approval. Nobody reviews them before they are public, so every check below is
 mandatory: if anything about a video is off, skip that video and say why in the summary
 - never guess, never substitute.
-A GitHub Action builds them every night right after the shop resets (00:00 UTC)
-and publishes them with a manifest at:
-    https://github.com/fwagtx/History-Pulse-/releases/download/shop-YYYY-MM-DD/manifest.json
+The nightly build (a scheduled Claude session since 2026-09-30; GitHub releases are no
+longer used) makes them right after the shop resets (00:00 UTC) and publishes them to the
+Cloudflare R2 bucket, in the folder shop-YYYY-MM-DD, with a manifest you read (from
+/home/user/hp) with:
+    python3 scripts/cc_store.py cat shop-YYYY-MM-DD/manifest.json
 where YYYY-MM-DD is TODAY's date in UTC (that is the shop day). Its "lineup" is "edit"
 (five videos: 8 AM, 11 AM, 1 PM, 4 PM, 7 PM Central) or "classic" (three); schedule
 whatever "videos" it lists, each at its own time.
-3a. Download it: curl -fsSL "<that url>". If it is missing, or its "shop_day" is not
+3a. Read it with that command. If the command fails (no such file), or its "shop_day" is not
     today's UTC date, schedule NOTHING and say so in the summary. Never schedule a video
     about another day's shop.
-3b. For each entry in "videos", check before using it: its url answers
-    (curl -fsSL -r 0-1023 -o /dev/null "<url>" succeeds - a ranged GET, never a HEAD
-    request with -I: GitHub's release downloads answer HEAD with 401 even when the file is
-    fine), its duration is at least 60, and its caption contains "#EpicPartner" and
+3b. For each entry in "videos", check before using it: its file is in the bucket
+    (python3 scripts/cc_store.py has FOLDER/NAME exits 0, where FOLDER is the manifest's
+    folder and NAME the file name at the end of the entry's url; the url itself is the
+    bucket's public r2.dev link, which Metricool fetches - this session may not be able to
+    open it, so don't curl it), its duration is at least 60, and its caption contains "#EpicPartner" and
     "#usecodebad". Skip any entry that fails a check.
 3c. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from today
     00:00 to today 23:59. Skip any manifest video whose "title" already equals the
@@ -152,10 +162,10 @@ whatever "videos" it lists, each at its own time.
     post, its Instagram post beside it, and - for entries with "threads" true - its
     Threads post.
 3f. FROM edit_from ON, RETIRE TODAY'S OLD QUIZ POSTS. Posts queued before the switch
-    (from the quiz releases' "videos") would make today more than five. Do this only if
+    (from the quiz manifests' "videos") would make today more than five. Do this only if
     today is on or after edit_from AND the shop manifest's "lineup" is "edit" AND at
     least 3 of today's shop videos are now scheduled (3e); otherwise leave them, so the
-    day is never empty. Download today's quiz manifest (quiz-YYYY-MM-DD with today's UTC
+    day is never empty. Read today's quiz manifest (quiz-YYYY-MM-DD with today's UTC
     date, as in step 4). For each of its "videos", find in the 3c/3e list the post
     scheduled today whose tiktokData.title equals the video's "title" (its main post)
     and the post whose providers are only instagram and whose text equals its
@@ -169,18 +179,18 @@ whatever "videos" it lists, each at its own time.
     other status, with its detailedStatus, in the summary so the owner knows it did not go
     out there.
 
-STEP 4 - QUIZ VIDEOS AND LONG VIDEOS FROM THE QUIZ RELEASES.
+STEP 4 - QUIZ VIDEOS AND LONG VIDEOS FROM THE QUIZ FOLDERS.
 Quiz videos (three a day before the switch) and the long YouTube videos are published one
-release per quiz day:
-    https://github.com/fwagtx/History-Pulse-/releases/download/quiz-YYYY-MM-DD/manifest.json
+bucket folder per quiz day, read with:
+    python3 scripts/cc_store.py cat quiz-YYYY-MM-DD/manifest.json
 4a. For each day D from today to today + 14 (YYYY-MM-DD in UTC, like the shop), download
-    that day's quiz manifest with curl -fsSL. If it is missing, that day isn't built yet:
+    that day's quiz manifest with that command. If it fails (no such file), that day isn't built yet:
     skip it (mention it in the summary only if D is within the next 3 days and D is
     before edit_from). Use a manifest only if its "quiz_day" equals D.
 4b. QUIZ SHORTS: use a manifest's "videos" only if D is BEFORE edit_from (or edit_from is
-    null). From edit_from on, the five daily shorts come from the shop release (STEP 3),
+    null). From edit_from on, the five daily shorts come from the shop folder (STEP 3),
     so never schedule a quiz manifest's "videos" for such a day, even if some are listed.
-    Check every usable video like 3b (its url answers, duration at least 60, caption
+    Check every usable video like 3b (its file is in the bucket, duration at least 60, caption
     contains "#EpicPartner" and "#usecodebad") and also that its duration is at most 90.
     Skip any video that fails.
 4c. Call getScheduledPosts ONCE for brandId "7066444", timezone "America/Chicago", from
@@ -194,10 +204,10 @@ release per quiz day:
     already has instagram among its providers and that exact text). Quiz videos are not
     tied to the shop reset, so the 8:00 PM slot is fine.
 4e. LONG VIDEOS (YouTube only, Monday to Friday at 3 PM Central): a manifest may list
-    "long_videos" (the video for day X rides in release quiz-(X+14), which is why 4a goes
+    "long_videos" (the video for day X rides in folder quiz-(X+14), which is why 4a goes
     to today + 14). For each entry with "kind" "long" whose post_at_local is at least 15
-    minutes in the future, check before using it: its "url" and its "thumbnail_url" answer
-    (ranged GET as in 3b), its duration is between 180 and 870, youtube.title is not empty
+    minutes in the future, check before using it: its "url" and its "thumbnail_url" files are
+    in the bucket (as in 3b), its duration is between 180 and 870, youtube.title is not empty
     and at most 100 characters, and youtube.description contains "#usecodebad" and
     "#EpicPartner". Skip it if a post in the 4c list has youtube among its providers and
     its youtubeData.title equals the entry's youtube.title. Otherwise call

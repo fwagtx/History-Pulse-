@@ -13,8 +13,9 @@ screen the whole time.
 
 ## Every day: 5 short videos
 
-**Right after the shop resets (7 PM Central now, 6 PM after Nov 1)** GitHub builds the
-day's five from fresh data and puts them online as a release (`shop-YYYY-MM-DD`).
+**Right after the shop resets (7 PM Central now, 6 PM after Nov 1)** the nightly build
+makes the day's five from fresh data and puts them online in the video bucket (folder
+`shop-YYYY-MM-DD`).
 **7:00 AM Central** the daily Routine schedules them in Metricool for brand **7066444**
 (`usecodebad`), and they **post by themselves**:
 
@@ -56,8 +57,9 @@ a "use code BAD" moment before the top ten and the code-entry card at the end.
 | Thursday | **The Item Shop in <this month, an earlier year>** — every skin new that month, then and now |
 | Friday | **The rarest <Icon Series / Marvel / DC / Star Wars / Gaming Legends / a big set> skins** |
 
-Built every night by GitHub (inside the quiz job, from that morning's shop records), put
-in that night's `quiz-…` release, and scheduled for 3 PM by the same 7 AM Routine —
+Built every night by the nightly build (with the quiz day two weeks out, from that
+morning's shop records), put in that night's `quiz-…` folder, and scheduled for 3 PM by
+the same 7 AM Routine —
 YouTube only. The same quality gate applies, with YouTube's frame: nothing under the
 player's controls or title bar, 3–14.5 minutes, title/description/tags within YouTube's
 limits, valid chapters, thumbnail under 2 MB. A topic that can't pass falls back to
@@ -80,7 +82,7 @@ then YouTube ignores custom thumbnails (the video still posts, with a frame YouT
 
 ## Before the switch (until September 30)
 
-Three shop videos a day from the nightly shop build, plus the quiz releases' quizzes, On
+Three shop videos a day from the nightly shop build, plus the quiz folders' quizzes, On
 This Day and the seasonal videos (built two weeks ahead). Threads started on September 29
 with the day's shop game and Last Chance; on September 30 it gets the 10 AM shop video and
 the 1:30 PM game. Quiz posts were already queued in Metricool through October 11 when the
@@ -144,16 +146,42 @@ is never empty.
 
 ---
 
-## Test it right now
+## Where it runs (since September 30, 2026)
 
-1. **[Actions → Daily shop video](https://github.com/fwagtx/History-Pulse-/actions/workflows/daily-shop-video.yml)** → **Run workflow** → **Run**
-2. Wait ~30 minutes
-3. **[Releases](https://github.com/fwagtx/History-Pulse-/releases)** — the day's videos, their covers,
-   a quick-look sheet per video (`-qa.jpg`) and `manifest.json` (times + captions)
+GitHub no longer builds or hosts anything: its Actions and releases stopped working for
+this account on September 29. Three pieces do the job now, all free:
 
-To see a long video without posting it: **[Actions → Quiz videos](https://github.com/fwagtx/History-Pulse-/actions/workflows/quiz-videos.yml)**
-→ **Run workflow** → sample `long_series` (and a weekday date) → it lands in a `samples-…`
-release that nothing schedules.
+| Piece | What it does | Where |
+|---|---|---|
+| **Video bucket** | Holds every video, cover and list. Metricool fetches each video from its public link | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev` |
+| **Nightly build** | Makes the day's shorts and long video and uploads them, at 00:30, 03:30 and 06:30 UTC (7:30 PM, 10:30 PM and 1:30 AM Central). Each run finishes what an earlier one couldn't | A Claude Code Routine, *Nightly @usecodebad video build (R2)*, in the **Default** workspace that holds the bucket's keys |
+| **7 AM Routine** | Schedules what the nightly build made, in Metricool | A Cowork scheduled task. It needs no keys: it reads each day's list from the copy the nightly build saves in the project (`creator-code/published/`) |
+
+The nightly build's workspace needs two settings (cloud icon above the message box →
+hover **Default** → gear):
+
+- **Environment variables:** `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, the R2 API
+  token's two keys. They're secrets: they live only there.
+- **Network access:** **Custom**, with the default list included, plus `fortnite-api.com`
+  (the item pictures), `*.r2.dev` (the bucket's public link), `archive.org` and
+  `*.archive.org` (the music library).
+
+The bucket's name, account and public link aren't secrets; they're in
+`creator-code/storage.json`.
+
+## Check on it
+
+- **Last night's build:** open `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/_status/nightly.json`. `"ok": true` with a count per
+  folder under `"published"` means it worked. Otherwise `"problems"` says why in plain
+  words, and `"log"` links the full log.
+- **A day's videos:** open `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/shop-YYYY-MM-DD/manifest.json` (the date in UTC). It lists
+  the videos with their links, times and captions. Each video's `-qa.jpg` quick-look sheet
+  sits beside it.
+- **Build again now:** ask Claude to run the nightly build Routine. It skips anything
+  that's already published.
+
+To see a long video without posting it, ask Claude for a sample. It's rendered and sent
+to you, and nothing schedules it.
 
 ---
 
@@ -164,11 +192,11 @@ approval step. Because nobody looks at a video before it's public, the Routine o
 schedules a video when all of these hold, and skips it otherwise:
 
 - the manifest exists and is for **today's** shop
-- the video link works, it's at least 60 seconds long, and its caption carries
+- the video is in the bucket, it's at least 60 seconds long, and its caption carries
   `#EpicPartner` and `#usecodebad`
 - its time hasn't passed, and a video about the shop posts before the shop resets
 - it isn't already scheduled (checked by title)
-- a long video: its link and thumbnail work, it's 3–14.5 minutes, its YouTube title is
+- a long video: its video and thumbnail are in the bucket, it's 3–14.5 minutes, its YouTube title is
   within 100 characters and its description carries `#EpicPartner` and `#usecodebad`;
   it goes to YouTube only
 - a Threads post: only for the two videos the build marks for Threads, and only when its
@@ -184,12 +212,14 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 | Symptom | What it means |
 |---|---|
 | The Cosmetics data run fails | Nothing stops: every video already planned still builds. Only extending the plan needs it; it retries next Monday |
-| Build step says "Shop source still shows …" | Neither shop source had the new day yet. Each run waits 50 min before giving up, on purpose, so it never posts yesterday's shop, and GitHub tries again four more times through the night (last try about 4 AM Central). Nothing to do unless every try fails. |
+| Build step says "Shop source still shows …" | Neither shop source had the new day yet. Each run waits 50 min before giving up, on purpose, so it never posts yesterday's shop, and the nightly build tries again at 03:30 and 06:30 UTC (the last about 1:30 AM Central). Nothing to do unless every try fails. |
 | Fewer than 5 videos | A slot had no format that passed the quality gate that day (rare: each slot has several fallbacks). |
 | Only 3 videos, in the old look | The five-video build failed as a whole that night, so it fell back to the classic three. The run's log names why |
-| No long video on a weekday | Its build didn't pass the gate or the nightly quiz job failed. Open **Actions → Quiz videos** for that night; the Routine's summary says which day is missing |
-| No release appears | The build failed — open the run, read the red step, send it to me |
-| Nothing scheduled in Metricool | The release didn't exist at 7 AM; the Routine skips rather than guessing |
+| No long video on a weekday | Its build didn't pass the gate or the nightly build failed. The status note (Check on it, above) says why; the Routine's summary says which day is missing |
+| No folder for the day | The nightly build didn't finish. The status note's `"problems"` says why; send it to me |
+| Status note: "fortnite-api.com isn't reachable" | The workspace's network access is missing `fortnite-api.com`, so nothing was built (videos without pictures never go out). Add it back (Where it runs, above) |
+| Status note: `"can_push"` isn't `"yes"` | The nightly build couldn't save the day's list into the project, so the 7 AM Routine can't see that day. Send it to me |
+| Nothing scheduled in Metricool | The day's folder (and its copy in the project) wasn't there at 7 AM; the Routine skips rather than guessing |
 | A post shows an error in Metricool | TikTok or YouTube refused it; the next morning's Routine summary names it |
 | A video went to TikTok and YouTube but not Facebook | Facebook refused it, or the Page came unlinked in Metricool. The Routine posts to the other two anyway and names the error; if it says the Page is disconnected, reconnect it in Metricool |
 | A shop video is everywhere except Threads | Threads refused it, or the Threads account came unlinked in Metricool. Nothing else is affected; the next morning's Routine summary names the error. If it says Threads is disconnected, reconnect it in Metricool |
