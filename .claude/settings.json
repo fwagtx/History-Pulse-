@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 scripts/cc_nightly.py *)",
+      "Bash(python3 scripts/cc_store.py *)"
+    ]
+  }
+}
