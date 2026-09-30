@@ -29,6 +29,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import cc_bootstrap  # noqa: E402
 import cc_store as STORE  # noqa: E402
 from cc_common import OUT_DIR, ROOT, log  # noqa: E402
 
@@ -135,7 +136,8 @@ def status(what: str, ok: bool, problems: list, t0: float):
     now = datetime.now(timezone.utc)
     doc = {"at": now.isoformat(timespec="seconds"), "what": what, "ok": ok,
            "minutes": round((time.time() - t0) / 60, 1), "problems": problems + NOTES.get("problems", []),
-           "published": NOTES.get("published", {}), "can_push": _can_push()}
+           "published": NOTES.get("published", {}), "can_push": _can_push(),
+           "build_tools": "ready" if not NOTES.get("setup") else NOTES["setup"]}
     logfile = os.environ.get("CC_LOG") or os.path.realpath("/proc/self/fd/1")
     try:
         if os.path.isfile(logfile) and os.path.getsize(logfile) < 20_000_000:
@@ -225,7 +227,13 @@ def music(folder: Path) -> bool:
 def main(argv: list) -> int:
     what = argv[1] if len(argv) > 1 else "all"
     t0 = time.time()
+    if what in ("all", "shop", "quiz"):
+        # A fresh workspace has none of the render tools: set them up first, so
+        # the status says whether they work even on a night nothing can be built.
+        NOTES["setup"] = cc_bootstrap.ensure_build_tools()
+        log("build tools: " + ("ready" if not NOTES["setup"] else "; ".join(NOTES["setup"])))
     problems = preflight() if what in ("all", "shop", "quiz", "records") else STORE.check()
+    problems += NOTES.get("setup", [])
     if problems:
         print("Not building:\n  " + "\n  ".join(problems), flush=True)
         if what in ("all", "shop", "quiz"):
