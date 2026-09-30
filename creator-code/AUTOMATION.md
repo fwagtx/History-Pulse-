@@ -16,7 +16,7 @@ screen the whole time.
 **Right after the shop resets (7 PM Central now, 6 PM after Nov 1)** the nightly build
 makes the day's five from fresh data and puts them online in the video bucket (folder
 `shop-YYYY-MM-DD`).
-**7:00 AM Central** the daily Routine schedules them in Metricool for brand **7066444**
+**7:00 AM Central** (6:53, to be exact) the daily posting job schedules them in Metricool for brand **7066444**
 (`usecodebad`), and they **post by themselves**:
 
 | Time (Central) | What it is |
@@ -89,7 +89,10 @@ the 1:30 PM game. Quiz posts were already queued in Metricool through October 11
 switch was made. From October 1, each morning the Routine first schedules the day's five new
 videos and **then** sets that day's old queued quiz posts to **draft**, so no day gets more
 than five — and if the new videos ever fail to build, the old ones still go out and the day
-is never empty.
+is never empty. The old posts are listed by their Metricool ids in
+`creator-code/published/old-quiz-posts.json` (their folders never made it into the new
+bucket), so the Routine retires exactly those and never mistakes one for a new video with
+the same title.
 
 ---
 
@@ -154,10 +157,23 @@ this account on September 29. Three pieces do the job now, all free:
 | Piece | What it does | Where |
 |---|---|---|
 | **Video bucket** | Holds every video, cover and list. Metricool fetches each video from its public link | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev` |
-| **Nightly build** | Makes the day's shorts and long video and uploads them, at 00:30, 03:30 and 06:30 UTC (7:30 PM, 10:30 PM and 1:30 AM Central). Each run finishes what an earlier one couldn't | A Claude Code Routine, *Nightly @usecodebad video build (R2)*, in the **Default** workspace that holds the bucket's keys |
-| **7 AM Routine** | Schedules what the nightly build made, in Metricool | A Cowork scheduled task. It needs no keys: it reads each day's list from the copy the nightly build saves in the project (`creator-code/published/`) |
+| **Nightly build** | Makes the day's shorts and long video and uploads them, at 00:22, 03:22 and 06:22 UTC, right after the shop resets (7:22 PM, 10:22 PM and 1:22 AM Central; an hour earlier after November 1). Each run finishes what an earlier one couldn't | The Claude Code session *usecodebad · nightly build (automatic, keep)*, woken by the Routine *Nightly @usecodebad video build* |
+| **7 AM posting** | Writes the day's filming script and schedules what the nightly build made, in Metricool, at 6:53 AM Central | The Claude Code session *usecodebad · daily posting (automatic, keep)*, woken by the Routine *usecodebad · daily posting 7 AM Central* |
 
-The nightly build's workspace (**USECODEBAD**: cloud icon above the message box → hover
+Both sessions run in the **USECODEBAD** workspace with this project attached, so they
+have the bucket's key and the project's own settings. **Keep both sessions: don't archive
+or delete them.** The Routines wake them up; without them nothing runs.
+
+The project's permission file, `.claude/settings.json` (added by the owner on September
+30), lets them run exactly two commands without stopping to ask: the nightly build
+(`python3 scripts/cc_nightly.py`) and the storage tool (`python3 scripts/cc_store.py`).
+Keep it as it is.
+
+The old jobs are paused, not deleted: the Cowork task *Daily @usecodebad script + shop
+video* (it had no key and could no longer download the project) and the Routine *Nightly
+@usecodebad video build (R2)*.
+
+The workspace (**USECODEBAD**: cloud icon above the message box → hover
 **USECODEBAD** → gear) needs two settings:
 
 - **Environment variables:** only Code Bad's key, from the `usecodebad-pipelineR2` token:
@@ -218,13 +234,14 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 | Symptom | What it means |
 |---|---|
 | The Cosmetics data run fails | Nothing stops: every video already planned still builds. Only extending the plan needs it; it retries next Monday |
-| Build step says "Shop source still shows …" | Neither shop source had the new day yet. Each run waits 50 min before giving up, on purpose, so it never posts yesterday's shop, and the nightly build tries again at 03:30 and 06:30 UTC (the last about 1:30 AM Central). Nothing to do unless every try fails. |
+| Build step says "Shop source still shows …" | Neither shop source had the new day yet. Each run waits 50 min before giving up, on purpose, so it never posts yesterday's shop, and the nightly build tries again at 03:22 and 06:22 UTC (the last about 1:22 AM Central). Nothing to do unless every try fails. |
 | Fewer than 5 videos | A slot had no format that passed the quality gate that day (rare: each slot has several fallbacks). |
 | Only 3 videos, in the old look | The five-video build failed as a whole that night, so it fell back to the classic three. The run's log names why |
 | No long video on a weekday | Its build didn't pass the gate or the nightly build failed. The status note (Check on it, above) says why; the Routine's summary says which day is missing |
 | No folder for the day | The nightly build didn't finish. The status note's `"problems"` says why; send it to me |
 | Status note: "fortnite-api.com isn't reachable" | The workspace's network access is missing `fortnite-api.com`, so nothing was built (videos without pictures never go out). Add it back (Where it runs, above) |
-| Status note: `"can_push"` isn't `"yes"` | The nightly build couldn't save the day's list into the project, so the 7 AM Routine can't see that day. Send it to me |
+| Status note: `"can_push"` isn't `"yes"` | The nightly build couldn't save its copy of the day's list into the project. Posting still works (the 7 AM job reads the bucket itself), but send it to me |
+| Nothing ran at all (no status note from last night, no posts, no script) | One of the two sessions marked *(automatic, keep)* was archived or deleted, or its Routine was paused. Tell me and I'll set it up again |
 | Nothing scheduled in Metricool | The day's folder (and its copy in the project) wasn't there at 7 AM; the Routine skips rather than guessing |
 | A post shows an error in Metricool | TikTok or YouTube refused it; the next morning's Routine summary names it |
 | A video went to TikTok and YouTube but not Facebook | Facebook refused it, or the Page came unlinked in Metricool. The Routine posts to the other two anyway and names the error; if it says the Page is disconnected, reconnect it in Metricool |

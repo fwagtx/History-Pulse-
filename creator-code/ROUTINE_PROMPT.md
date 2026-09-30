@@ -1,36 +1,30 @@
-# The daily Routine — set this up once in claude.ai
+# The daily posting job
 
-> **Already done.** The Routine `Daily @usecodebad script + shop video` is live (7:00 AM
-> Central) and its prompt matches the one below (updated 2026-09-28 for the five short
-> videos a day and the weekday long YouTube video, 2026-09-29 for Threads, and 2026-09-30
-> for the Cloudflare R2 bucket that replaced GitHub releases). This page is the record of
-> what it runs.
+> **Already done, nothing to set up.** Since 2026-09-30 the Routine
+> `usecodebad · daily posting 7 AM Central` wakes the Claude Code session
+> `usecodebad · daily posting (automatic, keep)` every day at 6:53 AM Central and sends it
+> the prompt below. That session runs in the owner's **USECODEBAD** workspace with this
+> project attached, so it has the bucket's key and the project's permission file
+> (`.claude/settings.json`), and it reaches Metricool through the account's Metricool
+> connector. Keep the session: the Routine needs it.
 >
-> It was made from Cowork's **Scheduled** page, so it runs in Cowork's own workspace,
-> which doesn't have the bucket's keys. It doesn't need them: `scripts/cc_store.py` reads
-> the bucket's public link, or, where that's blocked, the copy of each folder's list that
-> the nightly build commits to `creator-code/published/`. See AUTOMATION.md, "Where it
-> runs".
+> The earlier Cowork task `Daily @usecodebad script + shop video` (7:00 AM) is paused: it
+> ran without the project or the key, and stopped working when GitHub stopped letting it
+> download the project. This page is the record of what the job runs (updated 2026-09-28
+> for the five short videos a day and the weekday long YouTube video, 2026-09-29 for
+> Threads, and 2026-09-30 for the Cloudflare R2 bucket and the move to the attached
+> session).
 
-I can't attach the Metricool connector to a Routine from inside Claude Code (this org doesn't
-allow it), so this one has to be created from the website. It's a few clicks.
-
-## Steps
-
-1. Go to **claude.ai** → **Routines** (sidebar)
-2. **Create Routine**
-3. Schedule: **daily at 7:00 AM** (your time — America/Chicago)
-4. Under connectors, tick **Metricool Social Media Management** ← the part I can't do for you
-5. Paste the prompt below as the Routine's instructions
-6. Save
-
-Then tell me it's set up and I'll delete the older script-only Routine so you don't get two.
+To change what it does, ask Claude to update the Routine's prompt and this page together.
 
 ---
 
-## Paste this as the prompt
+## The prompt
 
 ```
+(Scheduled daily run. Do today's whole job from STEP 0, even if this conversation
+already holds earlier days' runs; dates below mean today's date.)
+
 Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script,
 schedule today's auto-made short videos (FIVE a day in the edit style from the switch day
 in creator-code/lineup.json, three before it; two a day also go to Threads), keep the
@@ -47,17 +41,21 @@ schedule to it, or mention it. Before ANY Metricool call, verify the brandId/blo
 exactly 7066444. If it is not, stop and do nothing.
 ==========================================
 
-STEP 0 - GET THE REPO. You start with nothing on disk:
-    git clone https://github.com/fwagtx/History-Pulse-.git /home/user/hp
-    cd /home/user/hp && git checkout claude/creator-code-bad-automation-0jjc1k
-If that fails, use add_repo (owner fwagtx, repo History-Pulse-). Do not continue
-without a working clone. Read creator-code/lineup.json: "edit_from" is the first day of
-the five-a-day edit shorts (null = not yet), "long_from" the first day with long videos.
+STEP 0 - THE PROJECT. This session has the project attached (this repository) in the
+owner's USECODEBAD workspace; every command below runs from the repository root (your
+working directory). First bring it up to date:
+    git pull origin claude/creator-code-bad-automation-0jjc1k
+Do not continue if that fails. Read creator-code/lineup.json: "edit_from" is the first day
+of the five-a-day edit shorts (null = not yet), "long_from" the first day with long videos.
+Run the project's storage commands exactly as written below (python3 scripts/cc_store.py
+...): the project's settings allow exactly those.
 
 STEP 1 - READ THE RULES. Read creator-code/RULES.md in full and follow it without
 exception.
 
 STEP 2 - WRITE TODAY'S SCRIPT.
+If creator-code/scripts/YYYY-MM-DD.md (today's date) is already in the repository from an
+earlier run today, keep it as it is and go on to STEP 3.
 Check today's weekday. Read creator-code/DAILY_VIDEOS.md and use THAT weekday's format
 (Mon = Shop Verdict, Tue = Challenge Run, Wed = Is It Actually Good?, Thu = 5 Things
 You're Doing Wrong, Fri = Ranked Worst to Best, Sat = The Match, Sun = The Stitch).
@@ -69,8 +67,10 @@ Write a complete filmable script: word-for-word lines with timestamps, shot list
 on-screen text, full caption, pinned comment, editing notes. Target 75-90 seconds. Read
 creator-code/scripts/2026-09-23.md first and match its depth and tone.
 Put the creator code mention ONCE, around 55 seconds in. Never in the opening 3 seconds.
-Save to creator-code/scripts/YYYY-MM-DD.md, commit, push to
-claude/creator-code-bad-automation-0jjc1k, and confirm the push succeeded.
+Save to creator-code/scripts/YYYY-MM-DD.md, commit, and push it with
+    git push origin HEAD:claude/creator-code-bad-automation-0jjc1k
+(the checkout may be on a detached HEAD, so always push HEAD to that branch), and
+confirm the push succeeded.
 
 STEP 3 - SCHEDULE TODAY'S SHORT VIDEOS TO POST AUTOMATICALLY.
 The owner asked (2026-09-23) for these to go live on their own at their times, with no
@@ -80,7 +80,7 @@ mandatory: if anything about a video is off, skip that video and say why in the 
 The nightly build (a scheduled Claude session since 2026-09-30; GitHub releases are no
 longer used) makes them right after the shop resets (00:00 UTC) and publishes them to the
 Cloudflare R2 bucket, in the folder shop-YYYY-MM-DD, with a manifest you read (from
-/home/user/hp) with:
+the repository root) with:
     python3 scripts/cc_store.py cat shop-YYYY-MM-DD/manifest.json
 where YYYY-MM-DD is TODAY's date in UTC (that is the shop day). Its "lineup" is "edit"
 (five videos: 8 AM, 11 AM, 1 PM, 4 PM, 7 PM Central) or "classic" (three); schedule
@@ -91,8 +91,7 @@ whatever "videos" it lists, each at its own time.
 3b. For each entry in "videos", check before using it: its file is in the bucket
     (python3 scripts/cc_store.py has FOLDER/NAME exits 0, where FOLDER is the manifest's
     folder and NAME the file name at the end of the entry's url; the url itself is the
-    bucket's public r2.dev link, which Metricool fetches - this session may not be able to
-    open it, so don't curl it), its duration is at least 60, and its caption contains "#EpicPartner" and
+    bucket's public r2.dev link, which Metricool fetches; don't curl it), its duration is at least 60, and its caption contains "#EpicPartner" and
     "#usecodebad". Skip any entry that fails a check.
 3c. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from today
     00:00 to today 23:59. Skip any manifest video whose "title" already equals the
@@ -102,6 +101,10 @@ whatever "videos" it lists, each at its own time.
     its providers and its text equals the entry's "ig_caption", and its Threads post (3d)
     if a post in the list has threads among its providers and its text equals the entry's
     "threads_caption".
+    From edit_from on, leave out of these duplicate checks every post listed under today's
+    date in creator-code/published/old-quiz-posts.json (compare by id): those are the
+    old versions queued before the switch, often with the same title as today's new
+    video, and 3f retires them.
 3d. For each remaining entry whose post_at_local is still at least 15 minutes in the
     future in America/Chicago, call createScheduledPost with:
   blogId: "7066444"   <- verify before calling
@@ -162,17 +165,17 @@ whatever "videos" it lists, each at its own time.
     post, its Instagram post beside it, and - for entries with "threads" true - its
     Threads post.
 3f. FROM edit_from ON, RETIRE TODAY'S OLD QUIZ POSTS. Posts queued before the switch
-    (from the quiz manifests' "videos") would make today more than five. Do this only if
-    today is on or after edit_from AND the shop manifest's "lineup" is "edit" AND at
-    least 3 of today's shop videos are now scheduled (3e); otherwise leave them, so the
-    day is never empty. Read today's quiz manifest (quiz-YYYY-MM-DD with today's UTC
-    date, as in step 4). For each of its "videos", find in the 3c/3e list the post
-    scheduled today whose tiktokData.title equals the video's "title" (its main post)
-    and the post whose providers are only instagram and whose text equals its
-    "ig_caption" (its Instagram post). For each post found that is still draft false,
-    call updateScheduledPost with blogId "7066444", its id and uuid, and its full
-    existing content unchanged except "draft": true. Never touch any other post (a
-    Threads post included). Say in the summary how many old posts you set to draft.
+    would make today more than five. Do this only if today is on or after edit_from AND
+    the shop manifest's "lineup" is "edit" AND at least 3 of today's shop videos are now
+    scheduled as their own posts (3e; an old listed post with the same title doesn't
+    count); otherwise leave them, so the day is never empty. Read
+    creator-code/published/old-quiz-posts.json: its "days" lists, for each date, the old
+    posts queued for it before the switch, each by its Metricool "id" and "uuid". If
+    today's date isn't there, there is nothing to retire. For each post listed under
+    today's date that is in the 3e list and still draft false, call updateScheduledPost
+    with blogId "7066444", its id and uuid, and its full existing content unchanged
+    except "draft": true. Never touch any post that isn't listed under today's date.
+    Say in the summary how many old posts you set to draft.
 3g. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
     America/Chicago). Posts stay in that list after they go out: a network that posted
     shows status "PUBLISHED" under "providers". Name any post where a network shows any

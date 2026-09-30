@@ -1,0 +1,643 @@
+{
+ "about": "The quiz posts queued in Metricool (brand 7066444) before the switch to five new videos a day on 2026-10-01. Each morning from 2026-10-01 the daily posting job sets that day's posts listed here to draft once at least 3 of the day's new videos are scheduled (step 3f), so no day gets more than five; if the new videos fail, these still go out. Listed from Metricool on 2026-09-30. Nothing is queued after 2026-10-11.",
+ "days": {
+  "2026-10-01": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008644,
+    "uuid": "-6104870055190117792",
+    "title": "Guess the Season — Fortnite Quiz #5"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383008612,
+    "uuid": "6670303178434691711",
+    "starts": "🗓️ GUESS THE SEASON — Fortnite Quiz 5"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008705,
+    "uuid": "-5295563942572504915",
+    "title": "On This Day in the Fortnite Item Shop: October 1"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383008670,
+    "uuid": "8299336300663163775",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 1"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008752,
+    "uuid": "6314742145021068368",
+    "title": "Odd One Out — Fortnite Quiz #4"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383008736,
+    "uuid": "-4547829427473397100",
+    "starts": "🧩 ODD ONE OUT — Fortnite Quiz 4"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008892,
+    "uuid": "-6986921814117498362",
+    "title": "Fortnitemares 2017–2018 Throwback — Day 1 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383008869,
+    "uuid": "-5608699519826702540",
+    "starts": "🎃 FORTNITEMARES 2017–2018 THROWBACK — Day 1 of 31"
+   }
+  ],
+  "2026-10-02": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008950,
+    "uuid": "-1466118439737143823",
+    "title": "Zoomed In — Fortnite Quiz #5"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383008923,
+    "uuid": "1041656414791681501",
+    "starts": "🔍 ZOOMED IN — Fortnite Quiz 5"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009013,
+    "uuid": "1729983821393251802",
+    "title": "On This Day in the Fortnite Item Shop: October 2"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383008984,
+    "uuid": "8114387899505397569",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 2"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009119,
+    "uuid": "3367260047285374151",
+    "title": "Guess the Season — Fortnite Quiz #6"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383009102,
+    "uuid": "7301975075815900034",
+    "starts": "🗓️ GUESS THE SEASON — Fortnite Quiz 6"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009149,
+    "uuid": "7167738470160813548",
+    "title": "Which Fortnitemares? Halloween Quiz — Day 2 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383009132,
+    "uuid": "-8552189019435809620",
+    "starts": "🎃 WHICH FORTNITEMARES? Halloween Quiz — Day 2 of 31"
+   }
+  ],
+  "2026-10-03": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009218,
+    "uuid": "-4513660076743309280",
+    "title": "Odd One Out — Fortnite Quiz #5"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383009185,
+    "uuid": "352882094876020197",
+    "starts": "🧩 ODD ONE OUT — Fortnite Quiz 5"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009315,
+    "uuid": "1894537867538549665",
+    "title": "On This Day in the Fortnite Item Shop: October 3"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383009290,
+    "uuid": "-1752880446591448806",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 3"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009362,
+    "uuid": "-8791030283092603031",
+    "title": "Throwback: Fortnite Chapter 1 Season 5 Skins"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383009338,
+    "uuid": "3577007125108638964",
+    "starts": "📼 SEASON THROWBACK — Fortnite Chapter 1 Season 5"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009443,
+    "uuid": "-1499722454196008081",
+    "title": "Who's That Skin? Fortnitemares Edition — Day 3 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383009400,
+    "uuid": "-6394947168918483933",
+    "starts": "👤 WHO'S THAT SKIN? Fortnitemares Edition — Day 3 of 31"
+   }
+  ],
+  "2026-10-04": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009545,
+    "uuid": "-493621757501291477",
+    "title": "Who's That Skin? — Fortnite Quiz #7"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383009513,
+    "uuid": "-2610641412518297446",
+    "starts": "👤 WHO'S THAT SKIN? — Fortnite Quiz 7"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009604,
+    "uuid": "5575158954836575652",
+    "title": "On This Day in the Fortnite Item Shop: October 4"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383009582,
+    "uuid": "5680136771117467034",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 4"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383007817,
+    "uuid": "7693303145911897330",
+    "title": "Guess the Season — Fortnite Quiz #7"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383007759,
+    "uuid": "4353289906608227268",
+    "starts": "🗓️ GUESS THE SEASON — Fortnite Quiz 7"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383007901,
+    "uuid": "-20065515422921830",
+    "title": "Fortnitemares 2018 Throwback — Day 4 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383007874,
+    "uuid": "5042781929576022580",
+    "starts": "🎃 FORTNITEMARES 2018 THROWBACK — Day 4 of 31"
+   }
+  ],
+  "2026-10-05": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383007955,
+    "uuid": "4606421174319402030",
+    "title": "Which Came First? — Fortnite Quiz #4"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383007929,
+    "uuid": "3098222072503026942",
+    "starts": "⏳ WHICH CAME FIRST? — Fortnite Quiz 4"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008169,
+    "uuid": "-7649167160916619782",
+    "title": "On This Day in the Fortnite Item Shop: October 5"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383008138,
+    "uuid": "1849127415763257143",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 5"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008220,
+    "uuid": "-2945179376738809025",
+    "title": "Zoomed In — Fortnite Quiz #6"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383008197,
+    "uuid": "-2884180095531528823",
+    "starts": "🔍 ZOOMED IN — Fortnite Quiz 6"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008260,
+    "uuid": "-3272508521890690395",
+    "title": "Zoomed In: Fortnitemares Edition — Day 5 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383008240,
+    "uuid": "7610353468010220934",
+    "starts": "🔍 ZOOMED IN: Fortnitemares Edition — Day 5 of 31"
+   }
+  ],
+  "2026-10-06": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008481,
+    "uuid": "8047334746068042611",
+    "title": "Which Came First? — Fortnite Quiz #5"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383008453,
+    "uuid": "621438265772490838",
+    "starts": "⏳ WHICH CAME FIRST? — Fortnite Quiz 5"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008527,
+    "uuid": "-478986303847904121",
+    "title": "On This Day in the Fortnite Item Shop: October 6"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383008522,
+    "uuid": "-6705189581655358396",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 6"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008564,
+    "uuid": "-1021485200241377000",
+    "title": "Throwback: Fortnite Chapter 1 Season 7 Skins"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383008536,
+    "uuid": "-9079871542412097835",
+    "starts": "📼 SEASON THROWBACK — Fortnite Chapter 1 Season 7"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008823,
+    "uuid": "-2467061862795621615",
+    "title": "Which Came First? Fortnitemares Edition — Day 6 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383008809,
+    "uuid": "6681073190508052502",
+    "starts": "⏳ WHICH CAME FIRST? Fortnitemares Edition — Day 6 of 31"
+   }
+  ],
+  "2026-10-07": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008865,
+    "uuid": "7493306714952190965",
+    "title": "Odd One Out — Fortnite Quiz #7"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383008848,
+    "uuid": "-2395781432568101747",
+    "starts": "🧩 ODD ONE OUT — Fortnite Quiz 7"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383008908,
+    "uuid": "-2460378042175962232",
+    "title": "On This Day in the Fortnite Item Shop: October 7"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383008878,
+    "uuid": "4604002889528001063",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 7"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009150,
+    "uuid": "3894222829748637350",
+    "title": "Guess the Season — Fortnite Quiz #8"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383009131,
+    "uuid": "-8770379982095954651",
+    "starts": "🗓️ GUESS THE SEASON — Fortnite Quiz 8"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009230,
+    "uuid": "4369481202809194395",
+    "title": "Fortnitemares 2019 Throwback — Day 7 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383009191,
+    "uuid": "-2650093691781167006",
+    "starts": "🎃 FORTNITEMARES 2019 THROWBACK — Day 7 of 31"
+   }
+  ],
+  "2026-10-08": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009289,
+    "uuid": "-6299190094853226407",
+    "title": "Which Came First? — Fortnite Quiz #6"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383009269,
+    "uuid": "-1190438085213337642",
+    "starts": "⏳ WHICH CAME FIRST? — Fortnite Quiz 6"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009551,
+    "uuid": "5148612083659522699",
+    "title": "On This Day in the Fortnite Item Shop: October 8"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383009507,
+    "uuid": "-8947279727400565530",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 8"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009615,
+    "uuid": "6031003409719641288",
+    "title": "Guess the Season — Fortnite Quiz #9"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383009584,
+    "uuid": "4720512248480874555",
+    "starts": "🗓️ GUESS THE SEASON — Fortnite Quiz 9"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009659,
+    "uuid": "-119296819191002303",
+    "title": "Which Fortnitemares? Halloween Quiz — Day 8 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383009630,
+    "uuid": "6646897400720998586",
+    "starts": "🎃 WHICH FORTNITEMARES? Halloween Quiz — Day 8 of 31"
+   }
+  ],
+  "2026-10-09": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009856,
+    "uuid": "3879947523764866140",
+    "title": "Who's That Skin? — Fortnite Quiz #8"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383009838,
+    "uuid": "2422332966184110194",
+    "starts": "👤 WHO'S THAT SKIN? — Fortnite Quiz 8"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009927,
+    "uuid": "504564873840050909",
+    "title": "On This Day in the Fortnite Item Shop: October 9"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383009882,
+    "uuid": "4636351795180227942",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 9"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383009995,
+    "uuid": "9200259870605460429",
+    "title": "Build Your Loadout — Fortnite Game #1"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383009967,
+    "uuid": "-6629039028379630458",
+    "starts": "🎒 BUILD YOUR LOADOUT — Fortnite Game 1"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383010180,
+    "uuid": "112742752656245537",
+    "title": "Who's That Skin? Fortnitemares Edition — Day 9 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383010160,
+    "uuid": "-5204185811176111357",
+    "starts": "👤 WHO'S THAT SKIN? Fortnitemares Edition — Day 9 of 31"
+   }
+  ],
+  "2026-10-10": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383010234,
+    "uuid": "-7211390982460456474",
+    "title": "Zoomed In — Fortnite Quiz #7"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383010211,
+    "uuid": "-4849007490857352820",
+    "starts": "🔍 ZOOMED IN — Fortnite Quiz 7"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383010284,
+    "uuid": "4986972181171227577",
+    "title": "On This Day in the Fortnite Item Shop: October 10"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383010254,
+    "uuid": "205203019032053870",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 10"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383010632,
+    "uuid": "-5883125202339936989",
+    "title": "Throwback: Fortnite Chapter 1 Season 6 Skins"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383010608,
+    "uuid": "-3163366057157180813",
+    "starts": "📼 SEASON THROWBACK — Fortnite Chapter 1 Season 6"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383010709,
+    "uuid": "4150193261031149498",
+    "title": "Fortnitemares 2020 Throwback — Day 10 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383010672,
+    "uuid": "-5261302687210192318",
+    "starts": "🎃 FORTNITEMARES 2020 THROWBACK — Day 10 of 31"
+   }
+  ],
+  "2026-10-11": [
+   {
+    "time": "08:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383412131,
+    "uuid": "8479080162246148249",
+    "title": "Which Came First? — Fortnite Quiz #7"
+   },
+   {
+    "time": "08:00",
+    "post": "instagram",
+    "id": 383412218,
+    "uuid": "-1393787074188524654",
+    "starts": "⏳ WHICH CAME FIRST? — Fortnite Quiz 7"
+   },
+   {
+    "time": "12:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383412311,
+    "uuid": "-756816167461894808",
+    "title": "On This Day in the Fortnite Item Shop: October 11"
+   },
+   {
+    "time": "12:00",
+    "post": "instagram",
+    "id": 383412427,
+    "uuid": "-1385572985278281175",
+    "starts": "📅 ON THIS DAY — Fortnite Item Shop, October 11"
+   },
+   {
+    "time": "15:30",
+    "post": "tiktok+youtube+facebook",
+    "id": 383412543,
+    "uuid": "2580150786878816761",
+    "title": "Odd One Out — Fortnite Quiz #8"
+   },
+   {
+    "time": "15:30",
+    "post": "instagram",
+    "id": 383412611,
+    "uuid": "465781184620087728",
+    "starts": "🧩 ODD ONE OUT — Fortnite Quiz 8"
+   },
+   {
+    "time": "20:00",
+    "post": "tiktok+youtube+facebook",
+    "id": 383412815,
+    "uuid": "8259298580085557293",
+    "title": "Zoomed In: Fortnitemares Edition — Day 11 of 31"
+   },
+   {
+    "time": "20:00",
+    "post": "instagram",
+    "id": 383412884,
+    "uuid": "8250008603908784146",
+    "starts": "🔍 ZOOMED IN: Fortnitemares Edition — Day 11 of 31"
+   }
+  ]
+ }
+}
