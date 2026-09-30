@@ -16,6 +16,13 @@ A "tag" (shop-2026-10-01, quiz-2026-10-14, music-library, cosmetics-data) is a
 folder in the bucket, the way it was a release on GitHub. Without the R2
 settings everything falls back to the GitHub release URLs.
 
+Writing needs the keys; reading doesn't. Without them a file comes from the
+bucket's public URL, and where that can't be reached (a workspace whose network
+access leaves out r2.dev), a folder's manifest and its list of files come from
+the copy the nightly build commits to creator-code/published/<tag>.json once
+every file in the folder is checked in the bucket. That is how the 7 AM Routine,
+which runs in a workspace without the keys, reads what the nightly build made.
+
     python3 scripts/cc_store.py check                 # can we reach and write the bucket?
     python3 scripts/cc_store.py put DIR TAG [GLOB..]  # upload DIR's files into TAG/
     python3 scripts/cc_store.py ls [TAG]
@@ -26,11 +33,15 @@ import json
 import mimetypes
 import os
 import sys
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 GITHUB = "https://github.com/{repo}/releases/download/{tag}/"
 REPO = os.environ.get("GITHUB_REPOSITORY", "fwagtx/History-Pulse-")
 CONFIG = Path(__file__).resolve().parent.parent / "creator-code" / "storage.json"
+PUBLISHED = CONFIG.parent / "published"
 FIELDS = {"R2_ACCOUNT_ID": "account_id", "R2_BUCKET": "bucket", "R2_PUBLIC_URL": "public_url"}
 TYPES = {".mp4": "video/mp4", ".webm": "video/webm", ".png": "image/png", ".jpg": "image/jpeg",
          ".json": "application/json", ".mp3": "audio/mpeg", ".gz": "application/gzip"}
@@ -50,8 +61,13 @@ def setting(name: str) -> str:
 
 
 def enabled() -> bool:
-    return all(setting(k) for k in ("R2_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
-                                     "R2_BUCKET", "R2_PUBLIC_URL"))
+    """Things are published to the bucket (its settings are there)."""
+    return all(setting(k) for k in ("R2_ACCOUNT_ID", "R2_BUCKET", "R2_PUBLIC_URL"))
+
+
+def has_keys() -> bool:
+    """We can write to the bucket (and read it directly)."""
+    return bool(setting("AWS_ACCESS_KEY_ID") and setting("AWS_SECRET_ACCESS_KEY"))
 
 
 def base_url(tag: str) -> str:
@@ -96,24 +112,86 @@ def put(path: Path, key: str) -> str:
     return f"{setting('R2_PUBLIC_URL').rstrip('/')}/{key}"
 
 
+def _matching(folder: Path, patterns) -> list:
+    """`folder`'s files matching `patterns`, the manifest last."""
+    return sorted({f for p in patterns for f in Path(folder).glob(p) if f.is_file()},
+                  key=lambda f: (f.name == "manifest.json", f.name))
+
+
 def put_dir(folder: Path, tag: str, patterns=("*",)) -> list:
     """Upload the files in `folder` matching `patterns` into tag/, the manifest
     last (so a reader never finds a manifest whose videos aren't there yet)."""
-    files = sorted({f for p in patterns for f in Path(folder).glob(p) if f.is_file()},
-                   key=lambda f: (f.name == "manifest.json", f.name))
-    return [put(f, f"{tag}/{f.name}") for f in files]
+    return [put(f, f"{tag}/{f.name}") for f in _matching(folder, patterns)]
 
 
-def get(key: str) -> bytes:
-    return _client().get_object(Bucket=_bucket(), Key=key)["Body"].read()
+def record(tag: str, local: Path | None = None) -> Path:
+    """Write the repo's copy of tag/ (PUBLISHED/<tag>.json) from what is in the
+    bucket: its files with their sizes - with `local`, the build's folder, only
+    those at the built size - and its manifest. The caller commits it."""
+    files = {k.split("/", 1)[1]: size for k, size in ls(f"{tag}/")}
+    if local is not None:
+        files = {n: size for n, size in files.items()
+                 if (Path(local) / n).is_file() and (Path(local) / n).stat().st_size == size}
+    rec = {"tag": tag, "url": base_url(tag),
+           "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "files": files}
+    if "manifest.json" in files:
+        rec["manifest"] = json.loads(get(f"{tag}/manifest.json"))
+    PUBLISHED.mkdir(parents=True, exist_ok=True)
+    out = PUBLISHED / f"{tag}.json"
+    out.write_text(json.dumps(rec, indent=1, ensure_ascii=False) + "\n")
+    return out
+
+
+def _published(tag: str) -> dict:
+    """The repo's copy of what the nightly build published to tag/ ({} if none)."""
+    try:
+        return json.loads((PUBLISHED / f"{tag}.json").read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def _public(key: str, timeout: int = 120, first_byte: bool = False) -> bytes:
+    """A file from the bucket's public URL (what Metricool fetches)."""
+    headers = {"User-Agent": "usecodebad"}
+    if first_byte:
+        headers["Range"] = "bytes=0-0"
+    req = urllib.request.Request(f"{setting('R2_PUBLIC_URL').rstrip('/')}/{key}", headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def get(key: str, timeout: int = 120) -> bytes:
+    """A file in the bucket: with the keys straight from it; without them from its
+    public URL, or, where that can't be reached, a manifest from the repo's copy."""
+    if has_keys():
+        return _client().get_object(Bucket=_bucket(), Key=key)["Body"].read()
+    try:
+        return _public(key, timeout)
+    except urllib.error.HTTPError:
+        raise  # the bucket answered: it isn't there (or isn't public)
+    except OSError:  # this machine can't reach it
+        tag, _, name = key.partition("/")
+        rec = _published(tag)
+        if name != "manifest.json" or "manifest" not in rec:
+            raise
+        return json.dumps(rec["manifest"], indent=1, ensure_ascii=False).encode()
 
 
 def exists(key: str) -> bool:
+    if has_keys():
+        try:
+            _client().head_object(Bucket=_bucket(), Key=key)
+            return True
+        except Exception:  # noqa: BLE001 - missing, or unreachable: either way not there for us
+            return False
     try:
-        _client().head_object(Bucket=_bucket(), Key=key)
+        _public(key, 30, first_byte=True)
         return True
-    except Exception:  # noqa: BLE001 - missing, or unreachable: either way not there for us
+    except urllib.error.HTTPError:
         return False
+    except OSError:  # can't reach the public URL from here: the repo's copy says
+        tag, _, name = key.partition("/")
+        return name in _published(tag).get("files", {})
 
 
 def ls(prefix: str = "") -> list:
@@ -132,8 +210,7 @@ def ls(prefix: str = "") -> list:
 def fetch(tag: str, name: str, timeout: int = 120) -> bytes:
     """A published file: from the bucket when R2 is set up, else the GitHub release."""
     if enabled():
-        return get(f"{tag}/{name}")
-    import urllib.request
+        return get(f"{tag}/{name}", timeout)
     req = urllib.request.Request(GITHUB.format(repo=REPO, tag=tag) + name, headers={"User-Agent": "usecodebad"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
@@ -179,6 +256,9 @@ def main(argv: list) -> int:
         print("\n".join(urls))
         return 0
     if cmd == "ls":
+        if not has_keys():
+            print("Listing the bucket needs its keys (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).")
+            return 1
         for k, size in ls(argv[2] if len(argv) > 2 else ""):
             print(f"{size:>12,}  {k}")
         return 0
