@@ -1,0 +1,6 @@
+{
+  "_what": "Where the finished videos are published (Cloudflare R2). Not secrets: the two keys (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) are only in the cloud environment's variables. See scripts/cc_store.py.",
+  "account_id": "231999c96851bc148ac14dfa00c54bae",
+  "bucket": "usecodebad-media",
+  "public_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev"
+}
