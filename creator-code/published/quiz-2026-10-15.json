@@ -1,0 +1,103 @@
+{
+ "tag": "quiz-2026-10-15",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-15/",
+ "checked_at": "2026-10-01T00:58:02+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-01-cover.png": 507077,
+  "bad-quiz-long-2026-10-01-qa.jpg": 194097,
+  "bad-quiz-long-2026-10-01.mp4": 67208035,
+  "manifest.json": 3734
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-15",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-15",
+  "generated_utc": "2026-10-01T00:57:57Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-01",
+    "series": "month",
+    "topic": "October 2024",
+    "file": "bad-quiz-long-2026-10-01.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-15/bad-quiz-long-2026-10-01.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-01-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-15/bad-quiz-long-2026-10-01-cover.png",
+    "duration": 347.9,
+    "post_at_local": "2026-10-01T15:00:00",
+    "post_at_iso": "2026-10-01T15:00:00-05:00",
+    "post_at_utc": "2026-10-01T20:00:00Z",
+    "youtube": {
+     "title": "The Fortnite Item Shop in October 2024: 17 New Skins, Then and Now",
+     "description": "Number 1 has been in the Item Shop just twice.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 1, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #17 Phantom Guff\n2:35 #10 Spider-Woman\n3:54 #5 Ravemello\n5:05 #1 Shadow Monks\n5:25 Outro\n\nThe list\n#1 Shadow Monks\n#2 Ultima Carver\n#3 She-Venom\n#4 Leatherface\n#5 Ravemello\n#6 Mephisto\n#7 Fishpool\n#8 Pumpkin King\n#9 Sally\n#10 Spider-Woman\n#11 Edward Scissorhands\n#12 Knightmare\n#13 Billy\n#14 Shaq (DJ Diesel)\n#15 Captain Hook\n#16 Lexa Hexbringer\n#17 Phantom Guff\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Together to play !\" by Komiku; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"The Tears\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"Sweet Sun\" by Loyalty Freak Music; \"Walk in the forest\" by Komiku\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop october 2024",
+      "fortnite throwback",
+      "old fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Shadow Monks",
+      "Ultima Carver",
+      "She-Venom",
+      "Leatherface",
+      "Ravemello",
+      "Mephisto",
+      "Fishpool",
+      "Pumpkin King"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.87,
+      "#17 Phantom Guff"
+     ],
+     [
+      155.46,
+      "#10 Spider-Woman"
+     ],
+     [
+      234.05,
+      "#5 Ravemello"
+     ],
+     [
+      305.94,
+      "#1 Shadow Monks"
+     ],
+     [
+      325.36,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-together-to-play",
+     "juhani-junkala-town2-where-time-stands-still",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-the-tears",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-sweet-sun",
+     "komiku-walk-in-the-forest"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
