@@ -156,7 +156,7 @@ this account on September 29. Three pieces do the job now, all free:
 
 | Piece | What it does | Where |
 |---|---|---|
-| **Video bucket** | Holds every video, cover and list. Metricool fetches each video from its public link | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev`. Keeps each day's folder for 7 days (see below) |
+| **Video bucket** | Holds every video, cover and list. When a post is scheduled, Metricool copies its video through a signed link to that one file (`python3 scripts/cc_store.py link`), valid for 6 hours: since October 1 it often can't fetch from the public link, which Cloudflare rate-limits | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev` (for looking at things). Keeps each day's folder for 7 days (see below) |
 | **Nightly build** | Makes the day's shorts and long video and uploads them, at 00:22, 03:22 and 06:22 UTC, right after the shop resets (7:22 PM, 10:22 PM and 1:22 AM Central; an hour earlier after November 1). Each run finishes what an earlier one couldn't | The Claude Code session *usecodebad · nightly build (automatic, keep)*, woken by the Routine *Nightly @usecodebad video build* |
 | **7 AM posting** | Writes the day's filming script and schedules what the nightly build made, in Metricool, at 6:53 AM Central | The Claude Code session *usecodebad · daily posting (automatic, keep)*, woken by the Routine *usecodebad · daily posting 7 AM Central* |
 
@@ -253,6 +253,7 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 | Status note: `"can_push"` isn't `"yes"` | The nightly build couldn't save its copy of the day's list into the project. Posting still works (the 7 AM job reads the bucket itself), but send it to me |
 | Nothing ran at all (no status note from last night, no posts, no script) | One of the two sessions marked *(automatic, keep)* was archived or deleted, or its Routine was paused. Tell me and I'll set it up again |
 | Nothing scheduled in Metricool | The day's folder (and its copy in the project) wasn't there at 7 AM; the Routine skips rather than guessing |
+| A video is missing and the Routine's summary says "Failed to normalize media" | Metricool couldn't copy the video. The Routine already tried a second fresh link; if it keeps happening, send it to me (on October 1 the cause was Metricool being unable to reach the bucket's public link) |
 | A post shows an error in Metricool | TikTok or YouTube refused it; the next morning's Routine summary names it |
 | A video went to TikTok and YouTube but not Facebook | Facebook refused it, or the Page came unlinked in Metricool. The Routine posts to the other two anyway and names the error; if it says the Page is disconnected, reconnect it in Metricool |
 | A shop video is everywhere except Threads | Threads refused it, or the Threads account came unlinked in Metricool. Nothing else is affected; the next morning's Routine summary names the error. If it says Threads is disconnected, reconnect it in Metricool |

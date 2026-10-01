@@ -33,6 +33,14 @@ which runs in a workspace without the keys, reads what the nightly build made.
     python3 scripts/cc_store.py ls [TAG]
     python3 scripts/cc_store.py cat TAG/FILE
     python3 scripts/cc_store.py has TAG/FILE          # exit 0 if it's there
+    python3 scripts/cc_store.py link TAG/FILE [SECS]  # a temporary link Metricool can import from
+
+Metricool imports each post's video when the post is scheduled. Since 2026-10-01 it
+often can't fetch from the bucket's public r2.dev link (Cloudflare rate-limits that
+development address), so the daily job hands it a signed link instead (link): the
+same file through R2's main storage address, readable by anyone holding the link
+for a few hours, and only that file. The link carries the key's ID (not its
+secret) and a signature.
 """
 import json
 import mimetypes
@@ -231,6 +239,14 @@ def fetch(tag: str, name: str, timeout: int = 120) -> bytes:
         return r.read()
 
 
+def link(key: str, seconds: int = 6 * 3600) -> str:
+    """A signed, read-only link to one file in the bucket, valid for `seconds`."""
+    if not exists(key):
+        raise FileNotFoundError(f"{key} isn't in the bucket")
+    return _client().generate_presigned_url("get_object", Params={"Bucket": _bucket(), "Key": key},
+                                             ExpiresIn=int(seconds))
+
+
 def check() -> list:
     """What's missing or wrong, in plain words ([] = ready)."""
     problems = []
@@ -291,6 +307,16 @@ def main(argv: list) -> int:
         return 0
     if cmd == "has":
         return 0 if exists(argv[2]) else 1
+    if cmd == "link":
+        if not has_keys():
+            print("A signed link needs the bucket's key (CODEBAD_R2_ACCESS_KEY_ID, CODEBAD_R2_SECRET_ACCESS_KEY).")
+            return 1
+        try:
+            print(link(argv[2], int(argv[3]) if len(argv) > 3 else 6 * 3600))
+        except FileNotFoundError as e:
+            print(e)
+            return 1
+        return 0
     print(__doc__)
     return 2
 

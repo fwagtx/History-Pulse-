@@ -12,8 +12,9 @@
 > ran without the project or the key, and stopped working when GitHub stopped letting it
 > download the project. This page is the record of what the job runs (updated 2026-09-28
 > for the five short videos a day and the weekday long YouTube video, 2026-09-29 for
-> Threads, and 2026-09-30 for the Cloudflare R2 bucket and the move to the attached
-> session).
+> Threads, 2026-09-30 for the Cloudflare R2 bucket and the move to the attached session,
+> and 2026-10-01 for signed links: Metricool stopped importing videos from the bucket's
+> r2.dev link that morning, so the job now gives it a signed link to each file).
 
 To change what it does, ask Claude to update the Routine's prompt and this page together.
 
@@ -90,8 +91,8 @@ whatever "videos" it lists, each at its own time.
     about another day's shop.
 3b. For each entry in "videos", check before using it: its file is in the bucket
     (python3 scripts/cc_store.py has FOLDER/NAME exits 0, where FOLDER is the manifest's
-    folder and NAME the file name at the end of the entry's url; the url itself is the
-    bucket's public r2.dev link, which Metricool fetches; don't curl it), its duration is at least 60, and its caption contains "#EpicPartner" and
+    folder and NAME the file name at the end of the entry's url; don't curl the url),
+    its duration is at least 60, and its caption contains "#EpicPartner" and
     "#usecodebad". Skip any entry that fails a check.
 3c. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from today
     00:00 to today 23:59. Skip any manifest video whose "title" already equals the
@@ -106,14 +107,20 @@ whatever "videos" it lists, each at its own time.
     old versions queued before the switch, often with the same title as today's new
     video, and 3f retires them.
 3d. For each remaining entry whose post_at_local is still at least 15 minutes in the
-    future in America/Chicago, call createScheduledPost with:
+    future in America/Chicago, first get a link Metricool can import the video from:
+        python3 scripts/cc_store.py link FOLDER/NAME
+    (FOLDER and NAME as in 3b). It prints a signed link to that one file through R2's
+    main storage address, valid for 6 hours. Use it as the media of the video's main,
+    Instagram and Threads posts: Metricool copies the video when the post is scheduled,
+    and since 2026-10-01 it often can't fetch the bucket's r2.dev link. Never put the
+    r2.dev url in media. Then call createScheduledPost with:
   blogId: "7066444"   <- verify before calling
   date: the entry's "post_at_iso" (if absent, post_at_local plus the Chicago UTC offset
         in effect that day)
   info: {
     "publicationDate": {"dateTime": <post_at_local>, "timezone": "America/Chicago"},
     "providers": [{"network": "tiktok"}, {"network": "youtube"}, {"network": "facebook"}],
-    "media": [<the entry's url>],
+    "media": [<the signed link>],
     "text": <the entry's caption, exactly as given - it already carries the #EpicPartner
              disclosure and the #usecodebad #creatorcodebad #codebad tags>,
     "draft": false,
@@ -131,6 +138,9 @@ whatever "videos" it lists, each at its own time.
   video post (type POST). If createScheduledPost fails and the error is about Facebook,
   create the same post again without the facebook provider and facebookData, so TikTok
   and YouTube still post, and name the Facebook error in the summary.
+  If createScheduledPost fails with "Failed to normalize media", get a new link with the
+  same command and try once more; if it fails again, skip that video and name it in the
+  summary.
   commercialContentThirdParty is true because code BAD earns a commission from Epic;
   TikTok requires that to be labelled as branded content.
   Post times come from the manifest. Every video about today's shop ("about_shop" true,
@@ -143,7 +153,7 @@ whatever "videos" it lists, each at its own time.
   INSTAGRAM gets its own post for each video, because Instagram allows only 5 hashtags
   (#EpicPartner is one) and the main caption has about ten. Call createScheduledPost a
   second time with the same blogId "7066444", date and publicationDate, and info:
-    {"providers": [{"network": "instagram"}], "media": [<the entry's url>],
+    {"providers": [{"network": "instagram"}], "media": [<the signed link>],
      "text": <the entry's "ig_caption", exactly as given>, "draft": false, "autoPublish": true,
      "instagramData": {"type": "REEL", "showReelOnFeed": true, "isAiGenerated": false}}
   If the entry has no "ig_caption", skip Instagram for it and say so in the summary. If
@@ -152,7 +162,7 @@ whatever "videos" it lists, each at its own time.
   is true - two a day: today's shop video and the game on it - because Threads allows
   only 500 characters. Call createScheduledPost once more with the same blogId
   "7066444", date and publicationDate, and info:
-    {"providers": [{"network": "threads"}], "media": [<the entry's url>],
+    {"providers": [{"network": "threads"}], "media": [<the signed link>],
      "text": <the entry's "threads_caption", exactly as given>, "draft": false,
      "autoPublish": true, "threadsData": {"allowedCountryCodes": []}}
   Skip Threads for an entry whose "threads" is not true, or whose "threads_caption" is
@@ -200,7 +210,7 @@ bucket folder per quiz day, read with:
     today 00:00 to today + 15 at 23:59. Skip any quiz video whose "title" already equals
     the tiktokData.title of a post in that list (no duplicates).
 4d. For each remaining quiz video whose post_at_local is at least 15 minutes in the future,
-    call createScheduledPost exactly as in 3d - same blogId "7066444", providers,
+    call createScheduledPost exactly as in 3d - a signed link as media, same blogId "7066444", providers,
     tiktokData, youtubeData, facebookData ("REEL"), draft false, autoPublish true - with
     date = its "post_at_iso" and publicationDate.dateTime = its "post_at_local", and give
     it its Instagram post exactly as in 3d (ig_caption; skip it if a post in the 4c list
@@ -213,15 +223,16 @@ bucket folder per quiz day, read with:
     in the bucket (as in 3b), its duration is between 180 and 870, youtube.title is not empty
     and at most 100 characters, and youtube.description contains "#usecodebad" and
     "#EpicPartner". Skip it if a post in the 4c list has youtube among its providers and
-    its youtubeData.title equals the entry's youtube.title. Otherwise call
-    createScheduledPost with:
+    its youtubeData.title equals the entry's youtube.title. Otherwise get signed links
+    for its video and its thumbnail (python3 scripts/cc_store.py link FOLDER/NAME for
+    each, as in 3d) and call createScheduledPost with:
   blogId: "7066444"   <- verify before calling
   date: the entry's "post_at_iso"
   info: {
     "publicationDate": {"dateTime": <post_at_local>, "timezone": "America/Chicago"},
     "providers": [{"network": "youtube"}],
-    "media": [<the entry's url>],
-    "videoThumbnailUrl": <the entry's thumbnail_url>,
+    "media": [<the video's signed link>],
+    "videoThumbnailUrl": <the thumbnail's signed link>,
     "text": <the entry's youtube.description, exactly as given - it carries the chapters,
              the code line with #EpicPartner, the music credits and Epic's notice>,
     "draft": false,
