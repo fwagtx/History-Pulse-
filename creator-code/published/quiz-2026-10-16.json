@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-10-16",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-16/",
+ "checked_at": "2026-10-02T01:09:35+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-02-cover.png": 574678,
+  "bad-quiz-long-2026-10-02-qa.jpg": 194417,
+  "bad-quiz-long-2026-10-02.mp4": 118527248,
+  "manifest.json": 4397
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-16",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-16",
+  "generated_utc": "2026-10-02T01:09:29Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-02",
+    "series": "collection",
+    "topic": "the rarest Icon Series skins",
+    "file": "bad-quiz-long-2026-10-02.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-16/bad-quiz-long-2026-10-02.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-02-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-16/bad-quiz-long-2026-10-02-cover.png",
+    "duration": 580.78,
+    "post_at_local": "2026-10-02T15:00:00",
+    "post_at_iso": "2026-10-02T15:00:00-05:00",
+    "post_at_utc": "2026-10-02T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Icon Series Skins in Fortnite (October 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 2, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:19 #30 Platinum Billie Eilish\n3:11 #20 Santa Suit Mariah\n6:22 #10 Giannis Antetokounmpo\n7:49 #5 Enigmatic Gaga\n9:00 #1 Travis Scott\n9:19 Outro\n\nThe list\n#1 Travis Scott\n#2 FFC Chloe Kim\n#3 The Weeknd\n#4 Carolina\n#5 Enigmatic Gaga\n#6 Green Roots Billie\n#7 Santa Dogg\n#8 deadmau5\n#9 Slayer Juice WRLD\n#10 Giannis Antetokounmpo\n#11 J Balvin Redux\n#12 Ravemello\n#13 Santa Shaq\n#14 Sonny\n#15 Noodle\n#16 Bruno-San\n#17 LeBron James\n#18 Anderson .Paak\n#19 Platinum The Weeknd\n#20 Santa Suit Mariah\n#21 Platinum Gaga\n#22 GM08\n#23 Harry Kane\n#24 Marco Reus\n#25 Naomi Osaka\n#26 MrBeast6000\n#27 MrBeast\n#28 Rap Boy Reloaded\n#29 Mariah Carey\n#30 Platinum Billie Eilish\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Walk in the forest\" by Komiku; \"Barque sur le lac\" by Komiku; \"Action2 - Army Approaching\" by Juhani Junkala; \"03 L'été sera chaud\" by Monplaisir; \"Level 3\" by Juhani Junkala; \"The Tears\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"Introduction to your adventure\" by Komiku; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"A story that's never been told\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite icon series skins",
+      "rarest fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Travis Scott",
+      "FFC Chloe Kim",
+      "The Weeknd",
+      "Carolina",
+      "Enigmatic Gaga",
+      "Green Roots Billie",
+      "Santa Dogg",
+      "deadmau5"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      19.44,
+      "#30 Platinum Billie Eilish"
+     ],
+     [
+      191.94,
+      "#20 Santa Suit Mariah"
+     ],
+     [
+      382.25,
+      "#10 Giannis Antetokounmpo"
+     ],
+     [
+      469.78,
+      "#5 Enigmatic Gaga"
+     ],
+     [
+      540.6,
+      "#1 Travis Scott"
+     ],
+     [
+      559.53,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-walk-in-the-forest",
+     "komiku-barque-sur-le-lac",
+     "juhani-junkala-action2-army-approaching",
+     "monplaisir-03-l-t-sera-chaud",
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-the-tears",
+     "loyalty-freak-music-roller-fever",
+     "komiku-introduction-to-your-adventure",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-a-story-that-s-never-been-told"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
