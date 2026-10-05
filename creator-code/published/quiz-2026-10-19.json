@@ -1,0 +1,108 @@
+{
+ "tag": "quiz-2026-10-19",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-19/",
+ "checked_at": "2026-10-05T01:01:39+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-05-cover.png": 536101,
+  "bad-quiz-long-2026-10-05-qa.jpg": 210369,
+  "bad-quiz-long-2026-10-05.mp4": 94097983,
+  "manifest.json": 4169
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-19",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-19",
+  "generated_utc": "2026-10-05T01:01:33Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-05",
+    "series": "week",
+    "topic": "the week of Sep 28 – Oct 4, 2026",
+    "file": "bad-quiz-long-2026-10-05.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-19/bad-quiz-long-2026-10-05.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-05-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-19/bad-quiz-long-2026-10-05-cover.png",
+    "duration": 487.63,
+    "post_at_local": "2026-10-05T15:00:00",
+    "post_at_iso": "2026-10-05T15:00:00-05:00",
+    "post_at_utc": "2026-10-05T20:00:00Z",
+    "youtube": {
+     "title": "This Week in the Fortnite Item Shop: The 25 Biggest Comebacks (Sep 28 – Oct 4, 2026)",
+     "description": "The biggest one had been gone for 566 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 5, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:20 #25 Feral Floof\n1:40 #20 All-Hallow's Steve\n4:44 #10 Howl\n6:11 #5 Summer Shell\n7:24 #1 Inferno Skeleton Balvin\n7:46 Outro\n\nThe list\n#1 Inferno Skeleton Balvin\n#2 Nite Nite\n#3 Lucky Talon\n#4 Chess Master\n#5 Summer Shell\n#6 Loony Axe\n#7 Loony Keys\n#8 Loony Axe\n#9 Loony Keys\n#10 Howl\n#11 Umbra Nyte\n#12 Hang Loose\n#13 Byte Bashers\n#14 Midnight Thorn\n#15 Shadow Monks\n#16 Roar\n#17 Pumpkin King\n#18 Sally\n#19 Fishbone Cleaver\n#20 All-Hallow's Steve\n#21 Graven\n#22 Chaos Explorer\n#23 Equilibrium\n#24 Gan\n#25 Feral Floof\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Roller Fever\" by Loyalty Freak Music; \"A story that's never been told\" by Loyalty Freak Music; \"Together to play !\" by Komiku; \"Barque sur le lac\" by Komiku; \"Walk in the forest\" by Komiku; \"Disco Cat\" by Komiku; \"Level 3\" by Juhani Junkala; \"The Tears\" by Loyalty Freak Music; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop today",
+      "fortnite item shop comebacks",
+      "returning fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Inferno Skeleton Balvin",
+      "Nite Nite",
+      "Lucky Talon",
+      "Chess Master",
+      "Summer Shell",
+      "Loony Axe",
+      "Loony Keys"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.0,
+      "#25 Feral Floof"
+     ],
+     [
+      100.61,
+      "#20 All-Hallow's Steve"
+     ],
+     [
+      284.52,
+      "#10 Howl"
+     ],
+     [
+      371.03,
+      "#5 Summer Shell"
+     ],
+     [
+      444.62,
+      "#1 Inferno Skeleton Balvin"
+     ],
+     [
+      466.88,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "komiku-together-to-play",
+     "komiku-barque-sur-le-lac",
+     "komiku-walk-in-the-forest",
+     "komiku-disco-cat",
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-the-tears",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
