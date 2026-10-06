@@ -34,6 +34,7 @@ which runs in a workspace without the keys, reads what the nightly build made.
     python3 scripts/cc_store.py cat TAG/FILE
     python3 scripts/cc_store.py has TAG/FILE          # exit 0 if it's there
     python3 scripts/cc_store.py link TAG/FILE [SECS]  # a temporary link Metricool can import from
+    python3 scripts/cc_store.py links TAG [SECS]      # the same for every video and cover in TAG/, as JSON
 
 Metricool imports each post's video when the post is scheduled. Since 2026-10-01 it
 often can't fetch from the bucket's public r2.dev link (Cloudflare rate-limits that
@@ -247,6 +248,18 @@ def link(key: str, seconds: int = 6 * 3600) -> str:
                                              ExpiresIn=int(seconds))
 
 
+MEDIA = (".mp4", ".png", ".jpg", ".jpeg")
+
+
+def links(tag: str, seconds: int = 6 * 3600) -> dict:
+    """Signed links to every video and cover in one folder, {file name: link}: what the daily
+    job needs for a day's posts, in one command it can run exactly as the permission file allows."""
+    tag = tag.strip("/")
+    return {key.split("/", 1)[1]: _client().generate_presigned_url(
+                "get_object", Params={"Bucket": _bucket(), "Key": key}, ExpiresIn=int(seconds))
+            for key, _size in ls(tag + "/") if key.lower().endswith(MEDIA) and "-qa." not in key}
+
+
 def check() -> list:
     """What's missing or wrong, in plain words ([] = ready)."""
     problems = []
@@ -316,6 +329,16 @@ def main(argv: list) -> int:
         except FileNotFoundError as e:
             print(e)
             return 1
+        return 0
+    if cmd == "links":
+        if not has_keys():
+            print("Signed links need the bucket's key (CODEBAD_R2_ACCESS_KEY_ID, CODEBAD_R2_SECRET_ACCESS_KEY).")
+            return 1
+        found = links(argv[2], int(argv[3]) if len(argv) > 3 else 6 * 3600)
+        if not found:
+            print(f"{argv[2].strip('/')}/ has no videos or covers in the bucket")
+            return 1
+        print(json.dumps(found, indent=1, sort_keys=True))
         return 0
     print(__doc__)
     return 2
