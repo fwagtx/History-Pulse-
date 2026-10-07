@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-10-21",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-21/",
+ "checked_at": "2026-10-07T01:22:11+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-07-cover.png": 554973,
+  "bad-quiz-long-2026-10-07-qa.jpg": 191618,
+  "bad-quiz-long-2026-10-07.mp4": 123005284,
+  "manifest.json": 4511
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-21",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-21",
+  "generated_utc": "2026-10-07T01:22:04Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-07",
+    "series": "season",
+    "topic": "Chapter 1, Season 8",
+    "file": "bad-quiz-long-2026-10-07.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-21/bad-quiz-long-2026-10-07.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-07-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-21/bad-quiz-long-2026-10-07-cover.png",
+    "duration": 590.25,
+    "post_at_local": "2026-10-07T15:00:00",
+    "post_at_iso": "2026-10-07T15:00:00-05:00",
+    "post_at_utc": "2026-10-07T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Chapter 1, Season 8 Item Shop Skins: Where Are They Now? (Fortnite)",
+     "description": "Number 1 has been in the Item Shop just 3 times.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 7, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 Luminos\n3:20 #20 Munitions Major\n6:33 #10 Nitehare\n7:51 #5 Black Widow Outfit\n9:09 #1 Shaman\n9:28 Outro\n\nThe list\n#1 Shaman\n#2 Sterling\n#3 Cole\n#4 Lucky Rider\n#5 Black Widow Outfit\n#6 Pastel\n#7 Nightwitch\n#8 Marino\n#9 Psion\n#10 Nitehare\n#11 Axiom\n#12 Hopper\n#13 Daring Duelist\n#14 Hypernova\n#15 Splode\n#16 Star-Lord Outfit\n#17 Beastmode\n#18 Sea Wolf\n#19 Buccaneer\n#20 Munitions Major\n#21 Slugger\n#22 Fastball\n#23 Hayseed\n#24 Bandolette\n#25 Supersonic\n#26 Prickly Patroller\n#27 Sunflower\n#28 Malice\n#29 Sunbird\n#30 Luminos\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Action2 - Army Approaching\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Introduction to your adventure\" by Komiku; \"Roller Fever\" by Loyalty Freak Music; \"A story that's never been told\" by Loyalty Freak Music; \"Walk in the forest\" by Komiku; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"Barque sur le lac\" by Komiku; \"Town3 - Sunshine Coast\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite chapter 1 season 8",
+      "fortnite season skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Shaman",
+      "Sterling",
+      "Cole",
+      "Lucky Rider",
+      "Black Widow Outfit",
+      "Pastel",
+      "Nightwitch",
+      "Marino"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.51,
+      "#30 Luminos"
+     ],
+     [
+      200.41,
+      "#20 Munitions Major"
+     ],
+     [
+      393.79,
+      "#10 Nitehare"
+     ],
+     [
+      471.96,
+      "#5 Black Widow Outfit"
+     ],
+     [
+      549.84,
+      "#1 Shaman"
+     ],
+     [
+      568.13,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-action2-army-approaching",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "komiku-introduction-to-your-adventure",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "komiku-walk-in-the-forest",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "komiku-barque-sur-le-lac",
+     "juhani-junkala-town3-sunshine-coast"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
