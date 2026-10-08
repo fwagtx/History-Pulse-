@@ -1,0 +1,103 @@
+{
+ "tag": "quiz-2026-10-22",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-22/",
+ "checked_at": "2026-10-08T01:00:42+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-08-cover.png": 505975,
+  "bad-quiz-long-2026-10-08-qa.jpg": 206335,
+  "bad-quiz-long-2026-10-08.mp4": 70018662,
+  "manifest.json": 3777
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-22",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-22",
+  "generated_utc": "2026-10-08T01:00:36Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-08",
+    "series": "month",
+    "topic": "October 2022",
+    "file": "bad-quiz-long-2026-10-08.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-22/bad-quiz-long-2026-10-08.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-08-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-22/bad-quiz-long-2026-10-08-cover.png",
+    "duration": 354.33,
+    "post_at_local": "2026-10-08T15:00:00",
+    "post_at_iso": "2026-10-08T15:00:00-05:00",
+    "post_at_utc": "2026-10-08T20:00:00Z",
+    "youtube": {
+     "title": "The Fortnite Item Shop in October 2022: Every New Skin, Then and Now",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 8, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #17 Desdemona\n2:36 #10 Remi\n4:01 #5 Abyss\n5:14 #1 Black Adam\n5:31 Outro\n\nThe list\n#1 Black Adam\n#2 Jack O'Sassin\n#3 Ash Williams\n#4 Undying Sorrow\n#5 Abyss\n#6 Svenja\n#7 Sinister Glare\n#8 Bonejamin\n#9 X-23\n#10 Remi\n#11 Queen Summer\n#12 Mr. Meeseeks\n#13 Trespasser Defector\n#14 Mad Mochi\n#15 Order Remnant\n#16 Ava\n#17 Desdemona\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Level 3\" by Juhani Junkala; \"Sweet Sun\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"A story that's never been told\" by Loyalty Freak Music; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"I'M ON FIRE\" by Loyalty Freak Music; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop october 2022",
+      "fortnite throwback",
+      "old fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Black Adam",
+      "Jack O'Sassin",
+      "Ash Williams",
+      "Undying Sorrow",
+      "Abyss",
+      "Svenja",
+      "Sinister Glare",
+      "Bonejamin"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.19,
+      "#17 Desdemona"
+     ],
+     [
+      156.05,
+      "#10 Remi"
+     ],
+     [
+      241.84,
+      "#5 Abyss"
+     ],
+     [
+      314.6,
+      "#1 Black Adam"
+     ],
+     [
+      331.8,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-sweet-sun",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-i-m-on-fire",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
