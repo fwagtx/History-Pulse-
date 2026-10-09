@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-10-23",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-23/",
+ "checked_at": "2026-10-09T01:10:16+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-09-cover.png": 461717,
+  "bad-quiz-long-2026-10-09-qa.jpg": 204452,
+  "bad-quiz-long-2026-10-09.mp4": 123081485,
+  "manifest.json": 4445
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-23",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-23",
+  "generated_utc": "2026-10-09T01:10:11Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-09",
+    "series": "collection",
+    "topic": "the rarest Marvel skins",
+    "file": "bad-quiz-long-2026-10-09.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-23/bad-quiz-long-2026-10-09.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-09-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-23/bad-quiz-long-2026-10-09-cover.png",
+    "duration": 588.58,
+    "post_at_local": "2026-10-09T15:00:00",
+    "post_at_iso": "2026-10-09T15:00:00-05:00",
+    "post_at_utc": "2026-10-09T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Marvel Skins in Fortnite (October 2026)",
+     "description": "Number 1 has been in the Item Shop just twice.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 9, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:18 #30 Nick Fury\n3:16 #20 Colossus\n6:27 #10 Fishpool\n7:54 #5 White Widow (Pen & Ink)\n9:08 #1 Susan Storm\n9:27 Outro\n\nThe list\n#1 Susan Storm\n#2 Peter B. Parker\n#3 She-Venom\n#4 Loki, God of Stories\n#5 White Widow (Pen & Ink)\n#6 Mephisto\n#7 Doom 2099\n#8 Hela Odinsdottir\n#9 Ghost Ri-Durrr\n#10 Fishpool\n#11 Eddie Brock\n#12 Iron Man Mk 45\n#13 Spider-Woman\n#14 Iron Man\n#15 Meowtooth\n#16 Weapon X\n#17 Spider-Man (No Way Home)\n#18 Spider-Man (Miles Morales)\n#19 Iron Spider\n#20 Colossus\n#21 Black Cat\n#22 Iron Man Zero\n#23 Shang-Chi\n#24 Black Widow Outfit\n#25 Wolverine (Pen & Ink)\n#26 Moon Knight\n#27 Scarlet Witch\n#28 Deadpool (Pen & Ink)\n#29 Ant-Man\n#30 Nick Fury\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Town3 - Sunshine Coast\" by Juhani Junkala; \"The Tears\" by Loyalty Freak Music; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"I'M ON FIRE\" by Loyalty Freak Music; \"Action2 - Army Approaching\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"Barque sur le lac\" by Komiku; \"Together to play !\" by Komiku; \"Introduction to your adventure\" by Komiku\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite marvel skins",
+      "rarest fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Susan Storm",
+      "Peter B. Parker",
+      "She-Venom",
+      "Loki God of Stories",
+      "White Widow (Pen & Ink)",
+      "Mephisto",
+      "Doom 2099",
+      "Hela Odinsdottir"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      18.91,
+      "#30 Nick Fury"
+     ],
+     [
+      196.87,
+      "#20 Colossus"
+     ],
+     [
+      387.67,
+      "#10 Fishpool"
+     ],
+     [
+      474.45,
+      "#5 White Widow (Pen & Ink)"
+     ],
+     [
+      548.05,
+      "#1 Susan Storm"
+     ],
+     [
+      567.74,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-town3-sunshine-coast",
+     "loyalty-freak-music-the-tears",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-i-m-on-fire",
+     "juhani-junkala-action2-army-approaching",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "loyalty-freak-music-roller-fever",
+     "komiku-barque-sur-le-lac",
+     "komiku-together-to-play",
+     "komiku-introduction-to-your-adventure"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
