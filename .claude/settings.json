@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(python3 scripts/cc_nightly.py *)",
-      "Bash(python3 scripts/cc_store.py *)"
+      "Bash(python3 scripts/cc_store.py *)",
+      "mcp__Metricool_Social_Media_Management__getScheduledPosts",
+      "mcp__Metricool_Social_Media_Management__createScheduledPost",
+      "mcp__Metricool_Social_Media_Management__updateScheduledPost"
     ]
   }
 }
