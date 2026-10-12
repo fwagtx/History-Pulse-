@@ -1,12 +1,16 @@
 # The daily posting job
 
-> **Already done, nothing to set up.** Since 2026-09-30 the Routine
-> `usecodebad · daily posting 7 AM Central` wakes the Claude Code session
-> `usecodebad · daily posting (automatic, keep)` every day at 6:53 AM Central and sends it
-> the prompt below. That session runs in the owner's **USECODEBAD** workspace with this
+> **Already done, nothing to set up.** Since 2026-10-12 two Routines wake the Claude Code
+> session `usecodebad · daily posting (automatic, keep)` and send it the prompt below:
+> `usecodebad · evening posting (queues the next day)` every day at 02:10 UTC (9:10 PM
+> Central; 8:10 PM after November 1), about two hours after the Item Shop resets, so each
+> day's posts are queued the night before, and `usecodebad · morning posting backup (6:53 AM
+> Central)`, which adds anything the evening run missed. From 2026-09-30 to 2026-10-12 the
+> Routine `usecodebad · daily posting 7 AM Central` ran it once a day at 6:53 AM; it is
+> paused. That session runs in the owner's **USECODEBAD** workspace with this
 > project attached, so it has the bucket's key and the project's permission file
 > (`.claude/settings.json`), and it reaches Metricool through the account's Metricool
-> connector. Keep the session: the Routine needs it.
+> connector. Keep the session: the Routines need it.
 >
 > The earlier Cowork task `Daily @usecodebad script + shop video` (7:00 AM) is paused: it
 > ran without the project or the key, and stopped working when GitHub stopped letting it
@@ -16,23 +20,34 @@
 > 2026-10-01 for signed links: Metricool stopped importing videos from the bucket's
 > r2.dev link that morning, so the job now gives it a signed link to each file, and
 > 2026-10-06 for getting a folder's signed links with one plain command, after the job
-> stopped at that step on October 4-6).
+> stopped at that step on October 4-6, and 2026-10-12 for the evening run: each step now
+> works on one day, D, the shop day in UTC, and the steps for the old quiz posts, which
+> ended on October 11, are gone).
 
-To change what it does, ask Claude to update the Routine's prompt and this page together.
+To change what it does, ask Claude to update both Routines' prompt and this page together.
 
 ---
 
 ## The prompt
 
 ```
-(Scheduled daily run. Do today's whole job from STEP 0, even if this conversation
-already holds earlier days' runs; dates below mean today's date.)
+(Scheduled run. This job runs twice for each shop day: in the evening, about two hours
+after the Fortnite Item Shop resets at 00:00 UTC, so the day's posts are queued the night
+before, and again at 6:53 AM Central as a backup that adds only what the evening run
+missed. Do the whole job from STEP 0, even if this conversation already holds earlier
+runs. Earlier runs' prompts said "today": follow this version instead.)
 
-Daily job for @usecodebad (Fortnite creator code BAD). Write today's filming script,
-schedule today's auto-made short videos (FIVE a day in the edit style from the switch day
-in creator-code/lineup.json, three before it; two a day also go to Threads), keep the
-auto-made quiz videos scheduled, and schedule each weekday's LONG YouTube video - all in
-Metricool, posting automatically.
+THE DAY. Every step below works on ONE day, D: today's date in UTC, which is the shop day.
+Get it fresh at the start of every run with
+    date -u +%F
+and never reuse a date from earlier in this conversation. In the evening run it is still
+the evening before in Central time, so D's posts go out tomorrow by the owner's clock.
+All post times below are on D, in America/Chicago. For the other dates the job needs, use
+the same command, for example date -u -d "D + 14 days" +%F (D written as YYYY-MM-DD).
+
+Daily job for @usecodebad (Fortnite creator code BAD). Write D's filming script, schedule
+D's auto-made short videos (five a day; two of them also go to Threads) and, Monday to
+Friday, D's LONG YouTube video - all in Metricool, posting automatically.
 
 === ACCOUNT ISOLATION - NON-NEGOTIABLE ===
 This account has TWO Metricool brands. You may ONLY touch brand id 7066444
@@ -48,8 +63,7 @@ STEP 0 - THE PROJECT. This session has the project attached (this repository) in
 owner's USECODEBAD workspace; every command below runs from the repository root (your
 working directory). First bring it up to date:
     git pull origin claude/creator-code-bad-automation-0jjc1k
-Do not continue if that fails. Read creator-code/lineup.json: "edit_from" is the first day
-of the five-a-day edit shorts (null = not yet), "long_from" the first day with long videos.
+Do not continue if that fails.
 Run the project's storage commands exactly as written below (python3 scripts/cc_store.py
 ...): the project's settings allow exactly those. Run each one as its own command with
 nothing else on the line - no cd, &&, ;, pipes, redirects, loops, $(...) or python -c
@@ -59,26 +73,26 @@ don't try another way: schedule nothing that needs it and say so in the summary.
 STEP 1 - READ THE RULES. Read creator-code/RULES.md in full and follow it without
 exception.
 
-STEP 2 - WRITE TODAY'S SCRIPT.
-If creator-code/scripts/YYYY-MM-DD.md (today's date) is already in the repository from an
-earlier run today, keep it as it is and go on to STEP 3.
-Check today's weekday. Read creator-code/DAILY_VIDEOS.md and use THAT weekday's format
+STEP 2 - WRITE D'S SCRIPT.
+If creator-code/scripts/YYYY-MM-DD.md (D's date) is already in the repository from an
+earlier run, keep it as it is and go on to STEP 3.
+Check D's weekday. Read creator-code/DAILY_VIDEOS.md and use THAT weekday's format
 (Mon = Shop Verdict, Tue = Challenge Run, Wed = Is It Actually Good?, Thu = 5 Things
 You're Doing Wrong, Fri = Ranked Worst to Best, Sat = The Match, Sun = The Stitch).
-Web-search first for the current season, meta, patch notes and today's shop - these
-change, so re-check rather than trusting the doc.
+Web-search first for the current season, meta, patch notes and D's shop (live since 00:00
+UTC on D) - these change, so re-check rather than trusting the doc.
 NEVER invent shop contents, prices, patch notes or cosmetic names. If you cannot verify
 something, mark it clearly as a placeholder and say so in your summary.
 Write a complete filmable script: word-for-word lines with timestamps, shot list,
 on-screen text, full caption, pinned comment, editing notes. Target 75-90 seconds. Read
 creator-code/scripts/2026-09-23.md first and match its depth and tone.
 Put the creator code mention ONCE, around 55 seconds in. Never in the opening 3 seconds.
-Save to creator-code/scripts/YYYY-MM-DD.md, commit, and push it with
+Save to creator-code/scripts/YYYY-MM-DD.md (D's date), commit, and push it with
     git push origin HEAD:claude/creator-code-bad-automation-0jjc1k
 (the checkout may be on a detached HEAD, so always push HEAD to that branch), and
 confirm the push succeeded.
 
-STEP 3 - SCHEDULE TODAY'S SHORT VIDEOS TO POST AUTOMATICALLY.
+STEP 3 - SCHEDULE D'S SHORT VIDEOS TO POST AUTOMATICALLY.
 The owner asked (2026-09-23) for these to go live on their own at their times, with no
 manual approval. Nobody reviews them before they are public, so every check below is
 mandatory: if anything about a video is off, skip that video and say why in the summary
@@ -88,30 +102,27 @@ longer used) makes them right after the shop resets (00:00 UTC) and publishes th
 Cloudflare R2 bucket, in the folder shop-YYYY-MM-DD, with a manifest you read (from
 the repository root) with:
     python3 scripts/cc_store.py cat shop-YYYY-MM-DD/manifest.json
-where YYYY-MM-DD is TODAY's date in UTC (that is the shop day). Its "lineup" is "edit"
-(five videos: 8 AM, 11 AM, 1 PM, 4 PM, 7 PM Central) or "classic" (three); schedule
-whatever "videos" it lists, each at its own time.
+where YYYY-MM-DD is D (the shop day). Its "lineup" is "edit" (five videos: 8 AM, 11 AM,
+1 PM, 4 PM, 7 PM Central) or "classic" (three); schedule whatever "videos" it lists, each
+at its own time.
 3a. Read it with that command. If the command fails (no such file), or its "shop_day" is not
-    today's UTC date, schedule NOTHING and say so in the summary. Never schedule a video
-    about another day's shop.
+    D, schedule NOTHING and say so in the summary (the next run for D tries again). Never
+    schedule a video about another day's shop.
 3b. For each entry in "videos", check before using it: its file is in the bucket
     (python3 scripts/cc_store.py has FOLDER/NAME exits 0, where FOLDER is the manifest's
     folder and NAME the file name at the end of the entry's url; don't curl the url),
     its duration is at least 60, and its caption contains "#EpicPartner" and
     "#usecodebad". Skip any entry that fails a check.
-3c. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from today
-    00:00 to today 23:59. Skip any manifest video whose "title" already equals the
-    tiktokData.title of a post in that list (no duplicates). Compare titles, not video
-    links: Metricool stores its own copy of each video, so the links never match.
+3c. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from D
+    00:00 to D 23:59. Skip any manifest video whose "title" already equals the
+    tiktokData.title of a post in that list (no duplicates: an earlier run for D may
+    already have scheduled it). Compare titles, not video links: Metricool stores its own
+    copy of each video, so the links never match.
     Likewise skip a video's Instagram post (3d) if a post in the list has instagram among
     its providers and its text equals the entry's "ig_caption", and its Threads post (3d)
     if a post in the list has threads among its providers and its text equals the entry's
     "threads_caption".
-    From edit_from on, leave out of these duplicate checks every post listed under today's
-    date in creator-code/published/old-quiz-posts.json (compare by id): those are the
-    old versions queued before the switch, often with the same title as today's new
-    video, and 3f retires them.
-3d. First get the links Metricool can import today's videos from, all at once, with ONE
+3d. First get the links Metricool can import D's videos from, all at once, with ONE
     command, run exactly like this and on its own:
         python3 scripts/cc_store.py links FOLDER
     (FOLDER as in 3b). It prints a JSON map from each video and cover in that folder to a
@@ -150,8 +161,8 @@ whatever "videos" it lists, each at its own time.
   and name it in the summary.
   commercialContentThirdParty is true because code BAD earns a commission from Epic;
   TikTok requires that to be labelled as branded content.
-  Post times come from the manifest. Every video about today's shop ("about_shop" true,
-  or no "about_shop" field) is timed before the shop resets (7 PM CDT / 6 PM CST); a video
+  Post times come from the manifest. Every video about D's shop ("about_shop" true, or no
+  "about_shop" field) is timed before that shop ends (7 PM CDT / 6 PM CST on D); a video
   with "about_shop": false (the 7 PM slot) is not about the shop and may post after the
   reset. Never move a post later. If a slot's time has already passed, skip it.
   Do not add videoThumbnailUrl or videoCoverMilliseconds: each video's first frame is its
@@ -166,7 +177,7 @@ whatever "videos" it lists, each at its own time.
   If the entry has no "ig_caption", skip Instagram for it and say so in the summary. If
   the Instagram call fails, the main post is unaffected: name the error in the summary.
   THREADS (owner's go-ahead 2026-09-29) gets its own post for each entry whose "threads"
-  is true - two a day: today's shop video and the game on it - because Threads allows
+  is true - two a day: D's shop video and the game on it - because Threads allows
   only 500 characters. Call createScheduledPost once more with the same blogId
   "7066444", date and publicationDate, and info:
     {"providers": [{"network": "threads"}], "media": [<the signed link>],
@@ -181,60 +192,33 @@ whatever "videos" it lists, each at its own time.
     and title, draft false, all three networks (tiktok, youtube, facebook) on the main
     post, its Instagram post beside it, and - for entries with "threads" true - its
     Threads post.
-3f. FROM edit_from ON, RETIRE TODAY'S OLD QUIZ POSTS. Posts queued before the switch
-    would make today more than five. Do this only if today is on or after edit_from AND
-    the shop manifest's "lineup" is "edit" AND at least 3 of today's shop videos are now
-    scheduled as their own posts (3e; an old listed post with the same title doesn't
-    count); otherwise leave them, so the day is never empty. Read
-    creator-code/published/old-quiz-posts.json: its "days" lists, for each date, the old
-    posts queued for it before the switch, each by its Metricool "id" and "uuid". If
-    today's date isn't there, there is nothing to retire. For each post listed under
-    today's date that is in the 3e list and still draft false, call updateScheduledPost
-    with blogId "7066444", its id and uuid, and its full existing content unchanged
-    except "draft": true. Never touch any post that isn't listed under today's date.
-    Say in the summary how many old posts you set to draft.
-3g. Call getScheduledPosts for brandId "7066444" for yesterday (00:00 to 23:59
+3f. Call getScheduledPosts for brandId "7066444" for the day before D (00:00 to 23:59
     America/Chicago). Posts stay in that list after they go out: a network that posted
     shows status "PUBLISHED" under "providers". Name any post where a network shows any
     other status, with its detailedStatus, in the summary so the owner knows it did not go
     out there.
 
-STEP 4 - QUIZ VIDEOS AND LONG VIDEOS FROM THE QUIZ FOLDERS.
-Quiz videos (three a day before the switch) and the long YouTube videos are published one
-bucket folder per quiz day, read with:
-    python3 scripts/cc_store.py cat quiz-YYYY-MM-DD/manifest.json
-4a. For each day D from today to today + 14 (YYYY-MM-DD in UTC, like the shop), download
-    that day's quiz manifest with that command. If it fails (no such file), that day isn't built yet:
-    skip it (mention it in the summary only if D is within the next 3 days and D is
-    before edit_from). Use a manifest only if its "quiz_day" equals D.
-4b. QUIZ SHORTS: use a manifest's "videos" only if D is BEFORE edit_from (or edit_from is
-    null). From edit_from on, the five daily shorts come from the shop folder (STEP 3),
-    so never schedule a quiz manifest's "videos" for such a day, even if some are listed.
-    Check every usable video like 3b (its file is in the bucket, duration at least 60, caption
-    contains "#EpicPartner" and "#usecodebad") and also that its duration is at most 90.
-    Skip any video that fails.
-4c. Call getScheduledPosts ONCE for brandId "7066444", timezone "America/Chicago", from
-    today 00:00 to today + 15 at 23:59. Skip any quiz video whose "title" already equals
-    the tiktokData.title of a post in that list (no duplicates).
-4d. For each remaining quiz video whose post_at_local is at least 15 minutes in the future,
-    call createScheduledPost exactly as in 3d - a signed link as media (from
-    python3 scripts/cc_store.py links on that quiz folder, run on its own), same blogId "7066444", providers,
-    tiktokData, youtubeData, facebookData ("REEL"), draft false, autoPublish true - with
-    date = its "post_at_iso" and publicationDate.dateTime = its "post_at_local", and give
-    it its Instagram post exactly as in 3d (ig_caption; skip it if a post in the 4c list
-    already has instagram among its providers and that exact text). Quiz videos are not
-    tied to the shop reset, so the 8:00 PM slot is fine.
-4e. LONG VIDEOS (YouTube only, Monday to Friday at 3 PM Central): a manifest may list
-    "long_videos" (the video for day X rides in folder quiz-(X+14), which is why 4a goes
-    to today + 14). For each entry with "kind" "long" whose post_at_local is at least 15
-    minutes in the future, check before using it: its "url" and its "thumbnail_url" files are
-    in the bucket (as in 3b), its duration is between 180 and 870, youtube.title is not empty
-    and at most 100 characters, and youtube.description contains "#usecodebad" and
-    "#EpicPartner". Skip it if a post in the 4c list has youtube among its providers and
-    its youtubeData.title equals the entry's youtube.title. Otherwise get signed links
-    for its video and its thumbnail with one command, run on its own as in 3d:
-        python3 scripts/cc_store.py links FOLDER
-    (FOLDER is that manifest's folder, quiz-YYYY-MM-DD) and call createScheduledPost with:
+STEP 4 - D'S LONG YOUTUBE VIDEO (Monday to Friday at 3 PM Central).
+If D is a Saturday or a Sunday there is none: go to STEP 5. The long video for D is built
+the same night as D's shop folder, about half an hour after it, and published in the
+bucket folder of the quiz day two weeks out: quiz-Q, where Q = D + 14 days (YYYY-MM-DD,
+from the date command above). Read its manifest with:
+    python3 scripts/cc_store.py cat quiz-Q/manifest.json
+4a. If that command fails (no such file), D's long video isn't built yet: schedule no long
+    video and say so in the summary (the next run for D tries again). Use the manifest only
+    if its "quiz_day" equals Q. Ignore its "videos" list: quiz shorts ended on 2026-10-01,
+    so never schedule them.
+4b. In its "long_videos", take the entry with "kind" "long" and "day" equal to D. If its
+    post_at_local is at least 15 minutes in the future, check before using it: its "url"
+    and its "thumbnail_url" files are in the bucket (as in 3b), its duration is between 180
+    and 870, youtube.title is not empty and at most 100 characters, and
+    youtube.description contains "#usecodebad" and "#EpicPartner". Skip it if a post in
+    D's latest getScheduledPosts list (3e, or call it now as in 3c) has youtube among its
+    providers and its youtubeData.title equals the entry's youtube.title (an earlier run
+    for D already scheduled it). Otherwise get signed links for its video and its
+    thumbnail with one command, run on its own as in 3d:
+        python3 scripts/cc_store.py links quiz-Q
+    and call createScheduledPost with:
   blogId: "7066444"   <- verify before calling
   date: the entry's "post_at_iso"
   info: {
@@ -256,16 +240,14 @@ bucket folder per quiz day, read with:
   need a verified YouTube channel). isAiGeneratedContent is false: the narrator is a
   generic text-to-speech voice, not anyone's real voice, over graphics - YouTube only asks
   for the label on realistic content that could be mistaken for real people or events.
-4f. Call getScheduledPosts again and confirm each quiz post you added is there with its
-    Instagram post, and each long video is there on YouTube only, at 3 PM Central, draft
-    false.
+4c. Call getScheduledPosts again for D and confirm the long video is there on YouTube only,
+    at 3 PM Central, draft false.
 
-STEP 5 - SUMMARY. Short and plain: format used for the script and its hook line, whether
-the script pushed, for each of today's short videos its time, format and the networks it
-is scheduled on, Threads included (or why not), how many old quiz posts you set to draft
-(3f), how many quiz posts you added and the furthest day now queued, each long video
-scheduled (its day, title and time) or why a weekday's long video is missing, and any of
-yesterday's posts that did not go out.
+STEP 5 - SUMMARY. Short and plain: D and its weekday, the format used for the script and
+its hook line (or that it was already there), whether the script pushed, for each of D's
+short videos its time, format and the networks it is scheduled on, Threads included (or
+why not), D's long video (title and time) or why a weekday's long video is missing, and
+any of the previous day's posts that did not go out.
 ```
 
 ---

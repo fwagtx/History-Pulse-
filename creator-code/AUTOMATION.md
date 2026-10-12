@@ -14,10 +14,12 @@ screen the whole time.
 ## Every day: 5 short videos
 
 **Right after the shop resets (7 PM Central now, 6 PM after Nov 1)** the nightly build
-makes the day's five from fresh data and puts them online in the video bucket (folder
+makes the next day's five from fresh data and puts them online in the video bucket (folder
 `shop-YYYY-MM-DD`).
-**7:00 AM Central** (6:53, to be exact) the daily posting job schedules them in Metricool for brand **7066444**
-(`usecodebad`), and they **post by themselves**:
+**The same evening, about two hours after the reset (9:10 PM Central now, 8:10 PM after
+Nov 1)**, the posting job schedules them in Metricool for brand **7066444** (`usecodebad`),
+so the whole next day is queued the night before. At **6:53 AM Central** it runs again as a
+backup and adds anything the evening run missed. They **post by themselves**:
 
 | Time (Central) | What it is |
 |---|---|
@@ -59,7 +61,7 @@ a "use code BAD" moment before the top ten and the code-entry card at the end.
 
 Built every night by the nightly build (with the quiz day two weeks out, from that
 morning's shop records), put in that night's `quiz-…` folder, and scheduled for 3 PM by
-the same 7 AM Routine —
+the same posting job, the evening before —
 YouTube only. The same quality gate applies, with YouTube's frame: nothing under the
 player's controls or title bar, 3–14.5 minutes, title/description/tags within YouTube's
 limits, valid chapters, thumbnail under 2 MB. A topic that can't pass falls back to
@@ -156,9 +158,9 @@ this account on September 29. Three pieces do the job now, all free:
 
 | Piece | What it does | Where |
 |---|---|---|
-| **Video bucket** | Holds every video, cover and list. When a post is scheduled, Metricool copies its video through a signed link to that one file (the 7 AM job gets a day's links with one command, `python3 scripts/cc_store.py links FOLDER`), valid for 6 hours: since October 1 it often can't fetch from the public link, which Cloudflare rate-limits | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev` (for looking at things). Keeps each day's folder for 7 days (see below) |
+| **Video bucket** | Holds every video, cover and list. When a post is scheduled, Metricool copies its video through a signed link to that one file (the posting job gets a day's links with one command, `python3 scripts/cc_store.py links FOLDER`), valid for 6 hours: since October 1 it often can't fetch from the public link, which Cloudflare rate-limits | Cloudflare R2 (free tier): bucket `usecodebad-media`, public link `https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev` (for looking at things). Keeps each day's folder for 7 days (see below) |
 | **Nightly build** | Makes the day's shorts and long video and uploads them, at 00:22, 03:22 and 06:22 UTC, right after the shop resets (7:22 PM, 10:22 PM and 1:22 AM Central; an hour earlier after November 1). Each run finishes what an earlier one couldn't | The Claude Code session *usecodebad · nightly build (automatic, keep)*, woken by the Routine *Nightly @usecodebad video build* |
-| **7 AM posting** | Writes the day's filming script and schedules what the nightly build made, in Metricool, at 6:53 AM Central | The Claude Code session *usecodebad · daily posting (automatic, keep)*, woken by the Routine *usecodebad · daily posting 7 AM Central* |
+| **Posting** | Writes the day's filming script and schedules what the nightly build made, in Metricool: the evening before at 02:10 UTC (9:10 PM Central; 8:10 PM after November 1), and again at 6:53 AM Central as a backup that adds only what's missing | The Claude Code session *usecodebad · daily posting (automatic, keep)*, woken by the Routines *usecodebad · evening posting (queues the next day)* and *usecodebad · morning posting backup (6:53 AM Central)* (since October 12, 2026; the old *usecodebad · daily posting 7 AM Central* is paused) |
 
 Both sessions run in the **USECODEBAD** workspace with this project attached, so they
 have the bucket's key and the project's own settings. **Keep both sessions: don't archive
@@ -223,7 +225,7 @@ to you, and nothing schedules it.
 approval step. Because nobody looks at a video before it's public, the Routine only
 schedules a video when all of these hold, and skips it otherwise:
 
-- the manifest exists and is for **today's** shop
+- the manifest exists and is for **that day's** shop
 - the video is in the bucket, it's at least 60 seconds long, and its caption carries
   `#EpicPartner` and `#usecodebad`
 - its time hasn't passed, and a video about the shop posts before the shop resets
@@ -234,7 +236,7 @@ schedules a video when all of these hold, and skips it otherwise:
 - a Threads post: only for the two videos the build marks for Threads, and only when its
   copy fits in 500 characters with `#EpicPartner` and `#usecodebad` in it
 
-Each morning it also reports any of yesterday's posts that didn't go out. To go back to
+Each run also reports any of the previous day's posts that didn't go out. To go back to
 drafts, say so and the Routine's `draft` setting flips back to `true`.
 
 ---
@@ -250,12 +252,13 @@ drafts, say so and the Routine's `draft` setting flips back to `true`.
 | No long video on a weekday | Its build didn't pass the gate or the nightly build failed. The status note (Check on it, above) says why; the Routine's summary says which day is missing |
 | No folder for the day | The nightly build didn't finish. The status note's `"problems"` says why; send it to me |
 | Status note: "fortnite-api.com isn't reachable" | The workspace's network access is missing `fortnite-api.com`, so nothing was built (videos without pictures never go out). Add it back (Where it runs, above) |
-| Status note: `"can_push"` isn't `"yes"` | The nightly build couldn't save its copy of the day's list into the project. Posting still works (the 7 AM job reads the bucket itself), but send it to me |
+| Status note: `"can_push"` isn't `"yes"` | The nightly build couldn't save its copy of the day's list into the project. Posting still works (the posting job reads the bucket itself), but send it to me |
 | Nothing ran at all (no status note from last night, no posts, no script) | One of the two sessions marked *(automatic, keep)* was archived or deleted, or its Routine was paused. Tell me and I'll set it up again |
-| Nothing scheduled in Metricool | The day's folder (and its copy in the project) wasn't there at 7 AM; the Routine skips rather than guessing |
-| The day's script is in the project but no new videos were scheduled, and the 7 AM session says the link step was blocked | The job couldn't get the signed links Metricool needs (this happened October 4–6, 2026; only older queued posts went out). Since October 7 it gets each folder's links with one plain command that the permission file allows. If it happens again, tell me: I'll schedule that day by hand and find what changed |
-| You get "Allow Claude to use Create Scheduled Post?" (or Update / Get Scheduled Posts) | The Metricool connector is set to ask before those actions, which also stops the 7 AM job, since nobody is there to tap Allow. Set them to always allowed: open https://claude.ai/customize/connectors, choose Metricool, and under its tool permissions allow Create Scheduled Post, Update Scheduled Post and Get Scheduled Posts |
+| Nothing scheduled in Metricool | The day's folder wasn't there for the evening run or the 6:53 AM backup; the Routine skips rather than guessing |
+| Tomorrow's posts aren't in Metricool by bedtime | The evening run found the day's folder not built yet (the nightly build retries at 03:22 and 06:22 UTC), or it stopped. The 6:53 AM backup schedules whatever is missing before the first post at 8 AM |
+| The day's script is in the project but no new videos were scheduled, and the posting session says the link step was blocked | The job couldn't get the signed links Metricool needs (this happened October 4–6, 2026; only older queued posts went out). Since October 7 it gets each folder's links with one plain command that the permission file allows. If it happens again, tell me: I'll schedule that day by hand and find what changed |
+| You get "Allow Claude to use Create Scheduled Post?" (or Update / Get Scheduled Posts) | The Metricool connector is set to ask before those actions, which also stops the posting job, since nobody is there to tap Allow (this was why posts waited for a tap until October 12, 2026). Set them to always allowed: open https://claude.ai/customize/connectors, choose Metricool, and under its tool permissions allow Create Scheduled Post, Update Scheduled Post and Get Scheduled Posts |
 | A video is missing and the Routine's summary says "Failed to normalize media" | Metricool couldn't copy the video. The Routine already tried a second fresh link; if it keeps happening, send it to me (on October 1 the cause was Metricool being unable to reach the bucket's public link) |
-| A post shows an error in Metricool | TikTok or YouTube refused it; the next morning's Routine summary names it |
+| A post shows an error in Metricool | TikTok or YouTube refused it; the next posting run's summary names it |
 | A video went to TikTok and YouTube but not Facebook | Facebook refused it, or the Page came unlinked in Metricool. The Routine posts to the other two anyway and names the error; if it says the Page is disconnected, reconnect it in Metricool |
-| A shop video is everywhere except Threads | Threads refused it, or the Threads account came unlinked in Metricool. Nothing else is affected; the next morning's Routine summary names the error. If it says Threads is disconnected, reconnect it in Metricool |
+| A shop video is everywhere except Threads | Threads refused it, or the Threads account came unlinked in Metricool. Nothing else is affected; the next posting run's summary names the error. If it says Threads is disconnected, reconnect it in Metricool |
