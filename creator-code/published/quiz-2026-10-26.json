@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-10-26",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-26/",
+ "checked_at": "2026-10-12T01:07:21+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-12-cover.png": 495093,
+  "bad-quiz-long-2026-10-12-qa.jpg": 189730,
+  "bad-quiz-long-2026-10-12.mp4": 83693356,
+  "manifest.json": 4397
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-26",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-26",
+  "generated_utc": "2026-10-12T01:07:14Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-12",
+    "series": "week",
+    "topic": "the week of Oct 5 – Oct 11, 2026",
+    "file": "bad-quiz-long-2026-10-12.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-26/bad-quiz-long-2026-10-12.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-12-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-26/bad-quiz-long-2026-10-12-cover.png",
+    "duration": 484.54,
+    "post_at_local": "2026-10-12T15:00:00",
+    "post_at_iso": "2026-10-12T15:00:00-05:00",
+    "post_at_utc": "2026-10-12T20:00:00Z",
+    "youtube": {
+     "title": "This Week in the Fortnite Item Shop: The 25 Biggest Comebacks (Oct 5 – Oct 11, 2026)",
+     "description": "The biggest one had been gone for 869 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 12, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:20 #25 Vertex\n1:46 #20 Flippin' Sexy\n4:50 #10 Stop!\n6:12 #5 Oathmaker's Axe\n7:24 #1 Weeping Crow\n7:43 Outro\n\nThe list\n#1 Weeping Crow\n#2 Magnifying Axe\n#3 Bewitching Blades\n#4 Sgt. Sigil\n#5 Oathmaker's Axe\n#6 IDK\n#7 Signature Shuffle\n#8 Lil' Shady Mobile\n#9 Personal Pollinators\n#10 Stop!\n#11 Wiggle\n#12 Crescent Shroom\n#13 Tropic Axe\n#14 Crowe Claws\n#15 Dark Glyph\n#16 Dark Slicer\n#17 Ghost Rider\n#18 Shadow Midas\n#19 Moon Knight\n#20 Flippin' Sexy\n#21 Lucky Leader\n#22 Corebreaker Scythe\n#23 Chemist's Claw\n#24 Chill Count\n#25 Vertex\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"03 L'été sera chaud\" by Monplaisir; \"Walk in the forest\" by Komiku; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Together to play !\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"04 j'aurai toujours peur de me perdre\" by Monplaisir\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop today",
+      "fortnite item shop comebacks",
+      "returning fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Weeping Crow",
+      "Magnifying Axe",
+      "Bewitching Blades",
+      "Sgt. Sigil",
+      "Oathmaker's Axe",
+      "IDK",
+      "Signature Shuffle",
+      "Lil' Shady Mobile"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      20.63,
+      "#25 Vertex"
+     ],
+     [
+      106.37,
+      "#20 Flippin' Sexy"
+     ],
+     [
+      290.08,
+      "#10 Stop!"
+     ],
+     [
+      372.9,
+      "#5 Oathmaker's Axe"
+     ],
+     [
+      444.17,
+      "#1 Weeping Crow"
+     ],
+     [
+      463.78,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "juhani-junkala-town2-where-time-stands-still",
+     "juhani-junkala-town3-sunshine-coast",
+     "monplaisir-03-l-t-sera-chaud",
+     "komiku-walk-in-the-forest",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "komiku-together-to-play",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
