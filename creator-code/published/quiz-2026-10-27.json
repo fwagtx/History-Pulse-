@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-10-27",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-27/",
+ "checked_at": "2026-10-13T01:31:32+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-13-cover.png": 551926,
+  "bad-quiz-long-2026-10-13-qa.jpg": 205450,
+  "bad-quiz-long-2026-10-13.mp4": 122297760,
+  "manifest.json": 4394
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-27",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-27",
+  "generated_utc": "2026-10-13T01:31:24Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-13",
+    "series": "countdown",
+    "topic": "the most common skins",
+    "file": "bad-quiz-long-2026-10-13.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-27/bad-quiz-long-2026-10-13.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-13-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-27/bad-quiz-long-2026-10-13-cover.png",
+    "duration": 596.2,
+    "post_at_local": "2026-10-13T15:00:00",
+    "post_at_iso": "2026-10-13T15:00:00-05:00",
+    "post_at_utc": "2026-10-13T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Most Common Fortnite Skins: Most Times in the Item Shop (October 2026)",
+     "description": "Number 1 has been in the shop 107 times.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 13, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:19 #30 Commando\n3:17 #20 Survival Specialist\n6:30 #10 Recon Specialist\n7:59 #5 Whiteout\n9:13 #1 Brite Bomber\n9:35 Outro\n\nThe list\n#1 Brite Bomber\n#2 Arctic Assassin\n#3 Red Knight\n#4 Aura\n#5 Whiteout\n#6 Scarlet Defender\n#7 Sparkplug\n#8 Ruby\n#9 Cuddle Team Leader\n#10 Recon Specialist\n#11 Rapscallion\n#12 Ravage\n#13 Dynamo\n#14 Crystal\n#15 Backlash\n#16 Birdie\n#17 Shadow Ops\n#18 Whiplash\n#19 Raven\n#20 Survival Specialist\n#21 Assault Trooper\n#22 Joltara\n#23 Lace\n#24 Doggo\n#25 Renegade\n#26 Bullseye\n#27 B.R.U.T.E. Gunner\n#28 Guild\n#29 Raptor\n#30 Commando\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Barque sur le lac\" by Komiku; \"Together to play !\" by Komiku; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Disco Cat\" by Komiku; \"Walk in the forest\" by Komiku; \"The Tears\" by Loyalty Freak Music; \"Action2 - Army Approaching\" by Juhani Junkala; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"04 j'aurai toujours peur de me perdre\" by Monplaisir\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "most common fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Brite Bomber",
+      "Arctic Assassin",
+      "Red Knight",
+      "Aura",
+      "Whiteout",
+      "Scarlet Defender",
+      "Sparkplug",
+      "Ruby"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      19.59,
+      "#30 Commando"
+     ],
+     [
+      197.64,
+      "#20 Survival Specialist"
+     ],
+     [
+      390.37,
+      "#10 Recon Specialist"
+     ],
+     [
+      479.38,
+      "#5 Whiteout"
+     ],
+     [
+      553.62,
+      "#1 Brite Bomber"
+     ],
+     [
+      575.72,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "komiku-barque-sur-le-lac",
+     "komiku-together-to-play",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "komiku-disco-cat",
+     "komiku-walk-in-the-forest",
+     "loyalty-freak-music-the-tears",
+     "juhani-junkala-action2-army-approaching",
+     "juhani-junkala-town2-where-time-stands-still",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
