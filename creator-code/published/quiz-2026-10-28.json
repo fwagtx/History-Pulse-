@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-10-28",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-28/",
+ "checked_at": "2026-10-14T01:06:34+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-14-cover.png": 577264,
+  "bad-quiz-long-2026-10-14-qa.jpg": 206988,
+  "bad-quiz-long-2026-10-14.mp4": 117336317,
+  "manifest.json": 4402
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-28",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-28",
+  "generated_utc": "2026-10-14T01:06:28Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-14",
+    "series": "season",
+    "topic": "Chapter 2, Season 5",
+    "file": "bad-quiz-long-2026-10-14.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-28/bad-quiz-long-2026-10-14.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-14-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-28/bad-quiz-long-2026-10-14-cover.png",
+    "duration": 580.35,
+    "post_at_local": "2026-10-14T15:00:00",
+    "post_at_iso": "2026-10-14T15:00:00-05:00",
+    "post_at_utc": "2026-10-14T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Chapter 2, Season 5 Item Shop Skins: Where Are They Now? (Fortnite)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 14, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 Pulse\n3:16 #20 Ant-Man\n6:26 #10 Snowbell\n7:53 #5 Midfield Master\n9:01 #1 Machinist Mina\n9:18 Outro\n\nThe list\n#1 Machinist Mina\n#2 Indigo Kuno\n#3 Kratos\n#4 Snake Eyes\n#5 Midfield Master\n#6 Lovely\n#7 Cuddle King\n#8 Cypher\n#9 Mr. Dappermint\n#10 Snowbell\n#11 Holly Striker\n#12 Cozy Jonesy\n#13 Master Chief\n#14 Blinky\n#15 Karve\n#16 Tess\n#17 Cyprus Nell\n#18 Sarah Connor\n#19 Michonne\n#20 Ant-Man\n#21 Fa-La-La-La-Fishstick\n#22 The Flash\n#23 Ryu\n#24 Gingerbread Raider\n#25 Xenomorph\n#26 Ruby Shadows\n#27 TheGrefg\n#28 Lazarbeam\n#29 Orin\n#30 Pulse\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Roller Fever\" by Loyalty Freak Music; \"Disco Cat\" by Komiku; \"Walk in the forest\" by Komiku; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Introduction to your adventure\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"03 L'été sera chaud\" by Monplaisir; \"Level 3\" by Juhani Junkala; \"Barque sur le lac\" by Komiku; \"Action2 - Army Approaching\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite chapter 2 season 5",
+      "fortnite season skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Machinist Mina",
+      "Indigo Kuno",
+      "Kratos",
+      "Snake Eyes",
+      "Midfield Master",
+      "Lovely",
+      "Cuddle King",
+      "Cypher"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.51,
+      "#30 Pulse"
+     ],
+     [
+      196.42,
+      "#20 Ant-Man"
+     ],
+     [
+      386.75,
+      "#10 Snowbell"
+     ],
+     [
+      473.85,
+      "#5 Midfield Master"
+     ],
+     [
+      541.33,
+      "#1 Machinist Mina"
+     ],
+     [
+      558.19,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-roller-fever",
+     "komiku-disco-cat",
+     "komiku-walk-in-the-forest",
+     "juhani-junkala-town2-where-time-stands-still",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "komiku-introduction-to-your-adventure",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "monplaisir-03-l-t-sera-chaud",
+     "juhani-junkala-level-3",
+     "komiku-barque-sur-le-lac",
+     "juhani-junkala-action2-army-approaching"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
