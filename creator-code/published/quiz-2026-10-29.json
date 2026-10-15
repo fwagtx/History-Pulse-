@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-10-29",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-29/",
+ "checked_at": "2026-10-15T01:02:35+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-15-cover.png": 502862,
+  "bad-quiz-long-2026-10-15-qa.jpg": 195611,
+  "bad-quiz-long-2026-10-15.mp4": 88104840,
+  "manifest.json": 4322
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-29",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-29",
+  "generated_utc": "2026-10-15T01:02:30Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-15",
+    "series": "month",
+    "topic": "October 2021",
+    "file": "bad-quiz-long-2026-10-15.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-29/bad-quiz-long-2026-10-15.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-15-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-29/bad-quiz-long-2026-10-15-cover.png",
+    "duration": 447.35,
+    "post_at_local": "2026-10-15T15:00:00",
+    "post_at_iso": "2026-10-15T15:00:00-05:00",
+    "post_at_utc": "2026-10-15T20:00:00Z",
+    "youtube": {
+     "title": "The Fortnite Item Shop in October 2021: 23 New Skins, Then and Now",
+     "description": "Number 1 has been in the Item Shop just 5 times.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 15, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:22 #23 Geometrik\n1:13 #20 Ione\n4:14 #10 Rick Grimes\n5:33 #5 Doom Dancer\n6:47 #1 Haunted Hunter\n7:04 Outro\n\nThe list\n#1 Haunted Hunter\n#2 Chris Redfield\n#3 Frankenstein's Bride\n#4 The Mummy\n#5 Doom Dancer\n#6 Frankenstein's Monster\n#7 Chani\n#8 Shadow Midas\n#9 Curdle Scream Leader\n#10 Rick Grimes\n#11 Spacefarer Ariana Grande\n#12 The Batman Who Laughs\n#13 Graven\n#14 Grisabelle\n#15 KAWS Skeleton\n#16 All-Hallow's Steve\n#17 Kernel Poppy\n#18 Tricksy\n#19 Gummy Fishstick\n#20 Ione\n#21 Jett\n#22 Skeletara\n#23 Geometrik\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"Introduction to your adventure\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Barque sur le lac\" by Komiku; \"Roller Fever\" by Loyalty Freak Music; \"A story that's never been told\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Town3 - Sunshine Coast\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop october 2021",
+      "fortnite throwback",
+      "old fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Haunted Hunter",
+      "Chris Redfield",
+      "Frankenstein's Bride",
+      "The Mummy",
+      "Doom Dancer",
+      "Frankenstein's Monster",
+      "Chani",
+      "Shadow Midas"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      22.38,
+      "#23 Geometrik"
+     ],
+     [
+      73.7,
+      "#20 Ione"
+     ],
+     [
+      254.6,
+      "#10 Rick Grimes"
+     ],
+     [
+      333.77,
+      "#5 Doom Dancer"
+     ],
+     [
+      407.26,
+      "#1 Haunted Hunter"
+     ],
+     [
+      424.8,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "komiku-introduction-to-your-adventure",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "komiku-barque-sur-le-lac",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "juhani-junkala-town3-sunshine-coast"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
