@@ -1,0 +1,102 @@
+{
+ "tag": "quiz-2026-10-30",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-30/",
+ "checked_at": "2026-10-16T01:24:53+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-16-cover.png": 469729,
+  "bad-quiz-long-2026-10-16-qa.jpg": 193165,
+  "bad-quiz-long-2026-10-16.mp4": 79374369,
+  "manifest.json": 3814
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-10-30",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-10-30",
+  "generated_utc": "2026-10-16T01:24:46Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-16",
+    "series": "collection",
+    "topic": "the rarest DC skins",
+    "file": "bad-quiz-long-2026-10-16.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-30/bad-quiz-long-2026-10-16.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-16-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-10-30/bad-quiz-long-2026-10-16-cover.png",
+    "duration": 405.01,
+    "post_at_local": "2026-10-16T15:00:00",
+    "post_at_iso": "2026-10-16T15:00:00-05:00",
+    "post_at_utc": "2026-10-16T20:00:00Z",
+    "youtube": {
+     "title": "The 20 Rarest DC Skins in Fortnite (October 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 16, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:19 #20 Catwoman Comic Book Outfit\n3:25 #10 Rebirth Harley Quinn\n4:51 #5 Dreamer\n6:04 #1 Black Adam\n6:24 Outro\n\nThe list\n#1 Black Adam\n#2 The Engineer (DC)\n#3 Peacemaker\n#4 Cyborg\n#5 Dreamer\n#6 Karuta Harley Quinn\n#7 Starfire\n#8 Bloodsport\n#9 The Batman Who Laughs\n#10 Rebirth Harley Quinn\n#11 Armored Batman Zero\n#12 Wonder Woman\n#13 Black Manta\n#14 Deathstroke Zero\n#15 Batman Zero\n#16 Catwoman Zero\n#17 The Flash\n#18 Beast Boy\n#19 Harley Quinn\n#20 Catwoman Comic Book Outfit\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Action2 - Army Approaching\" by Juhani Junkala; \"A story that's never been told\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"Disco Cat\" by Komiku; \"Level 3\" by Juhani Junkala; \"I'M ON FIRE\" by Loyalty Freak Music; \"Town3 - Sunshine Coast\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite dc skins",
+      "rarest fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Black Adam",
+      "The Engineer (DC)",
+      "Peacemaker",
+      "Cyborg",
+      "Dreamer",
+      "Karuta Harley Quinn",
+      "Starfire",
+      "Bloodsport"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      19.08,
+      "#20 Catwoman Comic Book Outfit"
+     ],
+     [
+      205.22,
+      "#10 Rebirth Harley Quinn"
+     ],
+     [
+      291.36,
+      "#5 Dreamer"
+     ],
+     [
+      364.22,
+      "#1 Black Adam"
+     ],
+     [
+      384.21,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-action2-army-approaching",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "loyalty-freak-music-roller-fever",
+     "komiku-disco-cat",
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-i-m-on-fire",
+     "juhani-junkala-town3-sunshine-coast"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
