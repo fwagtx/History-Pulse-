@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-11-02",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-02/",
+ "checked_at": "2026-10-19T01:05:32+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-19-cover.png": 562046,
+  "bad-quiz-long-2026-10-19-qa.jpg": 204329,
+  "bad-quiz-long-2026-10-19.mp4": 89057776,
+  "manifest.json": 4244
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-02",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-02",
+  "generated_utc": "2026-10-19T01:05:24Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-19",
+    "series": "week",
+    "topic": "the week of Oct 12 – Oct 18, 2026",
+    "file": "bad-quiz-long-2026-10-19.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-02/bad-quiz-long-2026-10-19.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-19-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-02/bad-quiz-long-2026-10-19-cover.png",
+    "duration": 485.5,
+    "post_at_local": "2026-10-19T15:00:00",
+    "post_at_iso": "2026-10-19T15:00:00-05:00",
+    "post_at_utc": "2026-10-19T20:00:00Z",
+    "youtube": {
+     "title": "This Week in the Fortnite Item Shop: The 25 Biggest Comebacks (Oct 12 – Oct 18, 2026)",
+     "description": "The biggest one had been gone for 1,441 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 19, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #25 Drop The Bass\n1:40 #20 Oblivion\n4:48 #10 Jax Spade\n6:09 #5 Chiara\n7:22 #1 Frankenstein's Monster\n7:44 Outro\n\nThe list\n#1 Frankenstein's Monster\n#2 Oktoberfeast\n#3 Scrambler\n#4 Evil Eye\n#5 Chiara\n#6 Brat Catcher\n#7 Karasu Carver\n#8 Global Axe\n#9 Clicky Pen\n#10 Jax Spade\n#11 Riff Rook\n#12 Riff Rook\n#13 Sandstorm\n#14 Sea Scorpion\n#15 [Insert Laughter Here]\n#16 Taskforce Rio\n#17 Vintage\n#18 Hay Man\n#19 Mask Off\n#20 Oblivion\n#21 The Furia\n#22 Page-Turner\n#23 Nix Scarlet\n#24 Crackshot\n#25 Drop The Bass\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Together to play !\" by Komiku; \"Sweet Sun\" by Loyalty Freak Music; \"Level 3\" by Juhani Junkala; \"I'M ON FIRE\" by Loyalty Freak Music; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"The Tears\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Introduction to your adventure\" by Komiku; \"Town3 - Sunshine Coast\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop today",
+      "fortnite item shop comebacks",
+      "returning fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Frankenstein's Monster",
+      "Oktoberfeast",
+      "Scrambler",
+      "Evil Eye",
+      "Chiara",
+      "Brat Catcher",
+      "Karasu Carver",
+      "Global Axe"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.55,
+      "#25 Drop The Bass"
+     ],
+     [
+      100.72,
+      "#20 Oblivion"
+     ],
+     [
+      288.1,
+      "#10 Jax Spade"
+     ],
+     [
+      369.75,
+      "#5 Chiara"
+     ],
+     [
+      442.72,
+      "#1 Frankenstein's Monster"
+     ],
+     [
+      464.74,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-together-to-play",
+     "loyalty-freak-music-sweet-sun",
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-i-m-on-fire",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "loyalty-freak-music-the-tears",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "komiku-introduction-to-your-adventure",
+     "juhani-junkala-town3-sunshine-coast"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
