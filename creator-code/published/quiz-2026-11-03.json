@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-11-03",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-03/",
+ "checked_at": "2026-10-20T01:08:25+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-20-cover.png": 550131,
+  "bad-quiz-long-2026-10-20-qa.jpg": 203391,
+  "bad-quiz-long-2026-10-20.mp4": 99139879,
+  "manifest.json": 4758
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-03",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-03",
+  "generated_utc": "2026-10-20T01:08:19Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-20",
+    "series": "countdown",
+    "topic": "gone the longest: pickaxes",
+    "file": "bad-quiz-long-2026-10-20.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-03/bad-quiz-long-2026-10-20.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-20-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-03/bad-quiz-long-2026-10-20-cover.png",
+    "duration": 600.0,
+    "post_at_local": "2026-10-20T15:00:00",
+    "post_at_iso": "2026-10-20T15:00:00-05:00",
+    "post_at_utc": "2026-10-20T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Fortnite Pickaxes Gone From the Item Shop the Longest (October 2026)",
+     "description": "Number 1 hasn't been in the shop for 2,367 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 20, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:17 #30 Portalforger Paddle\n3:20 #20 Maceball Bat\n6:31 #10 Hawkman's Mace\n8:02 #5 Blooming Doom\n9:18 #1 Diamond Jack\n9:39 Outro\n\nThe list\n#1 Diamond Jack\n#2 Leviathan Axe\n#3 Snake Eyes Katana\n#4 Loose Cannon Cutters\n#5 Blooming Doom\n#6 Volcanic Glass Daggers\n#7 Proton Pickaxe\n#8 Night Slicer\n#9 Cobra's Curse\n#10 Hawkman's Mace\n#11 Champion Balisong\n#12 Stellapen Smashpack\n#13 Breaker Mace\n#14 Umbra-Axe\n#15 Stickers\n#16 Handaxes of the Raven Clan\n#17 First Downer\n#18 Armature\n#19 Parashurama Axe\n#20 Maceball Bat\n#21 Rusty Roller\n#22 Aloy's Spear\n#23 Double Dagger\n#24 The Lion\n#25 LEG-209\n#26 Diamond Doru\n#27 Snap Blade\n#28 Eyes of Victory\n#29 Knockout Pick\n#30 Portalforger Paddle\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Walk in the forest\" by Komiku; \"The Tears\" by Loyalty Freak Music; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"03 L'été sera chaud\" by Monplaisir; \"Roller Fever\" by Loyalty Freak Music; \"A story that's never been told\" by Loyalty Freak Music; \"Together to play !\" by Komiku; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite pickaxes gone the longest",
+      "rarest fortnite pickaxes",
+      "og fortnite pickaxes",
+      "fortnite skins",
+      "item shop history",
+      "Diamond Jack",
+      "Leviathan Axe",
+      "Snake Eyes Katana",
+      "Loose Cannon Cutters",
+      "Blooming Doom",
+      "Volcanic Glass Daggers",
+      "Proton Pickaxe",
+      "Night Slicer"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      17.11,
+      "#30 Portalforger Paddle"
+     ],
+     [
+      200.9,
+      "#20 Maceball Bat"
+     ],
+     [
+      391.8,
+      "#10 Hawkman's Mace"
+     ],
+     [
+      482.86,
+      "#5 Blooming Doom"
+     ],
+     [
+      558.03,
+      "#1 Diamond Jack"
+     ],
+     [
+      579.01,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-walk-in-the-forest",
+     "loyalty-freak-music-the-tears",
+     "juhani-junkala-town3-sunshine-coast",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "monplaisir-03-l-t-sera-chaud",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "komiku-together-to-play",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
