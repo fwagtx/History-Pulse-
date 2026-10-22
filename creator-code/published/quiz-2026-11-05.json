@@ -1,0 +1,102 @@
+{
+ "tag": "quiz-2026-11-05",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-05/",
+ "checked_at": "2026-10-22T01:05:26+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-22-cover.png": 517292,
+  "bad-quiz-long-2026-10-22-qa.jpg": 203569,
+  "bad-quiz-long-2026-10-22.mp4": 60972900,
+  "manifest.json": 3576
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-05",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-05",
+  "generated_utc": "2026-10-22T01:05:19Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-22",
+    "series": "month",
+    "topic": "October 2020",
+    "file": "bad-quiz-long-2026-10-22.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-05/bad-quiz-long-2026-10-22.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-22-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-05/bad-quiz-long-2026-10-22-cover.png",
+    "duration": 303.88,
+    "post_at_local": "2026-10-22T15:00:00",
+    "post_at_iso": "2026-10-22T15:00:00-05:00",
+    "post_at_utc": "2026-10-22T20:00:00Z",
+    "youtube": {
+     "title": "The Fortnite Item Shop in October 2020: 14 New Skins, Then and Now",
+     "description": "Number 1 has been in the Item Shop just twice.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 22, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #14 Pitstop\n1:33 #10 Sagan\n3:11 #5 Baba Yaga\n4:24 #1 P.K.E. Ranger\n4:41 Outro\n\nThe list\n#1 P.K.E. Ranger\n#2 The Good Doctor\n#3 Patch\n#4 Punk\n#5 Baba Yaga\n#6 Headlock\n#7 Party Trooper\n#8 Ravina\n#9 Daredevil\n#10 Sagan\n#11 Victoria Saint\n#12 Storm Racer\n#13 Grimoire\n#14 Pitstop\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Walk in the forest\" by Komiku; \"03 L'été sera chaud\" by Monplaisir; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"Barque sur le lac\" by Komiku\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop october 2020",
+      "fortnite throwback",
+      "old fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "P.K.E. Ranger",
+      "The Good Doctor",
+      "Patch",
+      "Punk",
+      "Baba Yaga",
+      "Headlock",
+      "Party Trooper",
+      "Ravina"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.98,
+      "#14 Pitstop"
+     ],
+     [
+      93.04,
+      "#10 Sagan"
+     ],
+     [
+      191.58,
+      "#5 Baba Yaga"
+     ],
+     [
+      264.13,
+      "#1 P.K.E. Ranger"
+     ],
+     [
+      281.55,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "komiku-walk-in-the-forest",
+     "monplaisir-03-l-t-sera-chaud",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "komiku-barque-sur-le-lac"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
