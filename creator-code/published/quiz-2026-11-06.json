@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-11-06",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-06/",
+ "checked_at": "2026-10-23T00:59:52+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-23-cover.png": 458457,
+  "bad-quiz-long-2026-10-23-qa.jpg": 193673,
+  "bad-quiz-long-2026-10-23.mp4": 91778841,
+  "manifest.json": 4400
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-06",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-06",
+  "generated_utc": "2026-10-23T00:59:47Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-23",
+    "series": "collection",
+    "topic": "the rarest Star Wars skins",
+    "file": "bad-quiz-long-2026-10-23.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-06/bad-quiz-long-2026-10-23.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-23-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-06/bad-quiz-long-2026-10-23-cover.png",
+    "duration": 487.03,
+    "post_at_local": "2026-10-23T15:00:00",
+    "post_at_iso": "2026-10-23T15:00:00-05:00",
+    "post_at_utc": "2026-10-23T20:00:00Z",
+    "youtube": {
+     "title": "The 25 Rarest Star Wars Skins in Fortnite (October 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 23, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:19 #25 Sith Trooper\n1:42 #20 Zorii Bliss\n4:45 #10 IG-11\n6:10 #5 Jar Jar Binks\n7:25 #1 Darth Jar Jar\n7:46 Outro\n\nThe list\n#1 Darth Jar Jar\n#2 Apprentice Rey\n#3 Chewbacca\n#4 Mace Windu\n#5 Jar Jar Binks\n#6 AWR Trooper\n#7 Lando Calrissian\n#8 Mandalorian Warrior\n#9 Stormtrooper Samurai\n#10 IG-11\n#11 Clone Trooper\n#12 501st Trooper\n#13 Darth Maul\n#14 Luke Skywalker\n#15 Krrsantan\n#16 Leia Organa\n#17 Padmé Amidala\n#18 Obi-Wan Kenobi\n#19 Finn\n#20 Zorii Bliss\n#21 Boba Fett\n#22 Imperial Stormtrooper\n#23 Rey\n#24 Kylo Ren\n#25 Sith Trooper\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Roller Fever\" by Loyalty Freak Music; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Action2 - Army Approaching\" by Juhani Junkala; \"Introduction to your adventure\" by Komiku; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Barque sur le lac\" by Komiku; \"Level 3\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite star wars skins",
+      "rarest fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Darth Jar Jar",
+      "Apprentice Rey",
+      "Chewbacca",
+      "Mace Windu",
+      "Jar Jar Binks",
+      "AWR Trooper",
+      "Lando Calrissian",
+      "Mandalorian Warrior"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      19.59,
+      "#25 Sith Trooper"
+     ],
+     [
+      102.58,
+      "#20 Zorii Bliss"
+     ],
+     [
+      285.48,
+      "#10 IG-11"
+     ],
+     [
+      370.53,
+      "#5 Jar Jar Binks"
+     ],
+     [
+      445.8,
+      "#1 Darth Jar Jar"
+     ],
+     [
+      466.07,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-roller-fever",
+     "juhani-junkala-town2-where-time-stands-still",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "juhani-junkala-action2-army-approaching",
+     "komiku-introduction-to-your-adventure",
+     "juhani-junkala-town3-sunshine-coast",
+     "komiku-barque-sur-le-lac",
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
