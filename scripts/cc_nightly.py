@@ -226,6 +226,10 @@ def music(folder: Path) -> bool:
 
 def main(argv: list) -> int:
     what = argv[1] if len(argv) > 1 else "all"
+    if not STORE.enabled():
+        print("Nothing to do here: GitHub Actions builds the videos and publishes them as releases "
+              "(creator-code/storage.json \"use\": \"github\"). See creator-code/AUTOMATION.md.", flush=True)
+        return 0
     t0 = time.time()
     if what in ("all", "shop", "quiz"):
         # A fresh workspace has none of the render tools: set them up first, so

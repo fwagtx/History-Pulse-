@@ -1,5 +1,6 @@
 {
-  "_what": "Where the finished videos are published (Cloudflare R2). Not secrets: the two keys (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) are only in the cloud environment's variables. See scripts/cc_store.py.",
+  "_what": "Where the finished videos are published. \"use\": \"github\" = releases of this repository (built by GitHub Actions); \"r2\" = the Cloudflare R2 bucket below (built by the nightly Claude session). GitHub Actions always publishes to releases, whatever this says. The bucket's settings aren't secrets: its two keys are only in the cloud environment's variables. See scripts/cc_store.py.",
+  "use": "r2",
   "account_id": "231999c96851bc148ac14dfa00c54bae",
   "bucket": "usecodebad-media",
   "public_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev"

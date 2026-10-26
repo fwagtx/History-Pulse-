@@ -1,8 +1,18 @@
-"""Where the finished videos live: a Cloudflare R2 bucket (free tier), in place
-of the GitHub releases the pipeline used before. Metricool picks each video up
-from the bucket's public URL, exactly as it did from a release.
+"""Where the finished videos live: GitHub releases of this repository, or a
+Cloudflare R2 bucket (free tier), which took over while GitHub's Actions and
+releases were unavailable to the account (2026-09-29 to 2026-10-26).
 
-Settings, all Code Bad's own. Nothing is read from a generic name that another
+Which one is the mode (mode()):
+  - a build on GitHub's own machines (GitHub Actions) always publishes to releases;
+  - everywhere else, creator-code/storage.json's "use" decides: "github" or "r2"
+    (without the bucket's settings it is GitHub).
+In GitHub mode a "tag" is a release and a file is one of its assets, at
+https://github.com/<repo>/releases/download/<tag>/<file>: public, permanent, and
+what Metricool imports from. The workflows publish the releases (gh release);
+nothing is uploaded from here. Reading needs no key, and the same commands
+below work in both modes.
+
+Settings for the bucket, all Code Bad's own. Nothing is read from a generic name that another
 project sharing the workspace could set (R2_BUCKET, R2_PUBLIC_URL, R2_ACCOUNT_ID,
 R2_ACCESS_KEY_ID ... are ignored):
 
@@ -83,9 +93,23 @@ def keys() -> tuple:
     return "", "", ""
 
 
+def mode() -> str:
+    """Where videos are published and read: "github" (releases) or "r2" (the bucket).
+    GitHub Actions always uses releases; elsewhere storage.json's "use" decides."""
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        return "github"
+    try:
+        use = str(json.loads(CONFIG.read_text()).get("use") or "").strip().lower()
+    except (OSError, ValueError):
+        use = ""
+    if use == "github":
+        return "github"
+    return "r2" if all(setting(k) for k in ("R2_ACCOUNT_ID", "R2_BUCKET", "R2_PUBLIC_URL")) else "github"
+
+
 def enabled() -> bool:
-    """Things are published to the bucket (its settings are there)."""
-    return all(setting(k) for k in ("R2_ACCOUNT_ID", "R2_BUCKET", "R2_PUBLIC_URL"))
+    """Things are published to the bucket (R2 mode)."""
+    return mode() == "r2"
 
 
 def has_keys() -> bool:
@@ -128,6 +152,9 @@ def _bucket() -> str:
 
 def put(path: Path, key: str) -> str:
     """Upload one file to `key`; its public URL."""
+    if not enabled():
+        raise RuntimeError("GitHub mode: the workflows publish the releases (gh release); "
+                           "nothing is uploaded from here")
     path = Path(path)
     ctype = TYPES.get(path.suffix.lower()) or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     # Manifests change on a rebuild; the media never change under the same name.
@@ -184,13 +211,40 @@ def _public(key: str, timeout: int = 120, first_byte: bool = False) -> bytes:
         return r.read()
 
 
+def _github(key: str, timeout: int = 120, first_byte: bool = False) -> bytes:
+    """A file from its GitHub release (GitHub mode)."""
+    tag, _, name = key.partition("/")
+    headers = {"User-Agent": "usecodebad"}
+    if first_byte:
+        headers["Range"] = "bytes=0-0"
+    req = urllib.request.Request(GITHUB.format(repo=REPO, tag=tag) + name, headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def _github_assets(tag: str) -> list:
+    """[(file name, size)] of one release, from GitHub's API ([] if there's no such release).
+    Asked without a token: the few calls a day stay far inside GitHub's limit."""
+    req = urllib.request.Request(f"https://api.github.com/repos/{REPO}/releases/tags/{tag}",
+                                 headers={"User-Agent": "usecodebad", "Accept": "application/vnd.github+json"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            release = json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return []
+        raise
+    return [(a["name"], a["size"]) for a in release.get("assets", [])]
+
+
 def get(key: str, timeout: int = 120) -> bytes:
-    """A file in the bucket: with the keys straight from it; without them from its
-    public URL, or, where that can't be reached, a manifest from the repo's copy."""
-    if has_keys():
+    """A published file. GitHub mode: from its release. R2 mode: with the keys straight
+    from the bucket, without them from its public URL. Where neither can be reached
+    from this machine, a manifest comes from the repo's copy."""
+    if enabled() and has_keys():
         return _client().get_object(Bucket=_bucket(), Key=key)["Body"].read()
     try:
-        return _public(key, timeout)
+        return (_public if enabled() else _github)(key, timeout)
     except urllib.error.HTTPError:
         raise  # the bucket answered: it isn't there (or isn't public)
     except OSError:  # this machine can't reach it
@@ -202,14 +256,14 @@ def get(key: str, timeout: int = 120) -> bytes:
 
 
 def exists(key: str) -> bool:
-    if has_keys():
+    if enabled() and has_keys():
         try:
             _client().head_object(Bucket=_bucket(), Key=key)
             return True
         except Exception:  # noqa: BLE001 - missing, or unreachable: either way not there for us
             return False
     try:
-        _public(key, 30, first_byte=True)
+        (_public if enabled() else _github)(key, 30, first_byte=True)
         return True
     except urllib.error.HTTPError:
         return False
@@ -219,6 +273,11 @@ def exists(key: str) -> bool:
 
 
 def ls(prefix: str = "") -> list:
+    if not enabled():   # GitHub mode: one release, its assets
+        tag, _, start = prefix.partition("/")
+        if not tag:
+            raise ValueError("GitHub mode lists one release at a time: ls TAG")
+        return [(f"{tag}/{n}", size) for n, size in _github_assets(tag) if n.startswith(start)]
     out, token = [], None
     while True:
         kw = {"Bucket": _bucket(), "Prefix": prefix}
@@ -241,9 +300,13 @@ def fetch(tag: str, name: str, timeout: int = 120) -> bytes:
 
 
 def link(key: str, seconds: int = 6 * 3600) -> str:
-    """A signed, read-only link to one file in the bucket, valid for `seconds`."""
+    """A link Metricool can import one file from. GitHub mode: the release's own
+    (public, permanent) URL. R2 mode: a signed, read-only link, valid for `seconds`."""
     if not exists(key):
-        raise FileNotFoundError(f"{key} isn't in the bucket")
+        raise FileNotFoundError(f"{key} isn't published")
+    if not enabled():
+        tag, _, name = key.partition("/")
+        return GITHUB.format(repo=REPO, tag=tag) + name
     return _client().generate_presigned_url("get_object", Params={"Bucket": _bucket(), "Key": key},
                                              ExpiresIn=int(seconds))
 
@@ -252,9 +315,16 @@ MEDIA = (".mp4", ".png", ".jpg", ".jpeg")
 
 
 def links(tag: str, seconds: int = 6 * 3600) -> dict:
-    """Signed links to every video and cover in one folder, {file name: link}: what the daily
-    job needs for a day's posts, in one command it can run exactly as the permission file allows."""
+    """Links to every video and cover in one folder, {file name: link}: what the daily
+    job needs for a day's posts, in one command it can run exactly as the permission file allows.
+    GitHub mode: the release URLs of the files its manifest lists. R2 mode: signed links."""
     tag = tag.strip("/")
+    if not enabled():
+        m = json.loads(get(f"{tag}/manifest.json"))
+        names = {str(e[k]).rsplit("/", 1)[-1] for e in (m.get("videos") or []) + (m.get("long_videos") or [])
+                 for k in ("url", "cover_url", "thumbnail_url") if e.get(k)}
+        return {n: GITHUB.format(repo=REPO, tag=tag) + n for n in sorted(names)
+                if n.lower().endswith(MEDIA) and "-qa." not in n}
     return {key.split("/", 1)[1]: _client().generate_presigned_url(
                 "get_object", Params={"Bucket": _bucket(), "Key": key}, ExpiresIn=int(seconds))
             for key, _size in ls(tag + "/") if key.lower().endswith(MEDIA) and "-qa." not in key}
@@ -262,6 +332,12 @@ def links(tag: str, seconds: int = 6 * 3600) -> dict:
 
 def check() -> list:
     """What's missing or wrong, in plain words ([] = ready)."""
+    if not enabled():   # GitHub mode: the workflows publish; here we only read releases
+        try:
+            json.loads(_github("music-library/catalog.json", 60))
+            return []
+        except Exception as e:  # noqa: BLE001
+            return [f"can't read this repository's GitHub releases from here: {str(e)[:200]}"]
     problems = []
     kid, secret, names = keys()
     if not kid:
@@ -294,13 +370,18 @@ def main(argv: list) -> int:
     cmd = argv[1] if len(argv) > 1 else "check"
     if cmd == "check":
         problems = check()
-        print("R2 is ready." if not problems else "R2 isn't ready:\n  " + "\n  ".join(problems))
+        what = "R2" if enabled() else f"Reading the GitHub releases of {REPO}"
+        print(f"{what} is ready." if not problems else f"{what} isn't ready:\n  " + "\n  ".join(problems))
         return 1 if problems else 0
     if cmd == "put":
         urls = put_dir(Path(argv[2]), argv[3], tuple(argv[4:]) or ("*",))
         print("\n".join(urls))
         return 0
     if cmd == "where":
+        print(f"mode:        {mode()}  ({'GitHub Actions' if os.environ.get('GITHUB_ACTIONS') == 'true' else 'creator-code/storage.json'})")
+        if not enabled():
+            print(f"releases:    https://github.com/{REPO}/releases")
+            return 0
         print(f"bucket:      {setting('R2_BUCKET')}  (creator-code/storage.json)")
         print(f"public link: {setting('R2_PUBLIC_URL')}  (creator-code/storage.json)")
         print(f"key:         {keys()[2] or 'not set (CODEBAD_R2_ACCESS_KEY_ID / CODEBAD_R2_SECRET_ACCESS_KEY)'}")
@@ -309,7 +390,7 @@ def main(argv: list) -> int:
             print(f"ignored:     {', '.join(ignored)} (set in this environment; Code Bad doesn't read them)")
         return 0
     if cmd == "ls":
-        if not has_keys():
+        if enabled() and not has_keys():
             print("Listing the bucket needs its key (CODEBAD_R2_ACCESS_KEY_ID, CODEBAD_R2_SECRET_ACCESS_KEY).")
             return 1
         for k, size in ls(argv[2] if len(argv) > 2 else ""):
@@ -321,7 +402,7 @@ def main(argv: list) -> int:
     if cmd == "has":
         return 0 if exists(argv[2]) else 1
     if cmd == "link":
-        if not has_keys():
+        if enabled() and not has_keys():
             print("A signed link needs the bucket's key (CODEBAD_R2_ACCESS_KEY_ID, CODEBAD_R2_SECRET_ACCESS_KEY).")
             return 1
         try:
@@ -331,12 +412,12 @@ def main(argv: list) -> int:
             return 1
         return 0
     if cmd == "links":
-        if not has_keys():
+        if enabled() and not has_keys():
             print("Signed links need the bucket's key (CODEBAD_R2_ACCESS_KEY_ID, CODEBAD_R2_SECRET_ACCESS_KEY).")
             return 1
         found = links(argv[2], int(argv[3]) if len(argv) > 3 else 6 * 3600)
         if not found:
-            print(f"{argv[2].strip('/')}/ has no videos or covers in the bucket")
+            print(f"{argv[2].strip('/')}/ has no videos or covers published")
             return 1
         print(json.dumps(found, indent=1, sort_keys=True))
         return 0
