@@ -1,0 +1,110 @@
+{
+ "tag": "quiz-2026-11-09",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-09/",
+ "checked_at": "2026-10-26T01:03:53+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-26-cover.png": 588554,
+  "bad-quiz-long-2026-10-26-qa.jpg": 205074,
+  "bad-quiz-long-2026-10-26.mp4": 90420235,
+  "manifest.json": 4424
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-09",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-09",
+  "generated_utc": "2026-10-26T01:03:45Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-26",
+    "series": "week",
+    "topic": "the week of Oct 19 – Oct 25, 2026",
+    "file": "bad-quiz-long-2026-10-26.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-09/bad-quiz-long-2026-10-26.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-26-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-09/bad-quiz-long-2026-10-26-cover.png",
+    "duration": 503.25,
+    "post_at_local": "2026-10-26T15:00:00",
+    "post_at_iso": "2026-10-26T15:00:00-05:00",
+    "post_at_utc": "2026-10-26T20:00:00Z",
+    "youtube": {
+     "title": "This Week in the Fortnite Item Shop: The 25 Biggest Comebacks (Oct 19 – Oct 25, 2026)",
+     "description": "The biggest one had been gone for 1,086 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 26, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #25 Mincemeat\n1:51 #20 Hollowhead\n4:59 #10 Archeo-Scythe\n6:24 #5 Carver\n7:41 #1 Gourdy\n8:02 Outro\n\nThe list\n#1 Gourdy\n#2 Gnashers\n#3 Axercise\n#4 Zombified\n#5 Carver\n#6 Axetec\n#7 Weathered Gold\n#8 Lead Swinger\n#9 Lamp\n#10 Archeo-Scythe\n#11 Roadtrip\n#12 Assassin's Talons\n#13 Transdimensional Multi-Tool\n#14 Clover Case\n#15 Reef Ranger\n#16 Pixel Punisher\n#17 Jack O'Sassin\n#18 XO (Only If You Say Yes)\n#19 Ultima Carver\n#20 Hollowhead\n#21 Upside Down & Inside Out\n#22 Boo Box\n#23 Forget me not\n#24 Moth Eye Wings\n#25 Mincemeat\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Level 3\" by Juhani Junkala; \"Introduction to your adventure\" by Komiku; \"Action2 - Army Approaching\" by Juhani Junkala; \"Disco Cat\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"A story that's never been told\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"03 L'été sera chaud\" by Monplaisir\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop today",
+      "fortnite item shop comebacks",
+      "returning fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Gourdy",
+      "Gnashers",
+      "Axercise",
+      "Zombified",
+      "Carver",
+      "Axetec",
+      "Weathered Gold",
+      "Lead Swinger"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.34,
+      "#25 Mincemeat"
+     ],
+     [
+      111.58,
+      "#20 Hollowhead"
+     ],
+     [
+      299.0,
+      "#10 Archeo-Scythe"
+     ],
+     [
+      384.12,
+      "#5 Carver"
+     ],
+     [
+      461.33,
+      "#1 Gourdy"
+     ],
+     [
+      482.49,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-level-3",
+     "komiku-introduction-to-your-adventure",
+     "juhani-junkala-action2-army-approaching",
+     "komiku-disco-cat",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "monplaisir-03-l-t-sera-chaud"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
