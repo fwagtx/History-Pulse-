@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-11-10",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-10/",
+ "checked_at": "2026-10-27T01:04:30+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-27-cover.png": 518874,
+  "bad-quiz-long-2026-10-27-qa.jpg": 212449,
+  "bad-quiz-long-2026-10-27.mp4": 89433594,
+  "manifest.json": 4494
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-10",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-10",
+  "generated_utc": "2026-10-27T01:04:23Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-27",
+    "series": "countdown",
+    "topic": "the rarest emotes",
+    "file": "bad-quiz-long-2026-10-27.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-10/bad-quiz-long-2026-10-27.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-27-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-10/bad-quiz-long-2026-10-27-cover.png",
+    "duration": 560.81,
+    "post_at_local": "2026-10-27T15:00:00",
+    "post_at_iso": "2026-10-27T15:00:00-05:00",
+    "post_at_utc": "2026-10-27T20:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Fortnite Emotes: Fewest Times in the Item Shop (October 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 27, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 Drumbells\n3:11 #20 Target\n6:15 #10 Teth's Throne\n7:34 #5 Raise The Cup\n8:44 #1 Hot Marat\n9:00 Outro\n\nThe list\n#1 Hot Marat\n#2 Kiss The Cup\n#3 Welcome!\n#4 Head Banger\n#5 Raise The Cup\n#6 Zombie Shambles\n#7 Out With The Old\n#8 Stuck\n#9 I Ain't Afraid\n#10 Teth's Throne\n#11 Titan Run: Rush\n#12 Good Game, Well Played\n#13 Big Fan\n#14 Heartburst\n#15 Lil' Turtle Van\n#16 To the Beat\n#17 Bye Bye Bye\n#18 Front Page Pose\n#19 Surrender\n#20 Target\n#21 GOAL!\n#22 Lil' Sandcrawler\n#23 Lil' Armored Truck\n#24 Beat Chopper\n#25 Wobblin'\n#26 Playdreamin'\n#27 Deep End\n#28 Let Loose\n#29 Melodic Illumination\n#30 Drumbells\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Town3 - Sunshine Coast\" by Juhani Junkala; \"A story that's never been told\" by Loyalty Freak Music; \"Level 3\" by Juhani Junkala; \"Introduction to your adventure\" by Komiku; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Sweet Sun\" by Loyalty Freak Music; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"I'M ON FIRE\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Together to play !\" by Komiku\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "rarest fortnite emotes",
+      "rare fortnite emotes",
+      "og fortnite emotes",
+      "fortnite skins",
+      "item shop history",
+      "Hot Marat",
+      "Kiss The Cup",
+      "Welcome!",
+      "Head Banger",
+      "Raise The Cup",
+      "Zombie Shambles",
+      "Out With The Old",
+      "Stuck"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.81,
+      "#30 Drumbells"
+     ],
+     [
+      191.18,
+      "#20 Target"
+     ],
+     [
+      375.53,
+      "#10 Teth's Throne"
+     ],
+     [
+      454.46,
+      "#5 Raise The Cup"
+     ],
+     [
+      524.26,
+      "#1 Hot Marat"
+     ],
+     [
+      540.33,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-town3-sunshine-coast",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "juhani-junkala-level-3",
+     "komiku-introduction-to-your-adventure",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "loyalty-freak-music-sweet-sun",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-i-m-on-fire",
+     "loyalty-freak-music-roller-fever",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "komiku-together-to-play"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
