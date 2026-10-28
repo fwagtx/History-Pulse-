@@ -338,6 +338,16 @@ def _finish(day: date, chosen: list, edit: bool, out: Path, tag: str, args, head
         seed = int(day.strftime("%Y%m%d")) * 10 + slot["slot"]
         jobs.append((v.comp, out, stem, ext, qa_times, seed, args.preview, args.no_video))
 
+    # The spoken hooks, made once here (cc_audio._voice caches each line): the
+    # render workers then only read them instead of each loading the voice model.
+    if any(getattr(v.comp, "voice", None) for _, v, _ in chosen):
+        import cc_audio
+        import cc_voice
+        for _, v, _ in chosen:
+            if getattr(v.comp, "voice", None):
+                cc_audio._voice(v.comp)
+        cc_voice._engine = None
+
     # One Chromium per video, in parallel when the machine has the cores.
     workers = max(1, min(len(jobs), args.jobs or (os.cpu_count() or 2) // 2))
     log(f"Rendering {len(jobs)} videos, {workers} at a time")
