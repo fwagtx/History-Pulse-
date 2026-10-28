@@ -32,7 +32,13 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import cc_end_card as E
+# One math thread per process, set before numpy loads: the videos render in
+# parallel processes, and each one's own OpenBLAS threads fought over the cores
+# (two soundtracks side by side took over ten minutes; 17 s with one thread each).
+for _var in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_var, "1")
+
+import cc_end_card as E  # noqa: E402
 import cc_formats as F
 import cc_post_times as PT
 import cc_safe as S

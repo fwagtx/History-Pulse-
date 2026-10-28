@@ -15,7 +15,8 @@ For each network and day:
   2. the slots pick from that set in order of importance: the shop recap first
      (the best of them up to noon: it's the day's news), then the shop game
      (the best left that is still 45 minutes before the shop rotates), then
-     the history format, the quiz and On This Day.
+     the history format, the quiz and On This Day; the shop recap always goes
+     up before the shop game (they swap hours if the scores say otherwise).
 The same five hours whichever videos a build makes, so videos built on
 different nights for one day (cc_build.py --ahead) never land on one hour.
 
@@ -78,6 +79,8 @@ def day_times(day: date, network: str) -> dict:
             return {}
         out[name] = _at(day, fits[0])
         left.remove(fits[0])
+    if out["shop_game"] < out["shop"]:          # the day's shop goes up before the game on it
+        out["shop"], out["shop_game"] = out["shop_game"], out["shop"]
     return out
 
 
