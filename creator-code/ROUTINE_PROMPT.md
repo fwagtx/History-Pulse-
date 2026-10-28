@@ -27,6 +27,10 @@
 > built up to a week ahead into shop-ahead-YYYY-MM-DD, scheduled as soon as they're built).
 
 To change what it does, ask Claude to update both Routines' prompt and this page together.
+A Routine's prompt can only be changed from the conversation it posts into: ask in the
+session *usecodebad · daily posting (automatic, keep)* itself, for example "Update both of
+your posting routines to the prompt in creator-code/ROUTINE_PROMPT.md". Step 3g has nothing
+to schedule until `creator-code/ahead.json` is switched on, which waits for that update.
 
 ---
 

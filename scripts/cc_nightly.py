@@ -33,7 +33,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cc_bootstrap  # noqa: E402
 import cc_store as STORE  # noqa: E402
-from cc_common import OUT_DIR, ROOT, log  # noqa: E402
+from cc_common import CC_DIR, OUT_DIR, ROOT, log  # noqa: E402
 
 BRANCH = "claude/creator-code-bad-automation-0jjc1k"
 
@@ -45,6 +45,16 @@ QUIZ_FILES = ("bad-quiz-*.mp4", "bad-quiz-*-cover.png", "bad-quiz-*-qa.jpg", "ma
 # long video, so a first night's backlog spreads over the night's runs.
 AHEAD_DAYS = 7
 AHEAD_PER_RUN = 2
+
+
+def _ahead_on() -> bool:
+    """Whether days are built ahead at all (creator-code/ahead.json): only once the
+    posting routines run the prompt with step 3g, or those videos would be built
+    and never posted."""
+    try:
+        return bool(json.loads((CC_DIR / "ahead.json").read_text()).get("enabled"))
+    except (OSError, ValueError):
+        return False
 
 
 def _reachable(url: str) -> bool:
@@ -181,6 +191,8 @@ def _ahead_tag(day: date) -> str:
 def _made_ahead(day: date) -> list:
     """The slots of day already published ahead (ahead()), not to build again:
     from the repo's copy, which outlives the bucket's (cleared after a week)."""
+    if not _ahead_on():
+        return []
     tag = _ahead_tag(day)
     man = STORE._published(tag).get("manifest")
     try:
@@ -229,6 +241,9 @@ def ahead(today: date | None = None) -> bool:
     (cc_build.py --ahead) and published to shop-ahead-YYYY-MM-DD; a day already
     out (its repo copy) is skipped, and a day with nothing planned is published
     empty so it isn't retried (its night's own build makes those slots)."""
+    if not _ahead_on():
+        log("ahead: off (creator-code/ahead.json)")
+        return True
     today = today or _utc_today()
     ok, built = True, 0
     for k in range(1, AHEAD_DAYS + 1):

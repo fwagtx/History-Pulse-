@@ -158,7 +158,9 @@ the same title.
   nightly build makes them up to a week early (`cc_nightly.py ahead`, two days a run,
   into `shop-ahead-YYYY-MM-DD`) and the posting job schedules them as soon as they're
   built (step 3g); that day's own build then skips them. A day with nothing planned for a
-  slot is left to its own night, whose fallbacks use that day's data
+  slot is left to its own night, whose fallbacks use that day's data. Switched on by
+  `creator-code/ahead.json` (`"enabled": true`) only once both posting routines run the
+  prompt with step 3g: with an older prompt those videos would be built and never posted
 - Never the word "discount" — the code isn't one
 - No "Made with AI" labels: TikTok's AI-generated flag, YouTube's "altered or synthetic
   content" flag and Instagram's "AI info" flag are all off on every post (checked on
