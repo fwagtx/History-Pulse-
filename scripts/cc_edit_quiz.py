@@ -70,7 +70,7 @@ import re
 import cc_edit as ED
 import cc_quiz as Q
 import cc_series as SR
-from cc_formats import Video, _caption, num
+from cc_formats import Video, _caption, kind_word, num
 from cc_motion import FPS, esc, trim_for
 
 MIN_CONTENT = 57.0              # + the 5.1 s end card = 62.1 s
@@ -405,15 +405,8 @@ def _outro(c: Cut, s0: int, units: int, content_end: float, entries: list, ask: 
 
 
 def _post(v: Video, music: dict) -> Video:
-    """The classic's post, with the track's credit line at the end of its head."""
-    if not music.get("artist"):
-        return v
-    credit = f"🎵 {music['title']} by {music['artist']} (public domain, CC0)"
-    head, sep, rest = v.caption.partition("\n\n")
-    cap = f"{head}\n{credit}{sep}{rest}"
-    from cc_formats import CAPTION_MAX, _u16
-    if _u16(cap) <= CAPTION_MAX:
-        v.caption = cap
+    """The classic's post as it is: since 2026-10-28 the posts carry no music
+    credit (the tracks are CC0, nothing is owed; the owner wants the words lean)."""
     return v
 
 
@@ -510,6 +503,10 @@ def _picture_quiz(spec: dict, items: dict, ctx, look: Look):
     nq, nr = PLAN[k]
     c = Cut(ctx, beat, content_end, look)
     ed, cam, rnd = c.ed, c.cam, c.rnd
+    ed.say(.25, {"whos_that": "Who's that skin? Pause and guess!",
+                 "zoomed_in": "Can you name this skin before it zooms out?",
+                 "guess_season": "Can you guess which season these came out?",
+                 "which_year": "Which Fortnitemares was this one from?"}.get(spec.get("format"), "Pause and guess!"))
     its = [items[rd["item"]] for rd in rounds]
     nudges = list(NUDGES)
     rnd.shuffle(nudges)
@@ -725,28 +722,28 @@ def _picture_post(spec, look, F, comp, rounds, items, n) -> Video:
     if fmt == "guess_season":
         gear = spec.get("edition") == "gear"
         what = "pickaxes, gliders and back blings" if gear else "skins"
-        body = "\n".join(f"{num(k)} {items[rd['item']]['name']} · {items[rd['item']]['type']}"
+        body = "\n".join(f"{num(k)} {items[rd['item']]['name']} ({kind_word(items[rd['item']])})"
                          for k, rd in enumerate(rounds, 1))
         tags = Q._tags("guesstheseason", "ogfortnite")
         return Video("edit_guess_season", comp, title=f"Guess the Season — Fortnite Quiz #{ep}",
                      yt_title=f"Guess the Season: Fortnite Quiz #{ep} #shorts",
-                     caption=_caption(f"🗓️ GUESS THE SEASON — Fortnite Quiz #{ep}\n"
-                                      f"{n} {what}. When did each one come out? Pause, guess, then watch 👇",
-                                      body, f"How many did you get out of {n}? Comment your score", tags),
+                     caption=_caption(f"Guess the season 🗓️ Fortnite quiz {ep}\n"
+                                      f"{n} {what}. When did each one come out? Pause, guess, then watch",
+                                      body, f"Comment your score out of {n}", tags),
                      hashtags=tags)
     if fmt == "zoomed_in":
-        hook = (f"🔍 ZOOMED IN — Fortnite Quiz #{ep}\n"
-                f"We start up close. Name the skin before the camera pulls back 👇")
+        hook = (f"Zoomed in 🔍 Fortnite quiz {ep}\n"
+                f"We start up close. Name the skin before the camera pulls back")
         title_t, yt = f"Zoomed In — Fortnite Quiz #{ep}", f"Zoomed In: Guess the Fortnite Skin #{ep} #shorts"
         tags = Q._tags("guesstheskin", "zoomedin")
     else:
-        hook = (f"👤 WHO'S THAT SKIN? — Fortnite Quiz #{ep}\n"
-                f"{n} silhouettes, 4 choices each. Pause and guess 👇")
+        hook = (f"Who's that skin? 👤 Fortnite quiz {ep}\n"
+                f"{n} silhouettes, 4 choices each. Pause and guess")
         title_t, yt = f"Who's That Skin? — Fortnite Quiz #{ep}", f"Who's That Fortnite Skin? Quiz #{ep} #shorts"
         tags = Q._tags("whosthatskin", "guesstheskin")
-    body = f"{n} rounds · 4 choices each · no spoilers here, answers are in the video 🎥"
+    body = "Answers are in the video, no spoilers here 🎥"
     return Video(f"edit_{fmt}", comp, title=title_t, yt_title=yt,
-                 caption=_caption(hook, body, f"How many did you get out of {n}? Comment your score", tags),
+                 caption=_caption(hook, body, f"Comment your score out of {n}", tags),
                  hashtags=tags)
 
 
@@ -767,6 +764,7 @@ def _which_first(spec: dict, items: dict, ctx, look: Look):
     nq, nr = PLAN[k]
     c = Cut(ctx, beat, content_end, look)
     ed, cam, rnd = c.ed, c.cam, c.rnd
+    ed.say(.25, "Which one came out first?")
     pairs = [(items[rd["a"]], items[rd["b"]], rd["answer"] == "a") for rd in rounds]
     kicker = look.s["edition"] if look.s else f"fortnite quiz #{spec['episode']}"
     when = (lambda it: SR._when(it).lower()) if look.s else (lambda it: _season(it["season_label"]))
@@ -906,14 +904,14 @@ def _which_first(spec: dict, items: dict, ctx, look: Look):
         v.format = f"edit_which_first_{look.series}"
         return _post(v, comp.music or {})
     ep = spec["episode"]
-    body = "\n".join(f"{num(i)} {items[rd['a']]['name']} 🆚 {items[rd['b']]['name']}" for i, rd in enumerate(rounds, 1))
+    body = "\n".join(f"{num(i)} {items[rd['a']]['name']} vs {items[rd['b']]['name']}" for i, rd in enumerate(rounds, 1))
     example = next(e[:n] for e in ("ABBAB", "BABBA", "AABAB") if e[:n] != answers)
     tags = Q._tags("whichcamefirst", "ogfortnite")
     v = Video("edit_which_first", comp, title=f"Which Came First? — Fortnite Quiz #{ep}",
               yt_title=f"Which Fortnite Skin Came First? Quiz #{ep} #shorts",
-              caption=_caption(f"⏳ WHICH CAME FIRST? — Fortnite Quiz #{ep}\n"
-                               f"{n} rounds. Which skin is older, A or B? 👇",
-                               body, f"Comment your answers in order, like {example}", tags),
+              caption=_caption(f"Which came first? ⏳ Fortnite quiz {ep}\n"
+                               f"{n} rounds. Which skin is older, A or B?",
+                               body, f"Drop your answers in order, like {example}", tags),
               hashtags=tags)
     return _post(v, comp.music or {})
 
@@ -953,6 +951,7 @@ def _throwback(spec: dict, items: dict, ctx, look: Look):
     content_end = u(plan["total"])
     c = Cut(ctx, beat, content_end, look)
     ed, cam, rnd = c.ed, c.cam, c.rnd
+    ed.say(.25, "How many of these do you remember?")
     seasonal = bool(look.s)
 
     if seasonal:
@@ -1096,15 +1095,15 @@ def _throwback(spec: dict, items: dict, ctx, look: Look):
         v.format = f"edit_throwback_{look.series}"
         return _post(v, comp.music or {})
     season = spec["season"]
-    body = "\n".join(f"{num(i)} {it['name']} · {it['type']}" for i, it in enumerate(group, 1))
+    body = "\n".join(f"{num(i)} {it['name']} ({kind_word(it)})" for i, it in enumerate(group, 1))
     short = season.replace(" · ", " ")
     tags = Q._tags("ogfortnite", short.replace(" ", ""), "fortnitethrowback")
     noun = "gear" if gear else "skins"
     v = Video("edit_throwback", comp, title=f"Throwback: Fortnite {short} {'Gear' if gear else 'Skins'}",
               yt_title=f"Fortnite {short} Throwback: Remember These {noun.title()}? #shorts",
-              caption=_caption(f"📼 SEASON THROWBACK — Fortnite {short}\n"
-                               f"{n} {noun} from this season. How many do you remember? 👇",
-                               body, "Which one did you own? Tell us below", tags),
+              caption=_caption(f"Fortnite {short} throwback 📼\n"
+                               f"{n} {noun} from this season. How many do you remember?",
+                               body, "Which one did you own?", tags),
               hashtags=tags)
     return _post(v, comp.music or {})
 

@@ -142,7 +142,9 @@ def end_card(comp, start: float, arts: list, code: str = CE.CODE):
     L = CE.LOOKS["lime"]
     inner = (CE.shop_wall(comp, W, H, arts)
              + CE.card(L, code, t, (W - CE.CARD_W) / 2, (H - CE.CARD_H) / 2, 1.0, True, True)
-             + CE.confirmation(code, t, W / 2, H / 2, 1.15, True, True))
+             + CE.confirmation(code, t, W / 2, H / 2, 1.15, True, True)
+             # Epic's notice in small print under the card (it left the description).
+             + M.epic_notice((W - 1400) / 2, H - 112, 1400, 24))
     comp.scene(start, comp.duration, f'<div class="full">{inner}</div>', fade_in=.25, fade_out=.01, z=85)
     comp.cue(t["card"], "pop")
     for k in t["keys"]:

@@ -22,7 +22,9 @@
 > 2026-10-06 for getting a folder's signed links with one plain command, after the job
 > stopped at that step on October 4-6, and 2026-10-12 for the evening run: each step now
 > works on one day, D, the shop day in UTC, and the steps for the old quiz posts, which
-> ended on October 11, are gone).
+> ended on October 11, are gone, and 2026-10-28 for one post per network at each network's
+> own best time from Metricool's data, and step 3g: the coming days' quiz and On This Day,
+> built up to a week ahead into shop-ahead-YYYY-MM-DD, scheduled as soon as they're built).
 
 To change what it does, ask Claude to update both Routines' prompt and this page together.
 
@@ -46,8 +48,9 @@ All post times below are on D, in America/Chicago. For the other dates the job n
 the same command, for example date -u -d "D + 14 days" +%F (D written as YYYY-MM-DD).
 
 Daily job for @usecodebad (Fortnite creator code BAD). Write D's filming script, schedule
-D's auto-made short videos (five a day; two of them also go to Threads) and, Monday to
-Friday, D's LONG YouTube video - all in Metricool, posting automatically.
+D's auto-made short videos (five a day; two of them also go to Threads), the coming days'
+videos that are built ahead, and, Monday to Friday, D's LONG YouTube video - all in
+Metricool, posting automatically, each network at its own best time.
 
 === ACCOUNT ISOLATION - NON-NEGOTIABLE ===
 This account has TWO Metricool brands. You may ONLY touch brand id 7066444
@@ -97,106 +100,117 @@ The owner asked (2026-09-23) for these to go live on their own at their times, w
 manual approval. Nobody reviews them before they are public, so every check below is
 mandatory: if anything about a video is off, skip that video and say why in the summary
 - never guess, never substitute.
+Since 2026-10-28 each video goes to each network as its OWN post, at that network's own
+best time for engagement (the owner asked for this; the build works the times out from
+Metricool's best-time data and writes them into the manifest).
 The nightly build (a scheduled Claude session since 2026-09-30; GitHub releases are no
-longer used) makes them right after the shop resets (00:00 UTC) and publishes them to the
-Cloudflare R2 bucket, in the folder shop-YYYY-MM-DD, with a manifest you read (from
+longer used) makes D's videos right after the shop resets (00:00 UTC) and publishes them
+to the Cloudflare R2 bucket, in the folder shop-YYYY-MM-DD, with a manifest you read (from
 the repository root) with:
     python3 scripts/cc_store.py cat shop-YYYY-MM-DD/manifest.json
-where YYYY-MM-DD is D (the shop day). Its "lineup" is "edit" (five videos: 8 AM, 11 AM,
-1 PM, 4 PM, 7 PM Central) or "classic" (three); schedule whatever "videos" it lists, each
-at its own time.
+where YYYY-MM-DD is D (the shop day). Its "videos" are D's videos built that night: the
+shop videos and the history one. D's quiz and On This Day are usually built days earlier
+and scheduled by step 3g, so they may not be in this list; schedule whatever it lists.
 3a. Read it with that command. If the command fails (no such file), or its "shop_day" is not
-    D, schedule NOTHING and say so in the summary (the next run for D tries again). Never
-    schedule a video about another day's shop.
+    D, schedule NOTHING from it and say so in the summary (the next run for D tries again).
+    Never schedule a video about another day's shop.
 3b. For each entry in "videos", check before using it: its file is in the bucket
     (python3 scripts/cc_store.py has FOLDER/NAME exits 0, where FOLDER is the manifest's
     folder and NAME the file name at the end of the entry's url; don't curl the url),
     its duration is at least 60, and its caption contains "#EpicPartner" and
     "#usecodebad". Skip any entry that fails a check.
 3c. Call getScheduledPosts for brandId "7066444", timezone "America/Chicago", from D
-    00:00 to D 23:59. Skip any manifest video whose "title" already equals the
-    tiktokData.title of a post in that list (no duplicates: an earlier run for D may
-    already have scheduled it). Compare titles, not video links: Metricool stores its own
-    copy of each video, so the links never match.
-    Likewise skip a video's Instagram post (3d) if a post in the list has instagram among
-    its providers and its text equals the entry's "ig_caption", and its Threads post (3d)
-    if a post in the list has threads among its providers and its text equals the entry's
-    "threads_caption".
+    00:00 to D 23:59. A video's post on a network already exists - skip that one post, an
+    earlier run for D made it - when a post in that list has that network among its
+    providers and:
+      tiktok:    its tiktokData.title equals the entry's "title"
+      youtube:   its youtubeData.title equals the entry's "yt_title"
+      facebook:  its text equals the entry's "caption"
+      instagram: its text equals the entry's "ig_caption"
+      threads:   its text equals the entry's "threads_caption"
+    Compare words, never video links: Metricool stores its own copy of each video, so the
+    links never match.
 3d. First get the links Metricool can import D's videos from, all at once, with ONE
     command, run exactly like this and on its own:
         python3 scripts/cc_store.py links FOLDER
     (FOLDER as in 3b). It prints a JSON map from each video and cover in that folder to a
     signed link to that one file through R2's main storage address, valid for 6 hours.
-    For each remaining entry whose post_at_local is still at least 15 minutes in the
-    future in America/Chicago, use the link for its NAME (as in 3b) as the media of the
-    video's main, Instagram and Threads posts: Metricool copies the video when the post
-    is scheduled, and since 2026-10-01 it often can't fetch the bucket's r2.dev link.
-    Never put the r2.dev url in media. Then call createScheduledPost with:
+    Use the link for the entry's NAME (as in 3b) as the media of each of its posts:
+    Metricool copies the video when the post is scheduled, and since 2026-10-01 it often
+    can't fetch the bucket's r2.dev link. Never put the r2.dev url in media.
+    Each entry's "post_at" gives its time on each network: post_at.NETWORK.local (local
+    time, America/Chicago) and post_at.NETWORK.iso (the same time with its UTC offset). An
+    entry without "post_at" uses its post_at_local and post_at_iso for every network.
+    For each entry, make one post per network - tiktok, youtube, facebook, then instagram
+    and threads when they apply - skipping a post that exists (3c) or whose time on that
+    network is less than 15 minutes away. Each is a createScheduledPost call with:
   blogId: "7066444"   <- verify before calling
-  date: the entry's "post_at_iso" (if absent, post_at_local plus the Chicago UTC offset
-        in effect that day)
+  date: post_at.NETWORK.iso
   info: {
-    "publicationDate": {"dateTime": <post_at_local>, "timezone": "America/Chicago"},
-    "providers": [{"network": "tiktok"}, {"network": "youtube"}, {"network": "facebook"}],
+    "publicationDate": {"dateTime": post_at.NETWORK.local, "timezone": "America/Chicago"},
+    "providers": [{"network": NETWORK}],
     "media": [<the signed link>],
-    "text": <the entry's caption, exactly as given - it already carries the #EpicPartner
-             disclosure and the #usecodebad #creatorcodebad #codebad tags>,
+    "text": <see below, exactly as given>,
     "draft": false,
     "autoPublish": true,
-    "tiktokData": {"privacyOption": "PUBLIC_TO_EVERYONE", "commercialContentThirdParty": true,
-                   "commercialContentOwnBrand": false, "title": <the entry's title>,
-                   "autoAddMusic": false, "isAigc": false},
-    "youtubeData": {"title": <the entry's yt_title>, "type": "short", "privacy": "public",
-                    "madeForKids": false, "category": "GAMING", "tags": <the entry's hashtags>,
-                    "isAiGeneratedContent": false},
-    "facebookData": {"type": "REEL"}   <- "POST" instead if the entry's duration is over 90
+    <the network's data, below>
   }
+  tiktok:    text = the entry's "caption";
+             "tiktokData": {"privacyOption": "PUBLIC_TO_EVERYONE", "commercialContentThirdParty": true,
+                            "commercialContentOwnBrand": false, "title": <the entry's title>,
+                            "autoAddMusic": false, "isAigc": false}
+  youtube:   text = the entry's "caption";
+             "youtubeData": {"title": <the entry's yt_title>, "type": "short", "privacy": "public",
+                             "madeForKids": false, "category": "GAMING", "tags": <the entry's hashtags>,
+                             "isAiGeneratedContent": false}
+  facebook:  text = the entry's "caption";
+             "facebookData": {"type": "REEL"}   <- "POST" instead if the entry's duration is over 90
+  instagram: only if the entry has an "ig_caption" (else skip it and say so in the summary);
+             text = the entry's "ig_caption";
+             "instagramData": {"type": "REEL", "showReelOnFeed": true, "isAiGenerated": false}
+  threads:   only if the entry's "threads" is true and its "threads_caption" contains
+             "#EpicPartner" and "#usecodebad" (two a day: D's shop video and the game on it);
+             text = the entry's "threads_caption";
+             "threadsData": {"allowedCountryCodes": []}
   draft is false and autoPublish is true, so each post goes live by itself at its time.
-  Facebook Reels can be at most 90 seconds, so a longer video goes to Facebook as a normal
-  video post (type POST). If createScheduledPost fails and the error is about Facebook,
-  create the same post again without the facebook provider and facebookData, so TikTok
-  and YouTube still post, and name the Facebook error in the summary.
-  If createScheduledPost fails with "Failed to normalize media", run the same links
-  command again for a fresh link and try once more; if it fails again, skip that video
-  and name it in the summary.
+  Each network is its own post, so a failure on one never touches the others: name the
+  network, the video and the error in the summary and go on. If a call fails with "Failed
+  to normalize media", run the same links command again for a fresh link and try once
+  more; if it fails again, skip that post and name it in the summary.
   commercialContentThirdParty is true because code BAD earns a commission from Epic;
   TikTok requires that to be labelled as branded content.
-  Post times come from the manifest. Every video about D's shop ("about_shop" true, or no
-  "about_shop" field) is timed before that shop ends (7 PM CDT / 6 PM CST on D); a video
-  with "about_shop": false (the 7 PM slot) is not about the shop and may post after the
-  reset. Never move a post later. If a slot's time has already passed, skip it.
+  Facebook Reels can be at most 90 seconds, so a longer video goes to Facebook as a normal
+  video post (type POST).
+  Post times come from the manifest: every video about D's shop ("about_shop" true, or no
+  "about_shop" field) is already timed before that shop ends. Never move a post later; if
+  a post's time has already passed, skip that post.
   Do not add videoThumbnailUrl or videoCoverMilliseconds: each video's first frame is its
   designed thumbnail, and TikTok uses the first frame as the cover when none is set.
-  Never claim the code gives a discount, and never add wording to the caption.
-  INSTAGRAM gets its own post for each video, because Instagram allows only 5 hashtags
-  (#EpicPartner is one) and the main caption has about ten. Call createScheduledPost a
-  second time with the same blogId "7066444", date and publicationDate, and info:
-    {"providers": [{"network": "instagram"}], "media": [<the signed link>],
-     "text": <the entry's "ig_caption", exactly as given>, "draft": false, "autoPublish": true,
-     "instagramData": {"type": "REEL", "showReelOnFeed": true, "isAiGenerated": false}}
-  If the entry has no "ig_caption", skip Instagram for it and say so in the summary. If
-  the Instagram call fails, the main post is unaffected: name the error in the summary.
-  THREADS (owner's go-ahead 2026-09-29) gets its own post for each entry whose "threads"
-  is true - two a day: D's shop video and the game on it - because Threads allows
-  only 500 characters. Call createScheduledPost once more with the same blogId
-  "7066444", date and publicationDate, and info:
-    {"providers": [{"network": "threads"}], "media": [<the signed link>],
-     "text": <the entry's "threads_caption", exactly as given>, "draft": false,
-     "autoPublish": true, "threadsData": {"allowedCountryCodes": []}}
-  Skip Threads for an entry whose "threads" is not true, or whose "threads_caption" is
-  missing or lacks "#EpicPartner" or "#usecodebad" (the build sets "threads" true only
-  when that copy fits Threads' limit). Never put a quiz video or a long video on
-  Threads. If the Threads call fails, the other posts are unaffected: name the error in
-  the summary.
-3e. Call getScheduledPosts again and confirm each new post is there with the right time
-    and title, draft false, all three networks (tiktok, youtube, facebook) on the main
-    post, its Instagram post beside it, and - for entries with "threads" true - its
-    Threads post.
+  Never claim the code gives a discount, and never add wording to a caption. Never put a
+  quiz video or a long video on Threads.
+3e. Call getScheduledPosts again for D and confirm each new post is there at its time on
+    its network, with draft false.
 3f. Call getScheduledPosts for brandId "7066444" for the day before D (00:00 to 23:59
     America/Chicago). Posts stay in that list after they go out: a network that posted
     shows status "PUBLISHED" under "providers". Name any post where a network shows any
     other status, with its detailedStatus, in the summary so the owner knows it did not go
     out there.
+3g. THE COMING DAYS, BUILT AHEAD (the owner, 2026-10-28: whatever can be made ahead is
+    scheduled ahead). The nightly build makes each day's quiz and On This Day up to 7 days
+    early, in the folder shop-ahead-YYYY-MM-DD. For each day A from D to D + 7 (D itself in
+    case an earlier run missed it; the others from the date command, for example
+    date -u -d "D + 3 days" +%F):
+    - Read it with python3 scripts/cc_store.py cat shop-ahead-A/manifest.json. If that
+      fails (not built yet), or its "ahead_day" is not A, or its "videos" is empty, there
+      is nothing to do for A: go on to the next day.
+    - Check each entry as in 3b (FOLDER is shop-ahead-A).
+    - Call getScheduledPosts for A (00:00 to 23:59 America/Chicago) and skip the posts
+      that exist, exactly as in 3c.
+    - Get its links with ONE command, on its own as in 3d:
+          python3 scripts/cc_store.py links shop-ahead-A
+      and make the remaining posts exactly as in 3d - tiktok, youtube, facebook and
+      instagram, each at the entry's post_at time on that network on day A. These are
+      never about a shop and never go to Threads.
 
 STEP 4 - D'S LONG YOUTUBE VIDEO (Monday to Friday at 3 PM Central).
 If D is a Saturday or a Sunday there is none: go to STEP 5. The long video for D is built
@@ -227,7 +241,7 @@ from the date command above). Read its manifest with:
     "media": [<the video's signed link>],
     "videoThumbnailUrl": <the thumbnail's signed link>,
     "text": <the entry's youtube.description, exactly as given - it carries the chapters,
-             the code line with #EpicPartner, the music credits and Epic's notice>,
+             the code line with #EpicPartner and the music credits>,
     "draft": false,
     "autoPublish": true,
     "youtubeData": {"title": <youtube.title>, "type": "video", "privacy": "public",
@@ -245,16 +259,21 @@ from the date command above). Read its manifest with:
 
 STEP 5 - SUMMARY. Short and plain: D and its weekday, the format used for the script and
 its hook line (or that it was already there), whether the script pushed, for each of D's
-short videos its time, format and the networks it is scheduled on, Threads included (or
-why not), D's long video (title and time) or why a weekday's long video is missing, and
-any of the previous day's posts that did not go out.
+short videos its format and its time on each network (Threads included, or why not), the
+days A of step 3g that got posts (how many) or that nothing new was ready, D's long video
+(title and time) or why a weekday's long video is missing, and any of the previous day's
+posts that did not go out.
 ```
 
 ---
 
 ## Why it posts on its own now
 
-Until 2026-09-23 every post landed as a **draft** that waited for a tap. That day the owner
+Until 2026-09-23 every post landed as a **draft** that waited for a tap. (The drafts still
+in Metricool's calendar on October 1-9 are old quiz posts queued before the five-a-day
+lineup started; the job of that time switched them to drafts so they wouldn't post twice.
+They never go out, and Metricool's connector can't delete them: delete them in Metricool's
+planner, or leave them.) That day the owner
 asked for posting to be fully automatic, so the Routine now schedules with `draft: false`.
 The checks in step 3 are what stand in for a human look: a video that fails any of them
 is skipped, never swapped for another. To go back to drafts, set `"draft": true` in step 3d

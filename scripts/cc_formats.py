@@ -23,6 +23,7 @@ honestly (e.g. fewer than 4 items leaving) -- the slot then falls back.
 
 import random
 import re
+import zlib
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
@@ -34,13 +35,22 @@ from cc_motion import (ACCENT, INK, RARITY, W, H, SAFE_TOP, SAFE_BOTTOM, SAFE_RI
 MIN_SECONDS = 62.0      # over TikTok's 1-minute Creator Rewards bar, with margin
 # The disclosure is the #EpicPartner tag, on screen and in every description, on
 # top of TikTok's "Paid partnership" label (commercialContentThirdParty). The
-# owner dropped the longer "I get a commission..." sentence on 2026-09-23.
+# owner dropped the longer "I get a commission..." sentence on 2026-09-23, and on
+# 2026-10-28 asked for #EpicPartner alone in the posts' words: Epic's fan-content
+# notice left the descriptions for the small print on every video's end card
+# (cc_motion.EPIC_NOTE).
 DISCLOSE = "#EpicPartner"
-CODE_CREDIT = "💚 Creator Code: BAD"
-# Epic's Fan Content Policy asks for this notice on fan content that uses its
-# material (legal.epicgames.com/epicgames/fan-art-policy); every caption carries it.
-EPIC_NOTE = ("Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. "
-             "All rights reserved by Epic. This material is not official and is not endorsed by Epic.")
+# The line each description ends on before its hashtags: code BAD, pushed as hard
+# as RULES.md allows (never "discount", "costs you nothing extra" or commission
+# talk), with the disclosure on it. It changes from post to post so the account
+# doesn't read like one template; a post always gets the same one (code_line).
+CODE_LINES = [
+    "Use code BAD in the Item Shop 💚",
+    "Shopping today? Use code BAD 💚",
+    "Support the channel: use code BAD in the Item Shop 💚",
+    "Support-A-Creator resets every 14 days, so pop BAD back in 💚",
+    "Type BAD in the Support-A-Creator box before you buy 💚",
+]
 # TikTok's API takes captions up to 2,200 UTF-16 units (an emoji counts as 2);
 # YouTube descriptions allow 5,000. Stay under the smaller with room to spare.
 CAPTION_MAX = 2150
@@ -134,9 +144,7 @@ def ig_caption(caption: str) -> str:
 # tag, so Threads gets its own short copy: the hook, as much of the list as
 # fits (from the top, the last line cut at a " · " if that makes it fit; a
 # section heading never left without its lines), the ask, #fortnite first
-# then our three tags, and the code with #EpicPartner and Epic's notice -- the
-# notice drops only if even the bare hook can't fit. The music credit stays
-# off (the tracks are CC0: no credit is owed).
+# then our three tags, and the post's code line with #EpicPartner.
 THREADS_MAX = 500
 THREADS_TAGS = ["fortnite"] + BRAND_TAGS
 
@@ -147,35 +155,34 @@ def _heading(line: str) -> bool:
 
 
 def threads_caption(caption: str) -> str:
-    blocks = [[ln for ln in b.strip().split("\n") if not ln.startswith("🎵")]
-              for b in re.sub(r"#(\d)", r"\1", caption).strip().split("\n\n")]
-    blocks = ["\n".join(b) for b in blocks if b]
-    hook = blocks[0]
-    ask = next((b for b in blocks if b.startswith("💬")), "")
-    body = [b.split("\n") for b in blocks[1:] if not b.startswith(("💬", CODE_CREDIT, "#", EPIC_NOTE[:20]))]
-    note = EPIC_NOTE if EPIC_NOTE in caption else ""
+    """From a description _caption made: hook, body blocks, ask, code line, tags."""
+    blocks = [b.strip() for b in re.sub(r"#(\d)", r"\1", caption).strip().split("\n\n") if b.strip()]
+    if len(blocks) > 1 and blocks[-1].startswith("#"):
+        blocks.pop()                                    # the hashtags: Threads gets its own
+    code = next((b for b in reversed(blocks[1:]) if DISCLOSE in b), "")
+    if code:
+        blocks = blocks[:len(blocks) - blocks[::-1].index(code) - 1]
+    hook, rest = blocks[0], blocks[1:]
+    ask = rest.pop() if rest else ""
+    body = [b.split("\n") for b in rest]
+    code = code or code_line(hook)
     tags = " ".join("#" + t for t in THREADS_TAGS)
 
-    def build(body, with_note):
-        parts = [hook] + ["\n".join(b) for b in body] + ([ask] if ask else [])
-        parts += [tags, f"{CODE_CREDIT} · {DISCLOSE}" + (f"\n{note}" if with_note else "")]
+    def build(body):
+        parts = [hook] + ["\n".join(b) for b in body] + ([ask] if ask else []) + [tags, code]
         return "\n\n".join(parts)
 
-    for with_note in ((True, False) if note else (False,)):
-        left = [list(b) for b in body]
-        while True:
-            text = build(left, with_note)
-            if _u16(text) <= THREADS_MAX:
-                return text
-            if not left:
-                break
-            if " · " in left[-1][-1]:           # "▸ Stella · Outfit · 800" -> "▸ Stella · Outfit"
-                left[-1][-1] = left[-1][-1].rsplit(" · ", 1)[0]
-                continue
-            left[-1].pop()
-            if not left[-1] or (len(left[-1]) == 1 and _heading(left[-1][0])):
-                left.pop()
-    return build([], False)
+    left = [list(b) for b in body]
+    while True:
+        text = build(left)
+        if _u16(text) <= THREADS_MAX or not left:
+            return text
+        if " · " in left[-1][-1]:               # "Stella skin · 800" -> "Stella skin"
+            left[-1][-1] = left[-1][-1].rsplit(" · ", 1)[0]
+            continue
+        left[-1].pop()
+        if not left[-1] or (len(left[-1]) == 1 and _heading(left[-1][0])):
+            left.pop()
 
 
 def hashtag_count(text: str) -> int:
@@ -195,25 +202,41 @@ def num(k: int) -> str:
     return KEYCAPS[k - 1] if 1 <= k <= len(KEYCAPS) else f"{k}."
 
 
+def kind_word(it: dict) -> str:
+    """An item's type the way players say it: "skin" for an outfit, "kicks" for
+    shoes (the game's own word), else Epic's word."""
+    kind = str(it.get("type") or "").strip()
+    return {"Outfit": "skin", "Shoes": "kicks"}.get(kind, kind.lower())
+
+
+def code_line(key: str) -> str:
+    """The post's line selling code BAD, with #EpicPartner: one of CODE_LINES,
+    always the same one for the same key (the post's hook)."""
+    return f"{CODE_LINES[zlib.crc32(key.encode()) % len(CODE_LINES)]} {DISCLOSE}"
+
+
 def _caption(hook: str, body: str, ask: str, tags: list) -> str:
     """Every post's description, one layout for all formats:
 
-        <hook: what it is + the full date>      <- all TikTok shows before "more"
+        <hook: one or two short lines>          <- all TikTok shows before "more"
         <body: short lines, one item per line>
-        💬 <the ask>
-        💚 Creator Code: BAD · #EpicPartner
-        <Epic's fan-content notice>
+        <the ask> 👇
+        <a line selling code BAD> #EpicPartner
         #hashtags
 
-    Blank lines between the blocks. If it's ever too long, whole lines drop from
-    the end of the body -- never the ask, the code, the disclosure or the tags."""
-    ask = ask if ask.startswith("💬") else f"💬 {ask}"
-    foot = f"{CODE_CREDIT} · {DISCLOSE}\n{EPIC_NOTE}\n\n" + " ".join("#" + t for t in tags)
+    Blank lines between the blocks. Written the way a person posts: no music
+    credit (the tracks are CC0, nothing is owed) and no legal notice (it's on the
+    end card). If it's ever too long, whole lines drop from the end of the body
+    -- never the ask, the code line or the tags."""
+    hook = "\n".join(ln for ln in hook.strip().split("\n") if not ln.lstrip().startswith("🎵"))
+    ask = ask.strip().removeprefix("💬").strip()
+    ask = ask if ask.endswith("👇") else f"{ask} 👇"
+    foot = f"{code_line(hook)}\n\n" + " ".join("#" + t for t in tags)
     lines = [ln.rstrip() for ln in body.strip().split("\n")]
 
     def build(ls, cut):
         b = "\n".join(ls) + ("\n…and more in the video 🎥" if cut else "")
-        text = f"{hook.strip()}\n\n{b}\n\n{ask}\n\n{foot}"
+        text = f"{hook}\n\n{b}\n\n{ask}\n\n{foot}"
         return re.sub(r"\n{3,}", "\n\n", text)
 
     text, cut = build(lines, False), False

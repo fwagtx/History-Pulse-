@@ -34,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import cc_end_card as E
 import cc_formats as F
+import cc_post_times as PT
 import cc_safe as S
 import cc_store as STORE
 from cc_common import OUT_DIR, load_config, log, today_stamp, write_json
@@ -296,58 +297,36 @@ def edit_lineup(day: date) -> bool:
     return bool(start) and day >= date.fromisoformat(start)
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--art", help="use PNGs in this folder as stand-in art (offline QA)")
-    ap.add_argument("--preview", action="store_true", help="WebM instead of MP4")
-    ap.add_argument("--only", help="comma-separated formats to build instead of the plan")
-    ap.add_argument("--wait", type=float, default=50, help="minutes to wait for the new shop")
-    ap.add_argument("--shop", help="use this shop.json instead of fetching (QA)")
-    ap.add_argument("--no-video", action="store_true", help="plan + stills only")
-    ap.add_argument("--jobs", type=int, default=0, help="videos to render at once (default: cores/2)")
-    ap.add_argument("--release", help="release tag the videos will live under (default shop-DAY; "
-                                      "a remake of chosen formats uses shop-DAY-remake)")
-    args = ap.parse_args()
+# The day's videos that don't need its shop (the owner, 2026-10-28: post days
+# ahead whatever can be): the planned quiz and On This Day, built AHEAD_DAYS
+# early (cc_nightly.ahead) into shop-ahead-DAY -- "shop-" so the bucket's rule
+# for old shop videos clears them after a week -- and scheduled as soon as
+# they're built. Plan entries only: a slot with nothing planned, or that can't
+# be cut, is left to the night's own build, whose fallbacks use that day's data.
+AHEAD_SLOTS = ("quiz", "on_this_day")
 
-    import json
-    if args.shop:
-        shop = json.loads(Path(args.shop).read_text())
-        day = date.fromisoformat(shop["shop_day"])
-    else:
-        day = date.fromisoformat(today_stamp())
-        shop = fetch_today(day, args.wait)
 
-    out = OUT_DIR / day.isoformat()
-    write_json(out / "shop.json", shop)
-    log(f"Shop {day}: {shop['item_count']} offers, {shop['bundle_count']} bundles")
-
-    only = [s.strip() for s in args.only.split(",")] if args.only else None
-    edit = edit_lineup(day)
-    art = art_fn(args.art)
+def build_ahead(day: date, args):
+    import cc_bootstrap
+    import cc_lineup
+    import cc_plan_keeper
+    out = OUT_DIR / f"shop-ahead-{day.isoformat()}"
     chosen = []
-    if edit:
-        # The five edit-style shorts (cc_lineup.py): real music, emoji captions.
-        import cc_bootstrap
-        import cc_lineup
-        import cc_plan_keeper
-        if cc_bootstrap.ensure_emoji_font():
-            plan = cc_plan_keeper.load_plan(extend_to=day + timedelta(days=45))
-            lineup = cc_lineup.build_day(shop, art, day, plan, only, post_problems)
-            chosen = [({"slot": slot["slot"], "name": slot["name"], "at": slot["at"], "shop": slot["shop"]}, v, safe)
-                      for slot, v, safe in lineup]
-        else:
-            print("::error::the emoji font couldn't be installed; no edit-style shorts today", file=sys.stderr)
-        if not chosen:
-            # Never a day with nothing: the classic three about today's shop.
-            print("::error::the edit lineup made nothing today; falling back to the classic shop videos",
-                  file=sys.stderr)
-            edit = False
-    if not edit:
-        chosen = build_all(shop, art, day, only)
-    if not chosen:
-        raise SystemExit("No video could be built today.")
+    if not cc_bootstrap.ensure_emoji_font():
+        raise SystemExit("The emoji font couldn't be installed; nothing built ahead.")
+    plan = cc_plan_keeper.load_plan(extend_to=day + timedelta(days=45))
+    shop = {"shop_day": day.isoformat(), "items": [], "item_count": 0, "bundle_count": 0}
+    for slot, v, safe in cc_lineup.build_day(shop, art_fn(args.art), day, plan, list(AHEAD_SLOTS),
+                                             post_problems, plan_only=True):
+        chosen.append(({"slot": slot["slot"], "name": slot["name"], "at": slot["at"], "shop": slot["shop"]},
+                       v, safe))
+    log(f"Ahead {day}: {len(chosen)} of {len(AHEAD_SLOTS)} slots made")
+    _finish(day, chosen, True, out, args.release or f"shop-ahead-{day.isoformat()}", args,
+            {"ahead_day": day.isoformat(), "kind": "ahead", "lineup": "edit"})
 
-    tag = args.release or f"shop-{day.isoformat()}"
+
+def _finish(day: date, chosen: list, edit: bool, out: Path, tag: str, args, head: dict):
+    """Render the chosen videos into out/ and write its manifest (head first)."""
     base = STORE.base_url(tag)
     rot = rotation(day)
     ext = "webm" if args.preview else "mp4"
@@ -393,6 +372,8 @@ def main():
             "post_at_local": post.strftime("%Y-%m-%dT%H:%M:%S"),
             "post_at_iso": post.isoformat(timespec="seconds"),       # with offset, for Metricool
             "post_at_utc": post.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            # Its time on each network (cc_post_times: the best hours on each).
+            "post_at": PT.post_at(day, slot["name"], post),
             "title": v.title,
             "yt_title": v.yt_title,
             "caption": v.caption,
@@ -404,8 +385,7 @@ def main():
         })
 
     manifest = {
-        "shop_day": day.isoformat(),
-        "lineup": "edit" if edit else "classic",
+        **head,
         "timezone": "America/Chicago",
         "rotation_utc": rot.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rotation_local": rot.astimezone(LOCAL_TZ).strftime("%Y-%m-%dT%H:%M:%S"),
@@ -417,6 +397,68 @@ def main():
     log(f"Wrote {out / 'manifest.json'} with {len(videos)} videos")
     for v in videos:
         log(f"  {v['post_at_local']}  {v['format']:<14} {v['file']}")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--art", help="use PNGs in this folder as stand-in art (offline QA)")
+    ap.add_argument("--preview", action="store_true", help="WebM instead of MP4")
+    ap.add_argument("--only", help="comma-separated formats to build instead of the plan")
+    ap.add_argument("--wait", type=float, default=50, help="minutes to wait for the new shop")
+    ap.add_argument("--shop", help="use this shop.json instead of fetching (QA)")
+    ap.add_argument("--no-video", action="store_true", help="plan + stills only")
+    ap.add_argument("--jobs", type=int, default=0, help="videos to render at once (default: cores/2)")
+    ap.add_argument("--release", help="release tag the videos will live under (default shop-DAY; "
+                                      "a remake of chosen formats uses shop-DAY-remake)")
+    ap.add_argument("--ahead", metavar="DAY", help="build DAY's quiz and On This Day into out/shop-ahead-DAY, "
+                                                   "to be posted days ahead (cc_nightly.ahead)")
+    ap.add_argument("--skip", help="comma-separated slot names not to build (made ahead already)")
+    args = ap.parse_args()
+
+    import json
+    if args.ahead:
+        return build_ahead(date.fromisoformat(args.ahead), args)
+    if args.shop:
+        shop = json.loads(Path(args.shop).read_text())
+        day = date.fromisoformat(shop["shop_day"])
+    else:
+        day = date.fromisoformat(today_stamp())
+        shop = fetch_today(day, args.wait)
+
+    out = OUT_DIR / day.isoformat()
+    write_json(out / "shop.json", shop)
+    log(f"Shop {day}: {shop['item_count']} offers, {shop['bundle_count']} bundles")
+
+    only = [s.strip() for s in args.only.split(",")] if args.only else None
+    skip = {s.strip() for s in args.skip.split(",") if s.strip()} if args.skip else None
+    edit = edit_lineup(day)
+    art = art_fn(args.art)
+    chosen = []
+    if edit:
+        # The five edit-style shorts (cc_lineup.py): real music, emoji captions.
+        import cc_bootstrap
+        import cc_lineup
+        import cc_plan_keeper
+        if cc_bootstrap.ensure_emoji_font():
+            plan = cc_plan_keeper.load_plan(extend_to=day + timedelta(days=45))
+            lineup = cc_lineup.build_day(shop, art, day, plan, only, post_problems, skip=skip)
+            chosen = [({"slot": slot["slot"], "name": slot["name"], "at": slot["at"], "shop": slot["shop"]}, v, safe)
+                      for slot, v, safe in lineup]
+        else:
+            print("::error::the emoji font couldn't be installed; no edit-style shorts today", file=sys.stderr)
+        if not chosen:
+            # Never a day with nothing: the classic three about today's shop.
+            print("::error::the edit lineup made nothing today; falling back to the classic shop videos",
+                  file=sys.stderr)
+            edit = False
+    if not edit:
+        chosen = build_all(shop, art, day, only)
+    if not chosen:
+        raise SystemExit("No video could be built today.")
+
+    tag = args.release or f"shop-{day.isoformat()}"
+    _finish(day, chosen, edit, out, tag, args,
+            {"shop_day": day.isoformat(), "lineup": "edit" if edit else "classic"})
 
 
 if __name__ == "__main__":

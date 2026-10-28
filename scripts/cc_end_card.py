@@ -19,7 +19,7 @@ import os
 import cc_code_entry as CE
 from cc_common import log
 from cc_motion import (BADGE_H, BADGE_Y, H, SAFE_BOTTOM, SAFE_LEFT, SAFE_RIGHT, W, code_badge,
-                       disclosure)
+                       disclosure, epic_notice)
 
 CODE = "BAD"
 LENGTH = 5.1                # seconds the card adds to a video
@@ -35,6 +35,10 @@ _TOP = BADGE_Y + BADGE_H + 34
 CARD_Y = round((_TOP + SAFE_BOTTOM) / 2 - CE.CARD_H * K / 2)
 FIELD_PX = 76               # the typed code: 50 px on screen, a little bigger than on the 16:9 card
 PILL_SCALE = .8             # SUPPORT-A-CREATOR: BAD, 46 px, fits beside the rail
+# Epic's notice, three lines of small print under the card, clear of the caption
+# zone (y 1420) and inside the column beside the button rail.
+NOTICE_PX = 22
+NOTICE_Y = SAFE_BOTTOM - 14 - round(3 * NOTICE_PX * 1.3)
 
 
 def finish(make, ctx, code: str = CODE):
@@ -89,7 +93,8 @@ def add(video, arts: list, code: str = CODE):
              + CE.confirmation(code, t, cx, cy, PILL_SCALE, True, True)
              # The same corner badge the classic videos carry from frame 0, so the
              # code stays on screen through the card whatever look the video had.
-             + code_badge() + disclosure())
+             + code_badge() + disclosure()
+             + epic_notice(SAFE_LEFT, NOTICE_Y, SAFE_RIGHT - SAFE_LEFT, NOTICE_PX))
     comp.scene(start, comp.duration, f'<div class="full">{inner}</div>', fade_in=FADE, fade_out=.01, z=100)
 
     comp.cue(t["card"], "pop")

@@ -320,6 +320,7 @@ def cut(ctx, entries: list, *, salt: str, title: str, sub: str, tease: str, ask:
     k = plan["k"]
     content_end = u(plan["total"])
     ed = ED.Edit(beat, content_end, ctx.seed)
+    ed.say(.25, ED.spoken(title))                       # the cover's title, out loud
     cam, rnd = ed.cam, ed.rnd
     arts = [ctx.art(e.item) for e in entries]
     names = [" ".join((e.name or e.item.get("name") or "").split()) for e in entries]

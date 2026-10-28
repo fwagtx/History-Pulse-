@@ -160,7 +160,7 @@ def build(ctx: Ctx, **_):
         "edit_back_after", comp,
         title=f"Back After {top:,} Days — Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"Back in the Fortnite Shop After {top:,} Days: {ctx.day_label} #shorts",
-        caption=_caption(f"⏳ BACK AFTER {top:,} DAYS — Fortnite Item Shop, {ctx.day_label}\n"
-                         f"Today's rare returns, by how long they were gone (the Item Shop's own history) 👇"
-                         + CD.credit(comp), body, "Which one were you waiting for?", tags),
+        caption=_caption(f"Back in the Item Shop after {top:,} days 😭\n"
+                         f"Today's longest comebacks ({ctx.day:%B} {ctx.day.day}), by how long each one was gone",
+                         body, "Which one were you waiting for?", tags),
         hashtags=tags)

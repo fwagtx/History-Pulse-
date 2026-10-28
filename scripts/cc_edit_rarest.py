@@ -158,9 +158,9 @@ def build(ctx: Ctx, kind: str = "outfit", **_):
         return (f"{num(k)} {r['item']['name']} · in the Item Shop {times} ({_days(r['days'])} in all)"
                 f" · last seen {r['last']:%b %-d, %Y}")
     body = "\n".join(line(k, r) for k, r in enumerate(picked, 1))
-    head = (f"💎 The rarest {cap} in Fortnite — the fewest separate times in the Item Shop, as of {ctx.day_label}\n"
-            f"Ranked by separate times in the Item Shop (consecutive days count once); ties go to fewer days in "
-            f"the shop, then longer gone. Only {cap} first sold at least a year ago and not in today's shop 👇")
+    head = (f"The rarest {cap} in Fortnite 💎\n"
+            f"Fewest times in the Item Shop as of {ctx.day:%B} {ctx.day.day} (a few days in a row counts once). "
+            f"Only {cap} first sold at least a year ago and not in today's shop")
     tags = _hashtags("rareskins" if kind == "outfit" else f"rare{cap.replace(' ', '')}", "ogfortnite",
                      picked[0]["item"]["name"])
     top = picked[0]
@@ -169,5 +169,5 @@ def build(ctx: Ctx, kind: str = "outfit", **_):
         f"edit_rarest_{kind}", comp,
         title=f"Rarest Fortnite {title_kind}: Fewest Times in the Item Shop — {ctx.day_label}",
         yt_title=f"Rarest Fortnite {title_kind}: Fewest Times in the Item Shop (#1: {once}) #shorts",
-        caption=_caption(head + CD.credit(comp), body, "Do you own any of these?", tags),
+        caption=_caption(head, body, "Do you own any of these?", tags),
         hashtags=tags)

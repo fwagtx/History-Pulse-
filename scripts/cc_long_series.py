@@ -758,9 +758,8 @@ def describe(out: dict, day: date) -> dict:
               "🔔 A new video every weekday.", ""]
     if credits:
         lines += [f"🎵 Music (public domain, CC0): {credits}", ""]
-    lines += ["Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights "
-              "reserved by Epic. This material is not official and is not endorsed by Epic.", "",
-              "#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite"]
+    # Epic's fan-content notice is on the video's end card (cc_long.end_card).
+    lines += ["#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite"]
     desc = "\n".join(lines).strip()
     if len(desc) > 4900:
         desc = desc[:4900].rsplit("\n", 1)[0]

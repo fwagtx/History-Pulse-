@@ -5,10 +5,12 @@ same picks, facts and truth rules as the classic cc_fmt_shop_recap.
 
     build(ctx)
 
-  cover   frame 0: "today's item shop 🛒" in the white box, the day huge in
-          outline top right ("sep 23"), three of the day's standout items on
-          tiles with their prices, "N offers in the shop today"; a bar later
-          "here's what's worth knowing 👀"
+  cover   frame 0: "this is today's item shop 🛒" in the white box, the day
+          huge in outline top right ("sep 23"), three of the day's standout
+          items on tiles with their prices, "N offers in the shop today"; a bar
+          later "here's what's in it 👀". From the first beat a voice says
+          "This is today's Item Shop for September 23rd" (the owner's opening,
+          2026-10-28: the first three seconds decide whether people stay)
   bundle  (when the shop has one) the classic's headline bundle, on
           on_this_day's screen: when Epic lists a regular price above today's,
           the regular price huge in white, struck through on the beat, then
@@ -43,7 +45,7 @@ from datetime import date
 import cc_edit as ED
 from cc_edit_on_this_day import _em, _grid, _name_fit
 from cc_fmt_shop_recap import _clean_name, _facts, _headline_bundle, _pick_items
-from cc_formats import BRAND_TAGS, Ctx, Video, _caption, _hashtags, singles
+from cc_formats import BRAND_TAGS, Ctx, Video, _caption, _hashtags, kind_word, singles
 from cc_motion import FPS, H, esc, trim_for
 
 MIN_CONTENT = 57.0              # + the 5.1 s end card = 62.1 s
@@ -324,7 +326,8 @@ def build(ctx: Ctx, **_):
     # ------------------------------------------------------------ cover
     t1 = u(plan["hook"])
     t_half = u(plan["hook"] // 2)
-    title = "today's item shop 🛒"
+    title = "this is today's item shop 🛒"
+    ed.say(.25, f"This is today's Item Shop for {ctx.day:%B} {ED.ordinal(ctx.day.day)}!")
     tsize = min(86.0, 940 / _em(title))
     title_y = 530
     over = ED.caption(title, 540, title_y, tsize, -1, width=960, rot=-1.5)
@@ -346,7 +349,7 @@ def build(ctx: Ctx, **_):
     ed.scene(0, t1, ED.canvas(first, ED.tile_colors(lead[0]), 1.0, .55) + tiles)
     over += ED.caption(f"{offers} offers in the shop today", MID, 1318, 42, -1, t_half - FRAME, style="dark",
                        weight=700, width=840)
-    over += ED.caption("here's what's worth knowing 👀", MID, 1314, 50, t_half, width=840, rot=2)
+    over += ED.caption("here's what's in it 👀", MID, 1314, 50, t_half, width=840, rot=2)
     ed.over(0, t1, over)
     cam.push(0, t1, 1.0, 1.05, 480, 1030)
     cam.punch(t_half, .06)
@@ -494,49 +497,36 @@ def build(ctx: Ctx, **_):
 # ------------------------------------------------------------------ the post
 
 def _post(ctx: Ctx, comp, head: dict | None, items: list, offers: int) -> Video:
-    """The classic's own words for the post (cc_fmt_shop_recap.build), for what
-    this video shows, with the music credit the edits add."""
-    lines = []
+    """The post's words for what this video shows, the way a person would write
+    them: the opening the video speaks, the bundle, then one short line per item
+    with the facts the classic shows (cc_fmt_shop_recap): its price, OG (from
+    Chapter 1), new today, last day (leaves at the next reset)."""
+    lead = f"{offers} offers in the shop today"
+    deal = bool(head and head.get("discounted") and head["regular_price"] > head["price"])
     if head:
         hname = head.get("section") or _clean_name(head["name"])
         hsize = int(head.get("bundle_size") or 0)
-        if head.get("discounted") and head["regular_price"] > head["price"]:
-            lines += [f"🔥 BUNDLE DEAL: {hname} ({hsize} items)",
-                      f"{head['price']:,} V-Bucks today · regular {head['regular_price']:,} · "
-                      f"you save {head['regular_price'] - head['price']:,}", ""]
-        else:
-            lines += [f"🎁 BUNDLE: {hname} ({hsize} items) · {head['price']:,} V-Bucks", ""]
-    lines.append("⭐ STANDOUT ITEMS")
-    new_today = leaving = False
+        size = f" ({hsize} items)" if hsize else ""
+        lead = (f"The {hname} bundle{size} is {head['price']:,} V-Bucks today, normally {head['regular_price']:,} 👀"
+                if deal else f"The {hname} bundle{size} is in for {head['price']:,} V-Bucks")
+    lines = []
     for it in items:
-        s = f"▸ {it['name']} · {it['rarity_label']} {it['type']} · {it['price']:,}"
-        intro = it.get("introduction") or {}
-        ch, se = str(intro.get("chapter") or ""), str(intro.get("season") or "")
-        if ch in ("1", "2"):
-            s += (" · OG" if ch == "1" else " ·") + f" Ch{ch}" + (f" S{se}" if se else "")
+        notes = []
+        if str((it.get("introduction") or {}).get("chapter") or "") == "1":
+            notes.append("OG")
         if it.get("in_day") == ctx.day.isoformat():
-            s += " 🆕"
-            new_today = True
+            notes.append("new")
         if any(k == "leaves" for k, _ in _facts(it, ctx)):
-            s += " ⏰"
-            leaving = True
-        lines.append(s)
-    legend = "Prices in V-Bucks."
-    if new_today:
-        legend += " 🆕 = new today."
-    if leaving:
-        legend += f" ⏰ = leaves at the next reset ({ctx.reset_et})."
-    lines += ["", legend]
+            notes.append("last day")
+        lines.append(f"{it['name']} {kind_word(it)} · {it['price']:,}" + (f" · {', '.join(notes)}" if notes else ""))
 
     names = ([head.get("section") or _clean_name(head["name"])] if head else []) + [i["name"] for i in items]
     tags = _hashtags("itemshoptoday", *names)
     tags = BRAND_TAGS + [t for t in tags if t not in BRAND_TAGS]      # brand tags always lead
-    music = comp.music or {}
-    credit = (f"\n🎵 {music['title']} by {music['artist']} (public domain, CC0)" if music.get("artist") else "")
 
     title = f"Today's Fortnite Item Shop — {ctx.day_label}"
-    yt = f"Fortnite Item Shop Today ({ctx.day_label}): Everything Worth Knowing #shorts"
-    if head and head.get("discounted") and head["regular_price"] > head["price"]:
+    yt = f"Today's Fortnite Item Shop: {ctx.day_label} #shorts"
+    if deal:
         cand = (f"Fortnite Item Shop {ctx.day_label}: {head.get('section') or _clean_name(head['name'])} "
                 f"Bundle Saves {head['regular_price'] - head['price']:,} V-Bucks #shorts")
         if len(cand) <= 100:
@@ -545,7 +535,6 @@ def _post(ctx: Ctx, comp, head: dict | None, items: list, offers: int) -> Video:
         "edit_shop_recap", comp,
         title=title[:60],
         yt_title=yt,
-        caption=_caption(f"🛒 FORTNITE ITEM SHOP — {ctx.day_label}\n"
-                         f"{offers} offers today. Here's everything worth knowing 👇" + credit,
-                         "\n".join(lines), "What are you buying?", tags),
+        caption=_caption(f"This is today's Item Shop for {ctx.day:%B} {ctx.day.day} 🛒\n{lead}",
+                         "\n".join(lines), "What are you grabbing?", tags),
         hashtags=tags)

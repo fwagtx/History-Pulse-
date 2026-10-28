@@ -42,7 +42,7 @@ import random
 
 import cc_edit_countdown as CD
 from cc_fmt_last_chance import MIN_OFFERS, _leaving, _members, _meta, _pick, _regular, _shown_name, _since
-from cc_formats import BRAND_TAGS, Ctx, Video, _caption, _hashtags
+from cc_formats import BRAND_TAGS, Ctx, Video, _caption, _hashtags, kind_word
 
 COUNT = 5
 
@@ -118,17 +118,17 @@ def build(ctx: Ctx, **_):
     def line(it):
         if it.get("is_bundle"):
             bn = int(it.get("bundle_size") or 0) or len(_members(it))
-            s = f"🔥 {_shown_name(it)} bundle ({bn} items) · {int(it['price']):,}"
+            s = f"{_shown_name(it)} bundle ({bn} items) · {int(it['price']):,}"
             reg = _regular(it)
-            return s + (f" (regular {reg:,})" if reg else "")
-        s = f"▸ {it['name']} · {it.get('rarity_label') or it['rarity']} {it['type']} · {int(it['price']):,}"
-        return s + (" 🆕" if it.get("in_day") == ctx.day.isoformat() else "")
+            return s + (f", normally {reg:,}" if reg else "")
+        s = f"{it['name']} {kind_word(it)} · {int(it['price']):,}"
+        return s + (" · new today" if it.get("in_day") == ctx.day.isoformat() else "")
 
     n = len(shown)
-    head = (f"⏰ LAST CHANCE — Fortnite Item Shop, {ctx.day_label}\n"
-            f"These leave the shop at the next reset ({ctx.reset_et}) 👇" + CD.credit(comp))
-    tail = (f"{len(leaving)} offers leave at this reset; these are {n} of them, priciest first. Prices in V-Bucks."
-            + (" 🆕 = added today." if any(i.get("in_day") == ctx.day.isoformat() for i in shown) else ""))
+    head = (f"Last chance ⏰ these leave the Item Shop tonight at {ctx.reset_et}\n"
+            f"Fortnite Item Shop, {ctx.day:%B} {ctx.day.day}")
+    tail = f"{len(leaving)} offers leave at this reset. Here are {n} of them, priciest first (prices in V-Bucks)."
+
     tags = _hashtags("lastchance", *[_shown_name(i) for i in shown])
     tags = BRAND_TAGS + [t for t in tags if t not in BRAND_TAGS]      # brand tags always lead
     caption = _caption(head, "\n".join(line(i) for i in shown) + "\n\n" + tail, "Which one are you grabbing?", tags)

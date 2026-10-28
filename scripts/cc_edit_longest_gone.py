@@ -126,13 +126,12 @@ def build(ctx: Ctx, kind: str = "outfit", **_):
     title_kind = cap.title() if kind != "backpack" else "Back Blings"
     body = "\n".join(f"{num(k)} {r['item']['name']} · last in the Item Shop {r['last']:%b %-d, %Y} ({r['days']:,} days)"
                      for k, r in enumerate(picked, 1))
-    head = (f"⏳ Gone the longest — the {cap} gone from the Item Shop the longest, as of {ctx.day_label}\n"
-            f"Ranked by days since each was last in the Item Shop, from the Item Shop's own history; "
-            f"a set that left together counts once 👇")
+    head = (f"The {cap} gone from the Item Shop the longest 😭\n"
+            f"Days since each was last in the shop, as of {ctx.day:%B} {ctx.day.day}. A set that left together counts once")
     tags = _hashtags("rareskins", "ogfortnite", picked[0]["item"]["name"])
     return Video(
         f"edit_longest_gone_{kind}", comp,
         title=f"Fortnite {title_kind} Gone the Longest From the Item Shop — {ctx.day_label}",
         yt_title=f"Fortnite {title_kind} Gone the Longest: #1 Last in the Item Shop {picked[0]['days']:,} Days Ago #shorts",
-        caption=_caption(head + CD.credit(comp), body, "Which one do you want back?", tags),
+        caption=_caption(head, body, "Which one do you want back?", tags),
         hashtags=tags)
