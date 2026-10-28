@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-11-11",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-11/",
+ "checked_at": "2026-10-28T01:03:22+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-28-cover.png": 591230,
+  "bad-quiz-long-2026-10-28-qa.jpg": 204773,
+  "bad-quiz-long-2026-10-28.mp4": 107100166,
+  "manifest.json": 4311
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-11",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-11",
+  "generated_utc": "2026-10-28T01:03:14Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-28",
+    "series": "season",
+    "topic": "Chapter 5, Season 3",
+    "file": "bad-quiz-long-2026-10-28.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-11/bad-quiz-long-2026-10-28.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-28-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-11/bad-quiz-long-2026-10-28-cover.png",
+    "duration": 490.96,
+    "post_at_local": "2026-10-28T15:00:00",
+    "post_at_iso": "2026-10-28T15:00:00-05:00",
+    "post_at_utc": "2026-10-28T20:00:00Z",
+    "youtube": {
+     "title": "The 24 Rarest Chapter 5, Season 3 Item Shop Skins: Where Are They Now? (Fortnite)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 28, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:22 #24 Nick Eh 30\n1:36 #20 Boss Obsidian\n4:41 #10 Rosy Rift Goddess Ariana\n6:09 #5 Puppet Master Robert\n7:29 #1 Scrapper Kyle\n7:48 Outro\n\nThe list\n#1 Scrapper Kyle\n#2 Andromeda\n#3 Drakon Steel Rider\n#4 Android 17\n#5 Puppet Master Robert\n#6 IG-11\n#7 Champion Sparkplug\n#8 Weapon X\n#9 Jack Sparrow\n#10 Rosy Rift Goddess Ariana\n#11 The Employee\n#12 Colossus\n#13 Blair\n#14 Davy Jones\n#15 Chill Challenger\n#16 Katalina\n#17 Joey Caliente\n#18 Safety First Steve\n#19 Saskia\n#20 Boss Obsidian\n#21 Signal\n#22 Wolverine (Pen & Ink)\n#23 Deadpool (Pen & Ink)\n#24 Nick Eh 30\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Together to play !\" by Komiku; \"I'M ON FIRE\" by Loyalty Freak Music; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"A story that's never been told\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"The Tears\" by Loyalty Freak Music; \"Action2 - Army Approaching\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Level 3\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite chapter 5 season 3",
+      "fortnite season skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Scrapper Kyle",
+      "Andromeda",
+      "Drakon Steel Rider",
+      "Android 17",
+      "Puppet Master Robert",
+      "IG-11",
+      "Champion Sparkplug",
+      "Weapon X"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      22.17,
+      "#24 Nick Eh 30"
+     ],
+     [
+      96.32,
+      "#20 Boss Obsidian"
+     ],
+     [
+      281.5,
+      "#10 Rosy Rift Goddess Ariana"
+     ],
+     [
+      369.83,
+      "#5 Puppet Master Robert"
+     ],
+     [
+      449.84,
+      "#1 Scrapper Kyle"
+     ],
+     [
+      468.75,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-together-to-play",
+     "loyalty-freak-music-i-m-on-fire",
+     "juhani-junkala-town3-sunshine-coast",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-the-tears",
+     "juhani-junkala-action2-army-approaching",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "juhani-junkala-level-3"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
