@@ -653,47 +653,10 @@ def track_audio(track: dict, duration: float, seed: int) -> np.ndarray:
     return bed
 
 
-VOICE_SPEED = 1.12      # a little quicker than the long videos' narrator: it's a hook
-VOICE_LUFS = -14.0      # just over the music (-15), which dips under it besides
-VOICE_DUCK = .65        # how far the music dips while the voice speaks (about 9 dB)
-
-
-def _voice(comp) -> np.ndarray | None:
-    """comp.voice's lines in the long videos' free voice (cc_voice), each at its
-    time on one mono track; None when there are none, or when the voice can't be
-    made here -- the video then goes out with its music alone."""
-    lines = getattr(comp, "voice", None) or []
-    if not lines:
-        return None
-    n = int(comp.duration * SR)
-    try:
-        import cc_bootstrap as B
-        from cc_common import OUT_DIR
-        if not B.ensure_tts():
-            raise RuntimeError("couldn't install kokoro-onnx")
-        import cc_voice as V
-        out = np.zeros(n)
-        spoken = V.say([text for _, text in lines], OUT_DIR / "_voice" / "lines", speed=VOICE_SPEED)
-        for (t, _), (wav, _) in zip(lines, spoken):
-            x, sr = V.read(wav)
-            if sr != SR:
-                x = np.interp(np.linspace(0, len(x) - 1, int(len(x) * SR / sr)), np.arange(len(x)), x)
-            a = int(t * SR)
-            b = min(n, a + len(x))
-            if a < b:
-                out[a:b] += x[:b - a]
-        return out if np.any(out) else None
-    except Exception as e:  # noqa: BLE001 - a missing voice must never cost the video
-        print(f"  voice left off: {e!r}"[:300], flush=True)
-        return None
-
-
-def mix_track(duration: float, cues: list, track: dict, seed: int, music_lufs: float = -15.0,
-              voice: np.ndarray | None = None) -> np.ndarray:
+def mix_track(duration: float, cues: list, track: dict, seed: int, music_lufs: float = -15.0) -> np.ndarray:
     """An edit's soundtrack: the track at a steady loudness, the effects on top
-    (EDIT_GAINS), the music dipping under the big hits (DUCK) and under the
-    voice when there is one (_voice), then the whole mix brought to LUFS and
-    peak-limited to -1.5 dBFS."""
+    (EDIT_GAINS), the music dipping under the big hits (DUCK), then the whole
+    mix brought to LUFS and peak-limited to -1.5 dBFS."""
     n = int(duration * SR)
     bed = track_audio(track, duration, seed)[:n]
     bed *= 10 ** ((music_lufs - loudness(bed)) / 20)
@@ -716,16 +679,7 @@ def mix_track(duration: float, cues: list, track: dict, seed: int, music_lufs: f
             tt = np.arange(m) / SR
             env = 1 - depth * np.minimum(1, tt / .008) * np.exp(-np.maximum(tt - .08, 0) / .18)
             duck[s:s + m] = np.minimum(duck[s:s + m], env)
-    said = np.zeros(n)
-    if voice is not None:
-        said[:min(n, len(voice))] = voice[:n]
-        said *= 10 ** ((VOICE_LUFS - loudness(said)) / 20)
-        k = int(.05 * SR)
-        env = np.convolve(np.abs(said), np.ones(k) / k, mode="same")
-        k = int(.3 * SR)
-        active = np.convolve((env > .01).astype(float), np.ones(k) / k, mode="same")
-        duck *= 1 - VOICE_DUCK * np.clip(active * 3, 0, 1)
-    out = bed * duck[:, None] + fx + said[:, None]
+    out = bed * duck[:, None] + fx
     out *= 10 ** ((LUFS - loudness(out)) / 20)
     # -1.5 dBFS: AAC encoding adds up to about half a dB to the peaks.
     return limit(out, .84)
@@ -748,7 +702,7 @@ def soundtrack(comp, seed: int, path: Path) -> Path:
     effects; every other comp gets the synthesized bed, exactly as before."""
     track = getattr(comp, "music", None)
     if track:
-        return write_wav(mix_track(comp.duration, comp.cues, track, seed, voice=_voice(comp)), path)
+        return write_wav(mix_track(comp.duration, comp.cues, track, seed), path)
     return write_wav(mix(comp.duration, comp.cues, seed), path)
 
 

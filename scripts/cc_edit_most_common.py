@@ -136,7 +136,6 @@ def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int =
     ed.scene(0, t_items, ED.canvas(first_id, ED.tile_colors(rows[0]["item"]), 1.0, .55) + hook_tiles)
     title = (f"the most common {cap} in fortnite 😭" if not period["start"] else
              f"the most common {cap} in fortnite {period['short'].lower()} 😭")
-    ed.say(.25, ED.spoken(title))
     ed.over(0, t_items,
             ED.caption(title, 540, 528, 72, -1, width=940, weight=800, rot=-1.5)
             + ED.caption("ranked by times in the item shop 🛒", 480, 726, 36, -1, u(4), style="dark",
@@ -265,17 +264,19 @@ def build(ctx: Ctx, kind: str = "outfit", since: int | None = None, count: int =
         f"{num(i)} {r['item']['name']} · in the Item Shop {r['times']:,} times{per}"
         f" · last seen {r['last']:%b %-d, %Y}" for i, r in enumerate(rows, 1))
     ties = any(r.get("tied") for r in rows)
-    span_words = (f" {period['short'].lower()}, up to {ctx.day:%B} {ctx.day.day}" if period["start"]
-                  else f", as of {ctx.day:%B} {ctx.day.day}")
-    head = (f"The {cap} that keep coming back 🔁\n"
-            f"Most times in the Fortnite Item Shop{span_words}. A few days in a row counts once"
-            + ("; ties go to more days in the shop" if ties else ""))
+    how = ("Ranked by separate times in the Item Shop (consecutive days count once"
+           + ("; ties go to more days in the shop" if ties else "") + ") 👇")
+    when = f"as of {ctx.day_label}" if not period["start"] else f"{period['start']:%b %-d, %Y} – {ctx.day:%b %-d, %Y}"
+    head = (f"🔁 The most common {cap} in Fortnite {period['short'].lower() or ''}".rstrip()
+            + f" — the {cap} that have been in the Item Shop the most times, {when}\n{how}")
     tags = _hashtags("mostcommonskins" if kind == "outfit" else f"fortnite{cap.replace(' ', '')}",
                      "fortniteskins", top["item"]["name"])
     span = f" {period['short'].title()}" if period["start"] else ""
+    music = comp.music or {}
+    credit = (f"\n🎵 {music['title']} by {music['artist']} (public domain, CC0)" if music.get("artist") else "")
     return Video(
         f"edit_most_common_{kind}{'_' + str(since) if since else ''}", comp,
         title=f"The Most Common Fortnite {title_kind}{span} — Item Shop History, {ctx.day_label}",
         yt_title=f"The Most Common Fortnite {title_kind}{span}: #1 Was in the Item Shop {top['times']:,} Times #shorts",
-        caption=_caption(head, body, "How many of these do you own?", tags),
+        caption=_caption(head + credit, body, "How many of these do you own?", tags),
         hashtags=tags)

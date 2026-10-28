@@ -43,7 +43,7 @@ import re
 
 import cc_edit_countdown as CD
 from cc_fmt_og_check import _order, _pick, _season
-from cc_formats import Ctx, Video, _caption, _hashtags, kind_word, num, singles
+from cc_formats import Ctx, Video, _caption, _hashtags, num, singles
 
 COUNT = 5
 
@@ -113,14 +113,14 @@ def build(ctx: Ctx, **_):
     # ------------------------------------------------------------ the post (the classic's lines)
     oldest = shown[0]
     # Epic's own wording, as written: "Chapter 1, Season 3", "Chapter 4, Season OG".
-    body = "\n".join(f"{num(k)} {it['name']} {kind_word(it)} · {_said(it)} · {int(it['price']):,} V-Bucks"
+    body = "\n".join(f"{num(k)} {it['name']} · {it['type']} · {_said(it)} · {int(it['price']):,} V-Bucks"
                      for k, it in enumerate(shown, 1))
     tags = _hashtags("ogfortnite", "ogcheck", oldest["name"])
     return Video(
         "edit_og_check", comp,
         title=f"OG Check — Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"The Oldest Items in Today's Fortnite Shop: {ctx.day_label} #shorts",
-        caption=_caption(f"How old is today's Item Shop? 👴\n"
-                         f"The oldest stuff in the shop on {ctx.day:%B} {ctx.day.day}, by the season Epic says each came out",
-                         body, "How OG is your locker?", tags),
+        caption=_caption(f"👴 OG CHECK — Fortnite Item Shop, {ctx.day_label}\n"
+                         f"The oldest items in today's shop, by the season Epic says each came out in 👇"
+                         + CD.credit(comp), body, "How OG is your locker? Tell us below", tags),
         hashtags=tags)

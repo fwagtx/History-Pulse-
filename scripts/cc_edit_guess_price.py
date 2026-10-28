@@ -35,7 +35,7 @@ import math
 
 import cc_edit as ED
 from cc_fmt_guess_price import _leaves_today, _pick
-from cc_formats import Ctx, Video, _caption, _hashtags, kind_word, num, singles
+from cc_formats import Ctx, Video, _caption, _hashtags, num, singles
 from cc_motion import FPS, trim_for
 
 MIN_CONTENT = 57.0              # + the 5.1 s end card = 62.1 s
@@ -207,7 +207,6 @@ def build(ctx: Ctx, **_):
         return None
     nq, nr = PLAN[k]
     ed = ED.Edit(beat, content_end, ctx.seed)
-    ed.say(.25, "Can you guess what these cost in today's Item Shop?")
     cam, rnd = ed.cam, ed.rnd
     rows = [dict(it, _leaves=_leaves_today(ctx, it)) for it in items]      # the classic's own leaving test
     choices = _choices(rows, levels, rnd)
@@ -396,13 +395,15 @@ def build(ctx: Ctx, **_):
     comp = ed.finish()
 
     # ------------------------------------------------------------ the post: the classic's words, no prices
-    body = "\n".join(f"{num(i)} {it['name']} ({kind_word(it)})" for i, it in enumerate(items, 1))
+    body = "\n".join(f"{num(i)} {it['name']} · {it['type']}" for i, it in enumerate(items, 1))
     tags = _hashtags("guesstheprice", *(it["name"] for it in items[:2]))
+    music = comp.music or {}
+    credit = (f"\n🎵 {music['title']} by {music['artist']} (public domain, CC0)" if music.get("artist") else "")
     return Video(
         "edit_guess_price", comp,
         title=f"Guess the Price — Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"Guess the Price: Fortnite Item Shop {ctx.day_label} #shorts",
-        caption=_caption(f"Bet you can't guess what these cost 💸\n"
-                         f"{n} items from today's Item Shop ({ctx.day:%B} {ctx.day.day}). Pick A, B or C before the reveal",
-                         body, f"Comment your score out of {n}", tags),
+        caption=_caption(f"💸 GUESS THE PRICE — Fortnite Item Shop, {ctx.day_label}\n"
+                         f"{n} items from today's shop. Pick A, B or C, then watch the reveal 👇" + credit,
+                         body, f"How many did you get out of {n}? Comment your score", tags),
         hashtags=tags)

@@ -221,8 +221,6 @@ def on_this_day(ctx, rounds: list, bday: dict | None, lead: list, third) -> Comp
     K = plan["k"]
     content_end = u(plan["total"])
     ed = ED.Edit(beat, content_end, ctx.seed)
-    ed.say(.25, f"Fortnite turns {bday['age']} today! Here's the Item Shop on this day, every year." if bday else
-           f"Here's the Item Shop on {day:%B} {ED.ordinal(day.day)}, every year since {years[0]}!")
     cam, rnd = ed.cam, ed.rnd
 
     def tile_for(it, x, y, w, h, fig=.95, **kw):

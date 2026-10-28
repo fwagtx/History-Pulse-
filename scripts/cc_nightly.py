@@ -1,19 +1,17 @@
 """The nightly build, run in a scheduled Claude session instead of GitHub
 Actions: today's shop videos, the quiz day two weeks out (with that day's long
-video), and the coming week's quiz and On This Day (ahead), each published to
-its folder in the R2 bucket (cc_store) that Metricool picks the videos up from.
-A step that's already published is skipped, so the same run can be fired again
-after a failure or a lagging shop.
+video), each published to its folder in the R2 bucket (cc_store) that Metricool
+picks the videos up from. A step that's already published is skipped, so the
+same run can be fired again after a failure or a lagging shop.
 
 Each published folder is then checked file by file in the bucket and a copy of
 its manifest and file list is committed to creator-code/published/<tag>.json,
 for the 7 AM Routine, which reads without the bucket's keys. Every run leaves
 its outcome in the bucket at _status/nightly.json (and its log beside it).
 
-    python3 scripts/cc_nightly.py                 # shop + quiz + ahead, whatever isn't out yet
+    python3 scripts/cc_nightly.py                 # shop + quiz, whatever isn't out yet
     python3 scripts/cc_nightly.py shop            # just today's shop videos
     python3 scripts/cc_nightly.py quiz [DAY]      # just a quiz day (default: 14 days out)
-    python3 scripts/cc_nightly.py ahead [DAY]     # the quiz + On This Day of the 7 days after DAY (default today)
     python3 scripts/cc_nightly.py records         # refresh the records' copy in the bucket
     python3 scripts/cc_nightly.py music DIR       # put a music library (catalog.json + mp3s) in the bucket
 
@@ -33,28 +31,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cc_bootstrap  # noqa: E402
 import cc_store as STORE  # noqa: E402
-from cc_common import CC_DIR, OUT_DIR, ROOT, log  # noqa: E402
+from cc_common import OUT_DIR, ROOT, log  # noqa: E402
 
 BRANCH = "claude/creator-code-bad-automation-0jjc1k"
 
 SHOP_FILES = ("bad-*.mp4", "bad-*-cover.png", "bad-*-qa.jpg", "manifest.json")
 QUIZ_FILES = ("bad-quiz-*.mp4", "bad-quiz-*-cover.png", "bad-quiz-*-qa.jpg", "manifest.json")
-# The days after today whose quiz and On This Day are built ahead (cc_build.py
-# --ahead), so the posting job can schedule them days early (the owner,
-# 2026-10-28); a run builds at most AHEAD_PER_RUN of them, after the shop and the
-# long video, so a first night's backlog spreads over the night's runs.
-AHEAD_DAYS = 7
-AHEAD_PER_RUN = 2
-
-
-def _ahead_on() -> bool:
-    """Whether days are built ahead at all (creator-code/ahead.json): only once the
-    posting routines run the prompt with step 3g, or those videos would be built
-    and never posted."""
-    try:
-        return bool(json.loads((CC_DIR / "ahead.json").read_text()).get("enabled"))
-    except (OSError, ValueError):
-        return False
 
 
 def _reachable(url: str) -> bool:
@@ -184,25 +166,6 @@ def _run(args: list, timeout: int) -> int:
         return 124
 
 
-def _ahead_tag(day: date) -> str:
-    return f"shop-ahead-{day.isoformat()}"
-
-
-def _made_ahead(day: date) -> list:
-    """The slots of day already published ahead (ahead()), not to build again:
-    from the repo's copy, which outlives the bucket's (cleared after a week)."""
-    if not _ahead_on():
-        return []
-    tag = _ahead_tag(day)
-    man = STORE._published(tag).get("manifest")
-    try:
-        if man is None and STORE.exists(f"{tag}/manifest.json"):
-            man = json.loads(STORE.get(f"{tag}/manifest.json"))
-    except Exception as e:  # noqa: BLE001 - then the shop build makes every slot, as before
-        log(f"{tag}: couldn't read its manifest ({e!r}); building every slot"[:300])
-    return sorted({v["slot_name"] for v in (man or {}).get("videos", [])})
-
-
 def shop(day: date | None = None) -> bool:
     day = day or _utc_today()
     tag = f"shop-{day.isoformat()}"
@@ -210,11 +173,7 @@ def shop(day: date | None = None) -> bool:
         return _already(tag)
     out = OUT_DIR / day.isoformat()
     shutil.rmtree(out, ignore_errors=True)
-    skip = _made_ahead(day)
-    if skip:
-        log(f"{tag}: {', '.join(skip)} already built ahead")
-    args = ["scripts/cc_build.py", "--wait", "50"] + (["--skip", ",".join(skip)] if skip else [])
-    if _run(args, timeout=150 * 60) != 0 or not (out / "manifest.json").exists():
+    if _run(["scripts/cc_build.py", "--wait", "50"], timeout=150 * 60) != 0 or not (out / "manifest.json").exists():
         log(f"{tag}: the build failed (a shop that hasn't rotated yet gets retried by the next run)")
         return False
     return publish(out, tag, SHOP_FILES)
@@ -234,39 +193,6 @@ def quiz(day: date | None = None) -> bool:
         log(f"{tag}: nothing planned for that day")
         return True
     return publish(out, tag, QUIZ_FILES)
-
-
-def ahead(today: date | None = None) -> bool:
-    """The quiz and On This Day of the AHEAD_DAYS days after today, each day built
-    (cc_build.py --ahead) and published to shop-ahead-YYYY-MM-DD; a day already
-    out (its repo copy) is skipped, and a day with nothing planned is published
-    empty so it isn't retried (its night's own build makes those slots)."""
-    if not _ahead_on():
-        log("ahead: off (creator-code/ahead.json)")
-        return True
-    today = today or _utc_today()
-    ok, built = True, 0
-    for k in range(1, AHEAD_DAYS + 1):
-        day = today + timedelta(days=k)
-        tag = _ahead_tag(day)
-        if (STORE.PUBLISHED / f"{tag}.json").exists():
-            continue
-        if STORE.exists(f"{tag}/manifest.json"):
-            ok = _already(tag) and ok
-            continue
-        if built >= AHEAD_PER_RUN:
-            log(f"{tag}: left for the next run")
-            continue
-        built += 1
-        out = OUT_DIR / tag
-        shutil.rmtree(out, ignore_errors=True)
-        if _run(["scripts/cc_build.py", "--ahead", day.isoformat()], timeout=60 * 60) != 0 \
-                or not (out / "manifest.json").exists():
-            log(f"{tag}: the build failed")
-            ok = False
-            continue
-        ok = publish(out, tag, SHOP_FILES) and ok
-    return ok
 
 
 def records() -> bool:
@@ -305,24 +231,22 @@ def main(argv: list) -> int:
               "(creator-code/storage.json \"use\": \"github\"). See creator-code/AUTOMATION.md.", flush=True)
         return 0
     t0 = time.time()
-    if what in ("all", "shop", "quiz", "ahead"):
+    if what in ("all", "shop", "quiz"):
         # A fresh workspace has none of the render tools: set them up first, so
         # the status says whether they work even on a night nothing can be built.
         NOTES["setup"] = cc_bootstrap.ensure_build_tools()
         log("build tools: " + ("ready" if not NOTES["setup"] else "; ".join(NOTES["setup"])))
-    problems = preflight() if what in ("all", "shop", "quiz", "ahead", "records") else STORE.check()
+    problems = preflight() if what in ("all", "shop", "quiz", "records") else STORE.check()
     problems += NOTES.get("setup", [])
     if problems:
         print("Not building:\n  " + "\n  ".join(problems), flush=True)
-        if what in ("all", "shop", "quiz", "ahead"):
+        if what in ("all", "shop", "quiz"):
             status(what, False, problems, t0)
         return 2
     if what == "shop":
         ok = shop(date.fromisoformat(argv[2]) if len(argv) > 2 else None)
     elif what == "quiz":
         ok = quiz(date.fromisoformat(argv[2]) if len(argv) > 2 else None)
-    elif what == "ahead":
-        ok = ahead(date.fromisoformat(argv[2]) if len(argv) > 2 else None)
     elif what == "records":
         ok = records()
     elif what == "music":
@@ -330,12 +254,11 @@ def main(argv: list) -> int:
     elif what == "all":
         ok = shop()
         ok = quiz() and ok
-        ok = ahead() and ok
     else:
         print(__doc__)
         return 2
     log(f"nightly {what}: {'OK' if ok else 'FAILED'} in {(time.time() - t0) / 60:.0f} min")
-    if what in ("all", "shop", "quiz", "ahead"):
+    if what in ("all", "shop", "quiz"):
         status(what, ok, [], t0)
     return 0 if ok else 1
 

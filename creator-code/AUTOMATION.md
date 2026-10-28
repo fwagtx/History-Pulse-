@@ -103,34 +103,24 @@ the same title.
 - **A cover on the first frame**: the title, the video's own items and **USE CODE: BAD**.
   TikTok uses a video's first frame as its cover when none is picked, so this is what
   shows on the profile grid. (Long videos get their own 1280x720 thumbnail.)
-- **The date** in the titles, the description and on screen
-- **A spoken hook in the first second** (since 2026-10-28; the owner: the first three
-  seconds decide whether people stay). The shop video opens with "This is today's Item
-  Shop for October 29th!", the others with their cover's line ("Higher or lower?…"), in
-  the long videos' free voice (cc_voice), the music dipping under it. A build that can't
-  make the voice posts the video without it.
-- **A description written the way a person posts** (rewritten 2026-10-28: no legal
-  paragraph, no music credit, no headings in capitals):
+- **The full date with the year** ("September 23, 2026") in the titles, the description
+  and on screen
+- **A clean description**, same layout every time:
 
   ```
-  This or that, Item Shop edition ⚔️
-  5 rounds, all from today's shop (September 23). A or B?
+  ⚔️ THIS OR THAT — Fortnite Item Shop, September 23, 2026
+  5 rounds, every item from today's shop. Pick A or B 👇
 
-  1️⃣ ISuperSpeed vs Aeronaut
-  2️⃣ PAC-MAN's Gloves vs Bow of the Vanquisher
+  1️⃣ ISuperSpeed 🆚 Aeronaut
+  2️⃣ PAC-MAN's Gloves 🆚 Bow of the Vanquisher
   …
 
-  Drop your picks in order, like ABBAB 👇
+  💬 Comment your picks in order, like ABBAB
 
-  Use code BAD in the Item Shop 💚 #EpicPartner
+  💚 Creator Code: BAD · #EpicPartner
 
   #usecodebad #creatorcodebad #codebad #fortnite …
   ```
-
-  The line before the hashtags sells the code and carries the disclosure; it changes from
-  post to post (`cc_formats.CODE_LINES`: "Shopping today? Use code BAD 💚", "Support-A-Creator
-  resets every 14 days, so pop BAD back in 💚", …). Epic's fan-content notice is the small
-  print on every video's end card instead.
 
   Games never list prices in the description (they're the answers). If a description
   ever runs long, list lines drop from the end — the disclosure and hashtags never do.
@@ -140,27 +130,18 @@ the same title.
 - TikTok's **branded content** switch on (the rules require it for a creator code)
 - On Facebook, each video goes out as a **Reel** (a normal video post if one is ever over
   90 seconds, Facebook's Reel limit)
-- **Each network is its own post, at its own best time** (since 2026-10-28): Metricool's
-  best-time-to-post scores for the brand (creator-code/post_times.json) give each network
-  its five best hours of the day, two hours apart, and the day's videos take them in order
-  of importance (the shop video first, by noon; the shop game before the shop rotates).
-  `python3 scripts/cc_post_times.py 2026-11-02` prints a day's times
-- On Instagram, each video goes out as a **Reel**, with the hashtags cut to `#EpicPartner
-  #usecodebad #creatorcodebad #codebad #fortnite` because Instagram allows only **5
-  hashtags** (since December 2025) and #EpicPartner is one of them
+- On Instagram, each video goes out as a **Reel** in its own post, because Instagram allows
+  only **5 hashtags** (since December 2025) and #EpicPartner is one of them: the same
+  description, with the hashtags cut to `#EpicPartner #usecodebad #creatorcodebad #codebad
+  #fortnite`. So in Metricool's planner every video shows twice at the same time, and
+  that's intended: don't tick Instagram on the main post, or Instagram gets it twice
 - On **Threads** (added 2026-09-29), the two videos about today's shop go out in their own
   posts too, with a shorter copy because Threads allows only **500 characters**: the title
   lines, the first items of the list, the question, `#fortnite #usecodebad #creatorcodebad
-  #codebad` (Threads makes the first hashtag, #fortnite, the post's topic), then the post's
-  code line with #EpicPartner. Quizzes, On This Day, the history videos and the long videos
-  don't go to Threads
-- **Built ahead**: each day's quiz and On This Day don't need that day's shop, so the
-  nightly build makes them up to a week early (`cc_nightly.py ahead`, two days a run,
-  into `shop-ahead-YYYY-MM-DD`) and the posting job schedules them as soon as they're
-  built (step 3g); that day's own build then skips them. A day with nothing planned for a
-  slot is left to its own night, whose fallbacks use that day's data. Switched on by
-  `creator-code/ahead.json` (`"enabled": true`) only once both posting routines run the
-  prompt with step 3g: with an older prompt those videos would be built and never posted
+  #codebad` (Threads makes the first hashtag, #fortnite, the post's topic), then
+  `💚 Creator Code: BAD · #EpicPartner` and Epic's notice. No music credit there (the music is
+  public domain and owes none). Quizzes, On This Day, the history videos and the long
+  videos don't go to Threads
 - Never the word "discount" — the code isn't one
 - No "Made with AI" labels: TikTok's AI-generated flag, YouTube's "altered or synthetic
   content" flag and Instagram's "AI info" flag are all off on every post (checked on

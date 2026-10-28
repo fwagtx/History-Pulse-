@@ -136,7 +136,6 @@ def build(ctx: Ctx, **_):
         return None
     nq, nr = PLAN[k]
     ed = ED.Edit(beat, content_end, ctx.seed)
-    ed.say(.25, "This or that? Today's Item Shop edition!")
     cam, rnd = ed.cam, ed.rnd
     arts = {id(it): ctx.art(it) for pr in pairs for it in pr}
 
@@ -307,13 +306,15 @@ def build(ctx: Ctx, **_):
     comp = ed.finish()
 
     # ------------------------------------------------------------ the post: the classic's words
-    rounds = "\n".join(f"{num(i)} {a['name']} vs {b['name']}" for i, (a, b) in enumerate(pairs, 1))
+    rounds = "\n".join(f"{num(i)} {a['name']} 🆚 {b['name']}" for i, (a, b) in enumerate(pairs, 1))
     tags = _hashtags("thisorthat", *(p[0]["name"] for p in pairs[:2]))
+    music = comp.music or {}
+    credit = (f"\n🎵 {music['title']} by {music['artist']} (public domain, CC0)" if music.get("artist") else "")
     return Video(
         "edit_this_or_that", comp,
         title=f"This or That — Fortnite Item Shop, {ctx.day_label}",
         yt_title=f"This or That: Fortnite Item Shop {ctx.day_label} #shorts",
-        caption=_caption(f"This or that, Item Shop edition ⚔️\n"
-                         f"{n} rounds, all from today's shop ({ctx.day:%B} {ctx.day.day}). A or B?",
-                         rounds, f"Drop your picks in order, like {example}", tags),
+        caption=_caption(f"⚔️ THIS OR THAT — Fortnite Item Shop, {ctx.day_label}\n"
+                         f"{n} rounds, every item from today's shop. Pick A or B 👇" + credit,
+                         rounds, f"Comment your picks in order, like {example}", tags),
         hashtags=tags)

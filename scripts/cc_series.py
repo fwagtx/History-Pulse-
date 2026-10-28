@@ -26,7 +26,7 @@ import random
 import cc_looks as LK
 import cc_quiz as Q
 from cc_series_plan import FAMOUS_SERIES, FIRST_SURE
-from cc_formats import BRAND_TAGS, Ctx, Video, kind_word, num, _caption, _hook_scene, _tag
+from cc_formats import BRAND_TAGS, Ctx, Video, num, _caption, _hook_scene, _tag
 from cc_motion import (ACCENT, INK, RARITY, W, SAFE_LEFT, SAFE_RIGHT_TOP, SAFE_RIGHT, an, anton_em,
                        burst, character, countdown, esc, label, progress, sticker, style_anim, tile_bg, words)
 
@@ -224,23 +224,24 @@ def on_this_day(spec: dict, items: dict, ctx: Ctx):
 
         Q._outro(comp, ctx, content_end, "WHICH YEAR HAD THE BEST SHOP?", [r[1] for r in lead] + ([third] if third else []))
 
-    body = "\n".join(f"{rd['year']} · {it['name']}" + (" (its shop debut)" if debut else "")
-                     for rd, it, debut in rounds)
+    body = "\n".join(f"{rd['year']} · {it['name']}" + (" 🆕" if debut else "") for rd, it, debut in rounds)
+    if any(d for _, _, d in rounds):
+        body += "\n\n🆕 = its first time in the Item Shop"
     tags = _tags(OTD_TAGS, "fortnite" + day.strftime("%B").lower(), *(it["name"] for _, it, _ in lead))
     if bday:
-        hook = (f"Fortnite Battle Royale turns {bday['age']} today 🎂\n"
-                f"It came out on {when}, {bday['year']}. Here's one outfit from the Item Shop on this date, "
-                f"every year since")
+        hook = (f"🎂 FORTNITE BATTLE ROYALE TURNS {bday['age']} — On This Day, {when}\n"
+                f"Battle Royale came out on {when}, {bday['year']}. Here's one outfit from the Item Shop "
+                f"on this date, every year since 👇")
         title = f"On This Day: Fortnite Battle Royale Turns {bday['age']} ({when})"
         yt = f"Fortnite Battle Royale Turns {bday['age']}: The Item Shop Every {when} #shorts"
         tags = _tags(OTD_TAGS, "fortnitebirthday", *(it["name"] for _, it, _ in lead))
     else:
-        hook = (f"The Fortnite Item Shop on {when}, every year since {rounds[0][0]['year']} 📅\n"
-                f"One outfit from each year's shop on this date")
+        hook = (f"📅 ON THIS DAY — Fortnite Item Shop, {when}\n"
+                f"One outfit from the Item Shop on this date, every year since {rounds[0][0]['year']} 👇")
         title = f"On This Day in the Fortnite Item Shop: {when}"
         yt = f"Fortnite Item Shop On This Day: {when} ({span}) #shorts"
     return Video("on_this_day", comp, title=title, yt_title=yt,
-                 caption=_caption(hook, body, "Which year had the best shop?", tags),
+                 caption=_caption(hook, body, "Which year had the best shop? Tell us below", tags),
                  hashtags=tags)
 
 
@@ -395,21 +396,21 @@ def _season_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
             part = f", Part {spec['part']}" if spec.get("part") else ""
             title = f"{span} Throwback{part} — {tail}"
             yt = f"{span} Throwback{part}: Remember These? #shorts"
-            hook = (f"{span} throwback{part} {look['emoji']} (day {day} of {of})\n"
-                    f"{n} cosmetics {look['from'](span)}. How many do you remember?")
-            body = "\n".join(f"{num(k)} {it['name']} ({kind_word(it)}) · {_debut_words(it)}"
+            hook = (f"{look['emoji']} {span.upper()} THROWBACK{part.upper()} — Day {day} of {of}\n"
+                    f"{n} cosmetics {look['from'](span)}. How many do you remember? 👇")
+            body = "\n".join(f"{num(k)} {it['name']} · {it['type']} · {_debut_words(it)}"
                              for k, it in enumerate(group, 1))
-            ask = "Which one did you own?"
+            ask = "Which one did you own? Tell us below"
             tags = _tags(tags_base, "ogfortnite", "fortnitethrowback")
         elif kind == "which_first":
             title = f"Which Came First? {series} Edition — {tail}"
             yt = f"Which {series} Skin Came First? Day {day} #shorts"
-            hook = (f"Which came first? {series} edition ⏳ (day {day} of {of})\n"
-                    f"{n} rounds, {look['past']}. Which one hit the shop first, A or B?")
-            body = "\n".join(f"{num(k)} {group[2 * k - 2]['name']} vs {group[2 * k - 1]['name']}"
+            hook = (f"⏳ WHICH CAME FIRST? {series} Edition — Day {day} of {of}\n"
+                    f"{n} rounds, {look['past']}. Which one hit the shop first, A or B? 👇")
+            body = "\n".join(f"{num(k)} {group[2 * k - 2]['name']} 🆚 {group[2 * k - 1]['name']}"
                              for k in range(1, n + 1))
             example = next(e[:n] for e in ("ABBAB", "BABBA", "AABAB") if e[:n] != answers)
-            ask = f"Drop your answers in order, like {example}"
+            ask = f"Comment your answers in order, like {example}"
             tags = _tags(tags_base, "whichcamefirst", "fortnitequiz")
         else:
             name = {"whos_that": "Who's That Skin?", "zoomed_in": "Zoomed In",
@@ -422,12 +423,12 @@ def _season_theme(spec: dict, items: dict, ctx: Ctx) -> dict:
             yt = {"whos_that": f"Who's That {series} Skin? Day {day} #shorts",
                   "zoomed_in": f"Zoomed In: Guess the {series} Skin, Day {day} #shorts",
                   "which_year": f"Which {series} Was It From? Day {day} #shorts"}[kind]
-            what = {"whos_that": f"{n} silhouettes, 4 names each. Pause and guess",
-                    "zoomed_in": "We start up close. Name the skin before the camera pulls back",
-                    "which_year": f"{n} skins from past {series}. Which year is each one from?"}[kind]
-            hook = f"{name}{ed} {emoji} (day {day} of {of})\n{what}"
-            body = "Answers are in the video, no spoilers here 🎥"
-            ask = f"Comment your score out of {n}"
+            what = {"whos_that": f"{n} silhouettes, 4 names each. Pause and guess 👇",
+                    "zoomed_in": "We start up close. Name the skin before the camera pulls back 👇",
+                    "which_year": f"{n} skins from past {series}. Which year's is each one from? 👇"}[kind]
+            hook = f"{emoji} {name.upper()}{ed} — Day {day} of {of}\n{what}"
+            body = f"{n} rounds · 4 choices each · no spoilers here, answers are in the video 🎥"
+            ask = f"How many did you get out of {n}? Comment your score"
             tags = _tags(tags_base, "fortnitequiz", "guesstheskin")
         return Video(kind, comp, title=title, yt_title=yt, caption=_caption(hook, body, ask, tags),
                      hashtags=tags)

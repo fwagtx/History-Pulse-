@@ -30,7 +30,6 @@ at the grid's tempo, where the library can't be had) under the effects.
 
 import math
 import random
-import re
 
 import cc_music
 from cc_motion import (ACCENT, FPS, H, SAFE_LEFT, W, Comp, esc)
@@ -456,21 +455,6 @@ def code(x: float = SAFE_LEFT + 6, y: float = COVER_TOP + 2, rot: float = -3.0) 
             f'<div class="ed-code-b">BAD</div></div><div class="ed-tag">#EpicPartner</div></div>')
 
 
-def ordinal(n: int) -> str:
-    """23 -> "23rd": a date the way the voice should say it."""
-    return f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
-
-
-def spoken(text: str) -> str:
-    """An on-screen title as a line for the voice (Edit.say): no emoji, a capital
-    first letter, and "!" unless it already ends a sentence."""
-    s = re.sub(r"\s+", " ", "".join(ch for ch in text if ch.isalnum() or ch in " '’?!.,:-")).strip()
-    if not s:
-        return ""
-    s = s[0].upper() + s[1:]
-    return s if s.endswith(("?", "!", ".")) else s + "!"
-
-
 # ------------------------------------------------------------------ the edit
 
 class Edit:
@@ -506,11 +490,6 @@ class Edit:
 
     def cue(self, t: float, kind: str):
         self.comp.cue(t, kind)
-
-    def say(self, t: float, text: str):
-        """A line spoken from t over the track (the free voice, cc_voice); the
-        music dips under it. A build that can't make the voice posts without it."""
-        self.comp.voice.append((round(float(t), 3), text))
 
     def _vis(self, start: float, end: float) -> str:
         """Visible from start to end with hard cuts: step-end keyframes (two

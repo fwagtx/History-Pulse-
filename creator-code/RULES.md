@@ -65,17 +65,9 @@ These are the ones that get codes revoked and accounts banned.
 ## Mandatory disclosure
 
 Every promotional post needs it: **#EpicPartner**, on screen and in the description. The
-generators (`scripts/cc_formats.py`) end every description with a line selling the code
-followed by #EpicPartner (`code_line`, e.g. `Use code BAD in the Item Shop 💚 #EpicPartner`)
-and keep #EpicPartner on screen for the whole video — don't strip either out. TikTok posts
-also carry TikTok's branded-content label.
-
-On 2026-10-28 the owner asked for #EpicPartner alone in the posts' words. Epic's Fan Content
-Policy notice ("Portions of the materials used are trademarks and/or copyrighted works of
-Epic Games, Inc. …") moved from every description to the small print on every video's end
-card (`cc_motion.EPIC_NOTE`): it stays on the content, as the policy asks, and out of the
-captions. Captions read the way a person posts: a hook, short lines, a question, the code
-line, the tags. No music credit (the tracks are CC0) and no legal paragraphs.
+generators (`scripts/cc_formats.py`, `scripts/cc_quiz.py`) end every description with
+`💚 Creator Code: BAD · #EpicPartner` and keep #EpicPartner on screen for the whole video —
+don't strip either out. TikTok posts also carry TikTok's branded-content label.
 
 On 2026-09-23 the owner dropped the longer "I get a commission from purchases made with code
 BAD" sentence from the posts (screen and descriptions), and the "costs you nothing extra" line

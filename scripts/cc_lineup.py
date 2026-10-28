@@ -158,10 +158,8 @@ def _edit_look_for_otd():
 
 
 def build_day(shop: dict, art, day: date, plan: dict, only: list | None = None,
-              post_problems=None, skip: set | None = None, plan_only: bool = False) -> list:
-    """[(slot, video, safe)] for the day, best candidate per slot. skip: slots
-    made ahead already; plan_only: only the plan's own entries (an ahead build,
-    cc_build.build_ahead, has no fresh data for the fallbacks)."""
+              post_problems=None) -> list:
+    """[(slot, video, safe)] for the day, best candidate per slot."""
     import cc_looks as LK
     _edit_look_for_otd()
     items = plan.get("items", {})
@@ -171,11 +169,6 @@ def build_day(shop: dict, art, day: date, plan: dict, only: list | None = None,
     for slot, cands in zip(SLOTS, per_slot):
         if only and slot["name"] not in only and slot["slot"] not in {int(x) for x in only if x.isdigit()}:
             continue
-        if skip and slot["name"] in skip:
-            log(f"  slot {slot['slot']} ({slot['name']}): built ahead, skipping")
-            continue
-        if plan_only:
-            cands = [c for c in cands if c[0] == "plan"]
         got = None
         for cand in cands:
             key = _key(cand)

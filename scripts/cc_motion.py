@@ -183,7 +183,6 @@ class Comp:
         self._n = 0
         self.cues = []      # [(seconds, kind)] for sound design: whoosh/slam/tick/pop/reveal/cash
         self.fonts = set()  # extra font families to embed (see extra_fonts)
-        self.voice = []     # [(seconds, text)] spoken over the music (cc_audio.soundtrack)
 
     def uid(self, prefix: str = "k") -> str:
         self._n += 1
@@ -437,22 +436,6 @@ def disclosure() -> str:
     return (f'<div class="abs codetag" style="left:{BADGE_X + 4}px;top:{BADGE_Y + BADGE_H + 4}px;z-index:50;'
             f'font-size:23px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.9);'
             f'text-shadow:0 2px 6px rgba(0,0,0,.9)">#EpicPartner</div>')
-
-
-# Epic's Fan Content Policy asks for this notice on or with fan content that uses
-# its material (legal.epicgames.com/epicgames/fan-art-policy). Since 2026-10-28 it
-# is the small print on every video's end card (cc_end_card, cc_long.end_card)
-# instead of a paragraph in every description.
-EPIC_NOTE = ("Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. "
-             "All rights reserved by Epic. This material is not official and is not endorsed by Epic.")
-
-
-def epic_notice(x: float, y: float, w: float, size: float = 22) -> str:
-    """EPIC_NOTE in small print, centred in a box w wide whose top-left is (x, y)."""
-    return (f'<div class="abs" data-name="epic-notice" style="left:{x:.0f}px;top:{y:.0f}px;width:{w:.0f}px;'
-            f"font-family:'Liberation Sans',sans-serif;font-size:{size}px;font-weight:400;line-height:1.3;"
-            f'text-align:center;color:rgba(255,255,255,.85);text-shadow:0 1px 4px rgba(0,0,0,.95);z-index:120">'
-            f'{esc(EPIC_NOTE)}</div>')
 
 
 def progress(start: float, end: float, index: int, total: int) -> str:

@@ -164,7 +164,6 @@ def build(ctx: Ctx, pool: str = "all", **_):
         return None
     nq, nr = PLAN[k]
     ed = ED.Edit(beat, content_end, ctx.seed)
-    ed.say(.25, "Higher or lower? Which skin has been in the shop more?")
     cam = ed.cam
     rnd = ed.rnd
     verdicts = _verdicts(chain, rnd)
@@ -352,16 +351,18 @@ def build(ctx: Ctx, pool: str = "all", **_):
     # ------------------------------------------------------------ the post
     body = "\n".join(
         f"{num(i + 1)} {it['name']} · in the Item Shop {cnt:,} times"
-        + ("" if i == 0 else f" ({'higher' if ups[i - 1] else 'lower'})")
+        + ("" if i == 0 else f" ({'HIGHER' if ups[i - 1] else 'LOWER'})")
         for i, (it, cnt) in enumerate(chain))
     tags = _hashtags("higherorlower", "fortniteskins", chain[0][0]["name"])
-    head = (f"Higher or lower? 🔼🔽\n"
-            f"Which {cap_word}skin has been in the Item Shop more times? Counts go back to 2017, "
-            f"as of {ctx.day:%B} {ctx.day.day}")
+    music = comp.music or {}
+    credit = (f"\n🎵 {music['title']} by {music['artist']} (public domain, CC0)" if music.get("artist") else "")
+    head = (f"🔼🔽 HIGHER OR LOWER? Fortnite Item Shop edition — {ctx.day_label}\n"
+            f"Which {cap_word}skin has been in the Item Shop more times? "
+            f"Counts since the records began in 2017 👇")
     return Video(
         f"edit_higher_lower_{pool}", comp,
         title=f"Higher or Lower: Fortnite {cap_word.title()}Item Shop Edition — {ctx.day_label}",
         yt_title=f"Higher or Lower? Which Fortnite {cap_word.title() if cap_word else ''}Skin Was in the Item Shop "
                  f"More? #shorts",
-        caption=_caption(head, body, "How many did you get right?", tags),
+        caption=_caption(head + credit, body, "How many did you get right? 5/5?", tags),
         hashtags=tags)

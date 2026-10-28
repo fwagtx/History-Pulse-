@@ -1,4 +1,0 @@
-{
- "_what": "Whether the nightly build makes the coming days' quiz and On This Day ahead (scripts/cc_nightly.py ahead, into shop-ahead-YYYY-MM-DD) and leaves them out of each day's own build. Turn on only once both posting routines run the prompt with step 3g (creator-code/ROUTINE_PROMPT.md, v13 of 2026-10-28): with an older prompt those videos would be built and never posted.",
- "enabled": false
-}
