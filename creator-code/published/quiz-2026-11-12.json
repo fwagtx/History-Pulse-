@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-11-12",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-12/",
+ "checked_at": "2026-10-29T01:04:22+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-29-cover.png": 550256,
+  "bad-quiz-long-2026-10-29-qa.jpg": 205960,
+  "bad-quiz-long-2026-10-29.mp4": 94404647,
+  "manifest.json": 4030
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-12",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-12",
+  "generated_utc": "2026-10-29T01:04:15Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-29",
+    "series": "month",
+    "topic": "October 2019",
+    "file": "bad-quiz-long-2026-10-29.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-12/bad-quiz-long-2026-10-29.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-29-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-12/bad-quiz-long-2026-10-29-cover.png",
+    "duration": 453.3,
+    "post_at_local": "2026-10-29T15:00:00",
+    "post_at_iso": "2026-10-29T15:00:00-05:00",
+    "post_at_utc": "2026-10-29T20:00:00Z",
+    "youtube": {
+     "title": "The Fortnite Item Shop in October 2019: 23 New Skins, Then and Now",
+     "description": "Number 1 has been in the Item Shop just twice.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 29, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:22 #23 Ruby\n1:11 #20 Chaos Agent\n4:20 #10 Street Striker\n5:42 #5 Wrath\n6:51 #1 The Paradigm\n7:10 Outro\n\nThe list\n#1 The Paradigm\n#2 Deadfall\n#3 Snakepit\n#4 Knockout\n#5 Wrath\n#6 Sinister Striker\n#7 Snuggs\n#8 Big Mouth\n#9 Toxic Tagger\n#10 Street Striker\n#11 Delirium\n#12 Teef\n#13 Outcast\n#14 Starlie\n#15 Jawbreaker\n#16 Vice\n#17 Slingshot\n#18 Zero\n#19 Red Jade\n#20 Chaos Agent\n#21 Haze\n#22 Manic\n#23 Ruby\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Walk in the forest\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Together to play !\" by Komiku; \"I'M ON FIRE\" by Loyalty Freak Music; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"03 L'été sera chaud\" by Monplaisir; \"Level 3\" by Juhani Junkala; \"Sweet Sun\" by Loyalty Freak Music; \"Town3 - Sunshine Coast\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop october 2019",
+      "fortnite throwback",
+      "old fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "The Paradigm",
+      "Deadfall",
+      "Snakepit",
+      "Knockout",
+      "Wrath",
+      "Sinister Striker",
+      "Snuggs",
+      "Big Mouth"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      22.23,
+      "#23 Ruby"
+     ],
+     [
+      71.87,
+      "#20 Chaos Agent"
+     ],
+     [
+      260.23,
+      "#10 Street Striker"
+     ],
+     [
+      342.26,
+      "#5 Wrath"
+     ],
+     [
+      411.82,
+      "#1 The Paradigm"
+     ],
+     [
+      430.86,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-walk-in-the-forest",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "komiku-together-to-play",
+     "loyalty-freak-music-i-m-on-fire",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "monplaisir-03-l-t-sera-chaud",
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-sweet-sun",
+     "juhani-junkala-town3-sunshine-coast"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
