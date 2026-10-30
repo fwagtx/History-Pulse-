@@ -4,14 +4,17 @@ the night of their day from fresh data, for TikTok, YouTube Shorts, Instagram
 Reels and Facebook Reels.
 
     slot  time (Chicago)  what
-    1     08:00           nostalgia: a planned throwback (creator-code/quiz/plan.json),
-                          else a countdown from the shop's history; no quizzes
-                          since 2026-10-30
+    1     08:00           a countdown from the shop's history (rotates)
     2     11:00           today's Item Shop
-    3     13:00           On This Day
+    3     13:00           another format on today's shop (OG check, last chance),
+                          else a countdown
     4     16:00           Back in the Shop After N Days, else another format on
                           today's shop
     5     19:00           a countdown from the shop's history (rotates)
+
+Since 2026-10-30 the plan's videos (creator-code/quiz/plan.json: quizzes, On
+This Day, the throwbacks) aren't in the lineup: the owner stopped the quizzes,
+then "what was in the Item Shop years ago", the same day.
 
 Shop slots post before the shop rotates (7 PM CDT / 6 PM CST). Every slot has
 fallbacks: a format that can't be made honestly from the day's data gives None
@@ -39,9 +42,9 @@ from cc_common import log
 LOCAL_TZ = ZoneInfo("America/Chicago")
 
 SLOTS = [
-    {"slot": 1, "name": "quiz", "at": (8, 0), "shop": False},
+    {"slot": 1, "name": "countdown", "at": (8, 0), "shop": False},
     {"slot": 2, "name": "shop", "at": (11, 0), "shop": True},
-    {"slot": 3, "name": "on_this_day", "at": (13, 0), "shop": False},
+    {"slot": 3, "name": "shop_extra", "at": (13, 0), "shop": True},
     {"slot": 4, "name": "shop_game", "at": (16, 0), "shop": True},
     {"slot": 5, "name": "history", "at": (19, 0), "shop": False},
 ]
@@ -62,10 +65,9 @@ EDITS = {
 
 # The owner asked on 2026-10-30 to stop the quizzes if they weren't doing well,
 # and they were the weakest videos (TikTok, Sep 23 - Oct 29: about 200 views
-# each, against 450-550 for the shop, On This Day and the countdowns). What's
-# left is nostalgia and the shop: the planned throwbacks ("remember these?")
-# aren't quizzes, so they stay.
-NOSTALGIA_PLAN = {"throwback"}
+# each, against 450-550 for the shop, On This Day and the countdowns). Later
+# that day: no more "what was in the Item Shop years ago" either (On This Day,
+# the throwbacks). What's left is today's shop and the countdowns.
 
 # The shop slot's other formats, best first: Back in the Shop After N Days did
 # best of everything (about 1,000-1,250 TikTok views each time); the guessing
@@ -103,18 +105,15 @@ def _rotate(pool: list, k: int) -> list:
 
 
 def candidates(day: date, plan: dict) -> list:
-    """Per slot, the candidates in order: ("edit", format, kwargs) or
-    ("plan", spec) for a planned quiz / series / On This Day."""
+    """Per slot, the candidates in order: ("edit", format, kwargs). (A
+    ("plan", spec) candidate -- a planned quiz / series / On This Day -- still
+    builds, but none is in the lineup since 2026-10-30.)"""
     k = day.toordinal()
-    todays = sorted((v for v in plan.get("videos", []) if v["date"] == day.isoformat()),
-                    key=lambda v: (not v.get("series"), v.get("slot", 9)))
-    otd = [("plan", v) for v in todays if v["format"] == "on_this_day"]
-    nostalgia = [("plan", v) for v in todays if v["format"] in NOSTALGIA_PLAN]
     history = [("edit", f, kw) for f, kw in _rotate(history_rotation(day), k)]
     return [
-        nostalgia + history[3:6],
+        history[3:6],
         [("edit", "shop_recap", {}), ("edit", "og_check", {}), ("edit", "last_chance", {})],
-        otd + history[6:9],
+        [("edit", "og_check", {}), ("edit", "last_chance", {})] + history[6:9],
         [("edit", f, {}) for f in SHOP_GAMES],
         history[:3] + history[9:12],
     ]
