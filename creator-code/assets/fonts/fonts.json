@@ -166,5 +166,29 @@
   "style": "normal",
   "weight": "300 900",
   "file": "TikTokSans-Variable.ttf"
+ },
+ {
+  "family": "Barlow Condensed",
+  "style": "italic",
+  "weight": "900",
+  "file": "BarlowCondensed-italic-900.woff2"
+ },
+ {
+  "family": "Barlow Condensed",
+  "style": "italic",
+  "weight": "800",
+  "file": "BarlowCondensed-italic-800.woff2"
+ },
+ {
+  "family": "Barlow Condensed",
+  "style": "normal",
+  "weight": "900",
+  "file": "BarlowCondensed-normal-900.woff2"
+ },
+ {
+  "family": "Barlow Condensed",
+  "style": "normal",
+  "weight": "700",
+  "file": "BarlowCondensed-normal-700.woff2"
  }
 ]
