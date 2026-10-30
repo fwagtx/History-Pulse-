@@ -1,0 +1,108 @@
+{
+ "tag": "quiz-2026-11-13",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-13/",
+ "checked_at": "2026-10-30T01:11:51+00:00",
+ "files": {
+  "bad-quiz-long-2026-10-30-cover.png": 481753,
+  "bad-quiz-long-2026-10-30-qa.jpg": 176577,
+  "bad-quiz-long-2026-10-30.mp4": 107219363,
+  "manifest.json": 4248
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-13",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-13",
+  "generated_utc": "2026-10-30T01:11:44Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-10-30",
+    "series": "collection",
+    "topic": "the rarest Gaming Legends skins",
+    "file": "bad-quiz-long-2026-10-30.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-13/bad-quiz-long-2026-10-30.mp4",
+    "thumbnail": "bad-quiz-long-2026-10-30-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-13/bad-quiz-long-2026-10-30-cover.png",
+    "duration": 548.45,
+    "post_at_local": "2026-10-30T15:00:00",
+    "post_at_iso": "2026-10-30T15:00:00-05:00",
+    "post_at_utc": "2026-10-30T20:00:00Z",
+    "youtube": {
+     "title": "The 28 Rarest Gaming Legends Skins in Fortnite (October 2026)",
+     "description": "Number 1 has been in the Item Shop just twice.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Oct 30, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:19 #28 Ryu\n2:44 #20 Mad Moxxi\n5:53 #10 Aloy\n7:12 #5 Arcane Vi\n8:26 #1 Nord Warrior\n8:47 Outro\n\nThe list\n#1 Nord Warrior\n#2 Kratos\n#3 Kait Diaz\n#4 Ezio Auditore\n#5 Arcane Vi\n#6 Samael\n#7 The Scout\n#8 Semibot\n#9 Leon S. Kennedy\n#10 Aloy\n#11 Alan Wake\n#12 Arcane Jinx\n#13 Huggy Wuggy\n#14 Raiden\n#15 Chris Redfield\n#16 Commander Zavala\n#17 Lara Croft (2000s)\n#18 Kitana (MK3)\n#19 V\n#20 Mad Moxxi\n#21 The Employee\n#22 A Goat\n#23 Blanka\n#24 Yennefer of Vengerberg\n#25 Master Chief\n#26 Psycho Bandit\n#27 Guile\n#28 Ryu\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Sweet Sun\" by Loyalty Freak Music; \"Walk in the forest\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Action2 - Army Approaching\" by Juhani Junkala; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Together to play !\" by Komiku; \"03 L'été sera chaud\" by Monplaisir; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite gaming legends skins",
+      "rarest fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Nord Warrior",
+      "Kratos",
+      "Kait Diaz",
+      "Ezio Auditore",
+      "Arcane Vi",
+      "Samael",
+      "The Scout",
+      "Semibot"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      19.78,
+      "#28 Ryu"
+     ],
+     [
+      164.42,
+      "#20 Mad Moxxi"
+     ],
+     [
+      353.63,
+      "#10 Aloy"
+     ],
+     [
+      432.18,
+      "#5 Arcane Vi"
+     ],
+     [
+      506.87,
+      "#1 Nord Warrior"
+     ],
+     [
+      527.27,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "loyalty-freak-music-sweet-sun",
+     "komiku-walk-in-the-forest",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "juhani-junkala-action2-army-approaching",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "komiku-together-to-play",
+     "monplaisir-03-l-t-sera-chaud",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
