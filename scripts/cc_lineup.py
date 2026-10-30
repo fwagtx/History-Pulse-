@@ -4,12 +4,14 @@ the night of their day from fresh data, for TikTok, YouTube Shorts, Instagram
 Reels and Facebook Reels.
 
     slot  time (Chicago)  what
-    1     08:00           a quiz from the plan (creator-code/quiz/plan.json);
-                          in October Fortnitemares, in December Winterfest
+    1     08:00           nostalgia: a planned throwback (creator-code/quiz/plan.json),
+                          else a countdown from the shop's history; no quizzes
+                          since 2026-10-30
     2     11:00           today's Item Shop
     3     13:00           On This Day
-    4     16:00           a game or value format on today's shop (rotates)
-    5     19:00           a format from the shop's history (rotates)
+    4     16:00           Back in the Shop After N Days, else another format on
+                          today's shop
+    5     19:00           a countdown from the shop's history (rotates)
 
 Shop slots post before the shop rotates (7 PM CDT / 6 PM CST). Every slot has
 fallbacks: a format that can't be made honestly from the day's data gives None
@@ -58,36 +60,40 @@ EDITS = {
     "longest_gone": ("cc_edit_longest_gone", "build"),
 }
 
-SHOP_GAMES = ["back_after", "og_check", "guess_price", "last_chance", "this_or_that"]
+# The owner asked on 2026-10-30 to stop the quizzes if they weren't doing well,
+# and they were the weakest videos (TikTok, Sep 23 - Oct 29: about 200 views
+# each, against 450-550 for the shop, On This Day and the countdowns). What's
+# left is nostalgia and the shop: the planned throwbacks ("remember these?")
+# aren't quizzes, so they stay.
+NOSTALGIA_PLAN = {"throwback"}
+
+# The shop slot's other formats, best first: Back in the Shop After N Days did
+# best of everything (about 1,000-1,250 TikTok views each time); the guessing
+# game is only the last fallback.
+SHOP_GAMES = ["back_after", "og_check", "last_chance", "guess_price"]
 
 
 def history_rotation(day: date) -> list:
-    """Slot 5's cycle: a Higher or Lower chain (new every time) about every
-    third day, between the countdowns, each countdown variant once in three
-    weeks."""
+    """The countdowns' cycle (slot 5, and slot 1's fallback): each variant
+    about once in two and a half weeks. Higher or Lower left with the quizzes."""
     y = day.year
     return [
-        ("higher_lower", {"pool": "all"}),
         ("most_common", {"kind": "outfit"}),
         ("rarest", {"kind": "outfit"}),
-        ("higher_lower", {"pool": "ch1"}),
         ("longest_gone", {"kind": "outfit"}),
         ("most_common", {"kind": "outfit", "since": y}),
-        ("higher_lower", {"pool": "icon"}),
         ("rarest", {"kind": "pickaxe"}),
         ("most_common", {"kind": "emote"}),
-        ("higher_lower", {"pool": "collab"}),
         ("longest_gone", {"kind": "pickaxe"}),
         ("rarest", {"kind": "emote"}),
         ("most_common", {"kind": "pickaxe"}),
-        ("higher_lower", {"pool": "all"}),
         ("rarest", {"kind": "backpack"}),
         ("most_common", {"kind": "backpack"}),
         ("longest_gone", {"kind": "emote"}),
-        ("higher_lower", {"pool": "ch1"}),
         ("rarest", {"kind": "glider"}),
         ("most_common", {"kind": "glider"}),
         ("most_common", {"kind": "outfit", "since": y - 1}),
+        ("rarest", {"kind": "outfit"}),
     ]
 
 
@@ -103,13 +109,13 @@ def candidates(day: date, plan: dict) -> list:
     todays = sorted((v for v in plan.get("videos", []) if v["date"] == day.isoformat()),
                     key=lambda v: (not v.get("series"), v.get("slot", 9)))
     otd = [("plan", v) for v in todays if v["format"] == "on_this_day"]
-    quiz = [("plan", v) for v in todays if v["format"] not in ("on_this_day", "loadout")]
+    nostalgia = [("plan", v) for v in todays if v["format"] in NOSTALGIA_PLAN]
     history = [("edit", f, kw) for f, kw in _rotate(history_rotation(day), k)]
     return [
-        quiz + history[3:6],
+        nostalgia + history[3:6],
         [("edit", "shop_recap", {}), ("edit", "og_check", {}), ("edit", "last_chance", {})],
         otd + history[6:9],
-        [("edit", f, {}) for f in _rotate(SHOP_GAMES, k)],
+        [("edit", f, {}) for f in SHOP_GAMES],
         history[:3] + history[9:12],
     ]
 
