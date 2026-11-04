@@ -29,7 +29,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from cc_common import CC_DIR, log
+from cc_common import CC_DIR, launch_chromium, log
 
 
 def _fonts() -> str:
@@ -123,7 +123,7 @@ def ensure_build_tools() -> list:
     """What a fresh workspace needs for the nightly build ([] = ready)."""
     problems = []
     ensure_config()
-    if not ensure_pip({"numpy": "numpy", "PIL": "pillow", "playwright": "playwright==1.56.0"}):
+    if not ensure_pip({"numpy": "numpy", "PIL": "pillow", "playwright": "playwright==1.63.0"}):
         problems.append("couldn't install numpy, Pillow or Playwright from PyPI")
     if not ensure_ffmpeg():
         problems.append("couldn't install ffmpeg")
@@ -137,7 +137,7 @@ def ensure_build_tools() -> list:
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
-            p.chromium.launch(args=["--no-sandbox"]).close()
+            launch_chromium(p, ["--no-sandbox"]).close()
     except Exception as e:  # noqa: BLE001
         problems.append(f"Chromium won't start: {e!r}"[:240])
     return problems

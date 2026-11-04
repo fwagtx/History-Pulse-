@@ -22,7 +22,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from cc_common import ROOT, log
+from cc_common import ROOT, launch_chromium, log
 
 W, H = 1080, 1920
 FPS = 30
@@ -540,7 +540,7 @@ def render(comp: Comp, out: Path, audio: Path | None = None, preview: bool = Fal
         stills_dir.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(args=CHROME_ARGS)
+        browser = launch_chromium(p, CHROME_ARGS)
         page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
         page.set_content(doc, wait_until="load")
         page.evaluate(READY_JS)
@@ -573,7 +573,7 @@ def snapshot(comp: Comp, times: list, out_dir: Path) -> list:
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(args=CHROME_ARGS)
+        browser = launch_chromium(p, CHROME_ARGS)
         page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
         page.set_content(comp.document(), wait_until="load")
         page.evaluate(READY_JS)

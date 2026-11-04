@@ -38,6 +38,7 @@ import cc_edit as ED
 import cc_motion as M
 from cc_looks import PREP_JS
 from cc_motion import esc
+from cc_common import launch_chromium  # noqa: E402
 
 TW, TH = 1280, 720
 RED = "#FF3B30"
@@ -318,7 +319,7 @@ def distance(a: int, b: int) -> int:
 
 
 def _page(pw):
-    br = pw.chromium.launch(args=M.CHROME_ARGS)
+    br = launch_chromium(pw, M.CHROME_ARGS)
     return br, br.new_page(viewport={"width": TW, "height": TH})
 
 

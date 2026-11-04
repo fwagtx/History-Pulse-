@@ -28,6 +28,35 @@ def log(msg: str):
     print(f"[{ts}] {msg}", flush=True)
 
 
+def launch_chromium(p, args=()):
+    """p.chromium.launch(args=...), or, when the browser build that Playwright
+    expects isn't on this machine, the same launch with the machine's own
+    Chromium: CC_CHROMIUM, the cloud environment's /opt/pw-browsers/chromium,
+    else the newest build there. (The environment's browser was updated around
+    2026-10-30; the Playwright the nightly build had wanted the old build and
+    nothing was built or posted for five days.)"""
+    try:
+        return p.chromium.launch(args=list(args))
+    except Exception as e:  # noqa: BLE001
+        if "Executable doesn't exist" not in str(e):
+            raise
+        missing = e
+    import glob
+    exes = [os.environ.get("CC_CHROMIUM", ""), "/opt/pw-browsers/chromium"]
+    exes += sorted(glob.glob("/opt/pw-browsers/chromium-*/chrome-linux*/chrome"), reverse=True)
+    exes += sorted(glob.glob("/opt/pw-browsers/chromium_headless_shell-*/chrome-linux*/headless_shell"), reverse=True)
+    for exe in exes:
+        if not exe or not os.path.exists(exe):
+            continue
+        try:
+            browser = p.chromium.launch(args=list(args), executable_path=exe)
+        except Exception:  # noqa: BLE001 - try the next one
+            continue
+        log(f"Chromium: Playwright's own build isn't on this machine; using {exe}")
+        return browser
+    raise missing
+
+
 def on_runner() -> bool:
     """True on the machine that builds the published videos: GitHub's runners
     before, a scheduled Claude session now (CC_RUNNER=1). There the build

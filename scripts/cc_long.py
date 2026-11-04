@@ -29,7 +29,7 @@ import cc_audio as A
 import cc_code_entry as CE
 import cc_motion as M
 import cc_voice as V
-from cc_common import log
+from cc_common import launch_chromium, log
 from cc_motion import ACCENT, INK, an, style_anim
 
 W, H, FPS = 1920, 1080, 30
@@ -213,7 +213,7 @@ def _render_chunk(args):
            "-c:v", "libx264", "-preset", "medium", *enc, "-pix_fmt", "yuv420p", "-r", str(fps), str(out)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     with sync_playwright() as p:
-        browser = p.chromium.launch(args=M.CHROME_ARGS)
+        browser = launch_chromium(p, M.CHROME_ARGS)
         page = browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=1)
         page.set_content(doc, wait_until="load")
         page.evaluate(M.READY_JS)

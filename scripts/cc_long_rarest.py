@@ -29,7 +29,7 @@ from pathlib import Path
 
 import cc_long as L
 import cc_rarity as R
-from cc_common import log
+from cc_common import launch_chromium, log
 from cc_motion import ACCENT, RARITY, an, esc, hexcol, style_anim
 
 KINDS = {"outfit": ("skin", "skins", "Outfit"), "pickaxe": ("pickaxe", "pickaxes", "Pickaxe"),
@@ -362,7 +362,7 @@ def thumbnail(picks: list, art, day: date, kind: str, out: Path) -> Path:
              + '<div class="grain"></div>')
     comp.add(f'<div class="full">{inner}</div>')
     with sync_playwright() as pw:
-        br = pw.chromium.launch(args=M.CHROME_ARGS)
+        br = launch_chromium(pw, M.CHROME_ARGS)
         pg = br.new_page(viewport={"width": 1280, "height": 720})
         pg.set_content(comp.document(), wait_until="load")
         pg.evaluate(M.READY_JS)

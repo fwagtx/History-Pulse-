@@ -42,7 +42,7 @@ from pathlib import Path
 
 import cc_audio as A
 import cc_motion as M
-from cc_common import ROOT, log
+from cc_common import ROOT, launch_chromium, log
 from cc_motion import ACCENT, INK, RARITY, an, esc, style_anim
 
 CODE = "BAD"
@@ -381,7 +381,7 @@ def capture(comp: Frame, sink, alpha: bool = False, stills: dict | None = None) 
     n = int(round(comp.duration * FPS))
     shots = {}
     with sync_playwright() as p:
-        browser = p.chromium.launch(args=M.CHROME_ARGS)
+        browser = launch_chromium(p, M.CHROME_ARGS)
         page = browser.new_page(viewport={"width": comp.w, "height": comp.h}, device_scale_factor=1)
         page.set_content(comp.document(), wait_until="load")
         page.evaluate(M.READY_JS)

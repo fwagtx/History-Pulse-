@@ -45,7 +45,7 @@ from pathlib import Path
 import cc_edit as ED
 import cc_edit_long as LE
 import cc_rarity as R
-from cc_common import log
+from cc_common import launch_chromium, log
 from cc_fmt_rarity import _item
 from cc_long_rarest import date_words, words, year_words
 from cc_motion import esc, trim_for
@@ -810,7 +810,7 @@ def thumbnail(out: dict, path: Path) -> Path:
              + '<div class="abs" style="left:48px;top:548px;width:0;height:0;z-index:110;transform:scale(.52);'
                'transform-origin:0 0">' + ED.code(0, 0) + '</div>')
     with sync_playwright() as pw:
-        br = pw.chromium.launch(args=M.CHROME_ARGS)
+        br = launch_chromium(pw, M.CHROME_ARGS)
         pg = br.new_page(viewport={"width": 1280, "height": 720})
         pg.set_content(comp.document(), wait_until="load")
         pg.evaluate(M.READY_JS)

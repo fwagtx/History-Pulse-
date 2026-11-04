@@ -37,7 +37,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from cc_common import CC_DIR, log  # noqa: E402
+from cc_common import CC_DIR, launch_chromium, log  # noqa: E402
 
 LINEUP = CC_DIR / "lineup.json"
 LOCAL_TZ = ZoneInfo("America/Chicago")
@@ -109,7 +109,7 @@ def _qa_sheet(comp, times: list, dest: Path) -> Path:
     w, h, cols = 480, 270, 4
     shots = []
     with sync_playwright() as p:
-        br = p.chromium.launch(args=M.CHROME_ARGS)
+        br = launch_chromium(p, M.CHROME_ARGS)
         pg = br.new_page(viewport={"width": comp.w, "height": comp.h}, device_scale_factor=1)
         pg.set_content(comp.document(), wait_until="load")
         pg.evaluate(M.READY_JS)

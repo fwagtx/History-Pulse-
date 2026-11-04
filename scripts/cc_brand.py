@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from cc_common import CC_DIR, log  # noqa: E402
+from cc_common import CC_DIR, launch_chromium, log  # noqa: E402
 from cc_motion import ACCENT, CHROME_ARGS, INK, READY_JS, _font_face, find_ffmpeg  # noqa: E402
 
 OUT = CC_DIR / "brand"
@@ -105,7 +105,7 @@ AVATAR_JS = """async ([size, bg, fg, text, fill]) => {
 def shoot(html: str, path: Path, w: int, h: int, prepare=None):
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
-        browser = p.chromium.launch(args=CHROME_ARGS)
+        browser = launch_chromium(p, CHROME_ARGS)
         page = browser.new_page(viewport={"width": w, "height": h})
         page.set_content(html, wait_until="load")
         page.evaluate(READY_JS)

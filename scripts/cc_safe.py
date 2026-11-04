@@ -42,6 +42,7 @@ text people are meant to read.
 import json
 import sys
 from pathlib import Path
+from cc_common import launch_chromium  # noqa: E402
 
 W, H = 1080, 1920
 LEFT, TOP, RIGHT_TOP, RAIL_TOP, RIGHT, BOTTOM = 60, 230, 1020, 740, 900, 1420
@@ -192,7 +193,7 @@ def check(comp, step: float = STEP, min_hold: float = MIN_HOLD, zone: dict | Non
     times = [round(i * step, 3) for i in range(n + 1) if i * step < comp.duration - .02]
     samples = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(args=CHROME_ARGS)
+        browser = launch_chromium(p, CHROME_ARGS)
         page = browser.new_page(viewport={"width": zone.get("W", W), "height": zone.get("H", H)},
                                 device_scale_factor=1)
         page.set_content(comp.document(), wait_until="load")
