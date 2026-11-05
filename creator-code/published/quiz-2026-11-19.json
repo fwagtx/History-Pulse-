@@ -1,0 +1,110 @@
+{
+ "tag": "quiz-2026-11-19",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-19/",
+ "checked_at": "2026-11-05T03:23:50+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-05-cover.png": 580205,
+  "bad-quiz-long-2026-11-05-qa.jpg": 207692,
+  "bad-quiz-long-2026-11-05.mp4": 119125266,
+  "manifest.json": 4415
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-19",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-19",
+  "generated_utc": "2026-11-05T03:23:45Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-05",
+    "series": "countdown",
+    "topic": "gone the longest: skins",
+    "file": "bad-quiz-long-2026-11-05.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-19/bad-quiz-long-2026-11-05.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-05-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-19/bad-quiz-long-2026-11-05-cover.png",
+    "duration": 593.43,
+    "post_at_local": "2026-11-05T15:00:00",
+    "post_at_iso": "2026-11-05T15:00:00-06:00",
+    "post_at_utc": "2026-11-05T21:00:00Z",
+    "youtube": {
+     "title": "The 30 Fortnite Skins Gone From the Item Shop the Longest (November 2026)",
+     "description": "Number 1 hasn't been in the shop for 3,200 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 5, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:15 #30 Kait Diaz\n3:23 #20 Aura Analyzer\n6:31 #10 Rue\n7:57 #5 Shaman\n9:13 #1 Codename E.L.F.\n9:32 Outro\n\nThe list\n#1 Codename E.L.F.\n#2 Rogue Agent\n#3 Reflex\n#4 World Warrior\n#5 Shaman\n#6 Blitz\n#7 Slurp Bandolette\n#8 Contract Giller\n#9 Astro Jack\n#10 Rue\n#11 Kratos\n#12 Sofia\n#13 The Champion\n#14 Snake Eyes\n#15 Major Glory\n#16 Breakaway\n#17 Mike Lowrey\n#18 Kelsier\n#19 Victor Elite\n#20 Aura Analyzer\n#21 NBA 75 Baller\n#22 FNCS 3:1 Champion\n#23 Hangtime\n#24 Grind\n#25 FNCS Champion Seeker\n#26 Black Belt Brawler\n#27 Black Adam\n#28 Recon Champion\n#29 Gildedguy\n#30 Kait Diaz\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"I'M ON FIRE\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"Barque sur le lac\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Introduction to your adventure\" by Komiku; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Disco Cat\" by Komiku; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Town2 - Where Time Stands Still\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite skins gone the longest",
+      "rarest fortnite skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Codename E.L.F.",
+      "Rogue Agent",
+      "Reflex",
+      "World Warrior",
+      "Shaman",
+      "Blitz",
+      "Slurp Bandolette",
+      "Contract Giller"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      15.77,
+      "#30 Kait Diaz"
+     ],
+     [
+      203.61,
+      "#20 Aura Analyzer"
+     ],
+     [
+      391.78,
+      "#10 Rue"
+     ],
+     [
+      477.33,
+      "#5 Shaman"
+     ],
+     [
+      553.08,
+      "#1 Codename E.L.F."
+     ],
+     [
+      572.44,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-i-m-on-fire",
+     "loyalty-freak-music-roller-fever",
+     "komiku-barque-sur-le-lac",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "komiku-introduction-to-your-adventure",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "komiku-disco-cat",
+     "juhani-junkala-town3-sunshine-coast",
+     "juhani-junkala-town2-where-time-stands-still"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
