@@ -59,18 +59,38 @@ def ensure_emoji_font() -> bool:
     return False
 
 
+def _loads(mod: str) -> bool:
+    """True when `mod` really imports. Found isn't enough: the cloud image's
+    Debian Pillow (/usr/lib/python3/dist-packages) is for another Python, so
+    PIL is found but PIL.Image fails on its missing _imaging (the long videos
+    stopped building on it in November 2026)."""
+    try:
+        importlib.import_module(mod)
+        return True
+    except Exception:  # noqa: BLE001 - any failure to load counts as missing
+        top = mod.split(".")[0]
+        for name in [m for m in sys.modules if m == top or m.startswith(top + ".")]:
+            del sys.modules[name]          # so a fresh install is imported next time
+        return False
+
+
 def ensure_pip(modules: dict) -> bool:
-    """{import name: pip package}: installs whatever isn't importable."""
-    missing = [pkg for mod, pkg in modules.items() if not importlib.util.find_spec(mod)]
+    """{import name: pip package}: installs whatever doesn't import. A package
+    that's there but broken is installed over it (--ignore-installed: pip
+    would otherwise call the broken copy satisfied); pip's copy, in
+    /usr/local/lib, comes first on the path."""
+    missing = [(mod, pkg) for mod, pkg in modules.items() if not _loads(mod)]
     if not missing:
         return True
-    log(f"Installing {', '.join(missing)}")
-    try:
-        subprocess.run([sys.executable, "-m", "pip", "install", "-q", *missing], check=False, timeout=900)
-    except (OSError, subprocess.SubprocessError) as e:
-        log(f"  {e!r}")
+    log(f"Installing {', '.join(pkg for _, pkg in missing)}")
+    for mod, pkg in missing:
+        broken = ["--ignore-installed"] if importlib.util.find_spec(mod.split(".")[0]) else []
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", *broken, pkg], check=False, timeout=900)
+        except (OSError, subprocess.SubprocessError) as e:
+            log(f"  {e!r}")
     importlib.invalidate_caches()
-    return all(importlib.util.find_spec(mod) for mod in modules)
+    return all(_loads(mod) for mod in modules)
 
 
 def ensure_tts() -> bool:
@@ -79,7 +99,7 @@ def ensure_tts() -> bool:
 
 def ensure_pillow() -> bool:
     """The long videos' thumbnail and QA sheet."""
-    return ensure_pip({"PIL": "pillow"})
+    return ensure_pip({"PIL.Image": "pillow"})
 
 
 def ensure_config() -> None:
@@ -123,7 +143,7 @@ def ensure_build_tools() -> list:
     """What a fresh workspace needs for the nightly build ([] = ready)."""
     problems = []
     ensure_config()
-    if not ensure_pip({"numpy": "numpy", "PIL": "pillow", "playwright": "playwright==1.63.0"}):
+    if not ensure_pip({"numpy": "numpy", "PIL.Image": "pillow", "playwright": "playwright==1.63.0"}):
         problems.append("couldn't install numpy, Pillow or Playwright from PyPI")
     if not ensure_ffmpeg():
         problems.append("couldn't install ffmpeg")
