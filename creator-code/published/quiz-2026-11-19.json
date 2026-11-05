@@ -1,11 +1,11 @@
 {
  "tag": "quiz-2026-11-19",
  "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-19/",
- "checked_at": "2026-11-05T03:23:50+00:00",
+ "checked_at": "2026-11-05T03:43:02+00:00",
  "files": {
   "bad-quiz-long-2026-11-05-cover.png": 580205,
   "bad-quiz-long-2026-11-05-qa.jpg": 207692,
-  "bad-quiz-long-2026-11-05.mp4": 119125266,
+  "bad-quiz-long-2026-11-05.mp4": 119131857,
   "manifest.json": 4415
  },
  "manifest": {
@@ -13,7 +13,7 @@
   "quiz_day": "2026-11-19",
   "timezone": "America/Chicago",
   "release": "quiz-2026-11-19",
-  "generated_utc": "2026-11-05T03:23:45Z",
+  "generated_utc": "2026-11-05T03:42:56Z",
   "videos": [],
   "long_videos": [
    {
