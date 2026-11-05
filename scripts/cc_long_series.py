@@ -12,10 +12,13 @@ so they never run out and never make anything up.
     Wed  <SEASON>: WHERE ARE THEY NOW  one season's shop skins, counted down to
                                        the one that has been back the fewest
                                        times; the seasons in a spread-out order
-    Thu  THE ITEM SHOP IN <MONTH YEAR> this calendar month two or more years
-                                       back (a different year each week): the
-                                       skins new in the shop then, and how often
-                                       each has been back since
+    Thu  THE 30 ...                    a second countdown, seven steps along
+                                       Tuesday's rotation (a different list and
+                                       kind). Until 2026-11-05 Thursday was THE
+                                       ITEM SHOP IN <MONTH YEAR>, a month two or
+                                       more years back; the owner stopped "what
+                                       was in the Item Shop years ago" videos on
+                                       2026-10-30 (series "month" still builds)
     Fri  THE RAREST <SERIES> SKINS     Icon, Marvel, DC, Star Wars, Gaming
                                        Legends and the biggest sets in turn
 
@@ -435,7 +438,7 @@ def episodes(day: date) -> list:
     first = [{"series": "week", "start": day - timedelta(days=7), "end": day - timedelta(days=1)},
              dict(zip(("metric", "kind"), COUNTDOWNS[wk % len(COUNTDOWNS)]), series="countdown"),
              {"series": "season", "index": wk},
-             {"series": "month", "index": wk},
+             dict(zip(("metric", "kind"), COUNTDOWNS[(wk + 7) % len(COUNTDOWNS)]), series="countdown"),
              {"series": "collection", "index": wk}][wd]
     alt = [dict(zip(("metric", "kind"), c), series="countdown") for c in _rotate(COUNTDOWNS, wk + 6 + wd)[:4]]
     return [first] + [a for a in alt if a != first]
