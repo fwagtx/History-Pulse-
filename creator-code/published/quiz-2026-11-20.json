@@ -1,0 +1,101 @@
+{
+ "tag": "quiz-2026-11-20",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-20/",
+ "checked_at": "2026-11-06T00:56:22+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-06-cover.png": 500753,
+  "bad-quiz-long-2026-11-06-qa.jpg": 204945,
+  "bad-quiz-long-2026-11-06.mp4": 70487812,
+  "manifest.json": 3770
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-20",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-20",
+  "generated_utc": "2026-11-06T00:56:16Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-06",
+    "series": "collection",
+    "topic": "the rarest FNCS skins",
+    "file": "bad-quiz-long-2026-11-06.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-20/bad-quiz-long-2026-11-06.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-06-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-20/bad-quiz-long-2026-11-06-cover.png",
+    "duration": 329.27,
+    "post_at_local": "2026-11-06T15:00:00",
+    "post_at_iso": "2026-11-06T15:00:00-06:00",
+    "post_at_utc": "2026-11-06T21:00:00Z",
+    "youtube": {
+     "title": "The 15 Rarest FNCS Skins in Fortnite (November 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 6, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:19 #15 Champion Kyra\n1:50 #10 Champion Sparkplug\n3:32 #5 Dummy Supreme\n4:48 #1 The Champion\n5:08 Outro\n\nThe list\n#1 The Champion\n#2 Recon Champion\n#3 FNCS Renegade\n#4 Championship Aura\n#5 Dummy Supreme\n#6 Aces Wild Card\n#7 Champion Surf Witch\n#8 Champion Drake\n#9 Champion PJ\n#10 Champion Sparkplug\n#11 Champion Siren\n#12 Champion Kuno\n#13 Champion Stash'd\n#14 Cosmic Infinity\n#15 Champion Kyra\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Action2 - Army Approaching\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Level 3\" by Juhani Junkala; \"Disco Cat\" by Komiku; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"A story that's never been told\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite fncs skins",
+      "rarest fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "The Champion",
+      "Recon Champion",
+      "FNCS Renegade",
+      "Championship Aura",
+      "Dummy Supreme",
+      "Aces Wild Card",
+      "Champion Surf Witch",
+      "Champion Drake"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      19.33,
+      "#15 Champion Kyra"
+     ],
+     [
+      110.07,
+      "#10 Champion Sparkplug"
+     ],
+     [
+      212.73,
+      "#5 Dummy Supreme"
+     ],
+     [
+      288.74,
+      "#1 The Champion"
+     ],
+     [
+      308.07,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-action2-army-approaching",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "juhani-junkala-level-3",
+     "komiku-disco-cat",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-a-story-that-s-never-been-told"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
