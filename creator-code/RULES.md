@@ -81,18 +81,22 @@ It is **not a discount**. Never imply otherwise.
 
 ## No "made with AI" labels
 
-On 2026-09-29 the owner asked for no "Made with AI"-type labels on any post. Keep every
-platform's AI flag off when scheduling: TikTok `isAigc: false`, YouTube
-`isAiGeneratedContent: false` (Shorts and long videos), Instagram `isAiGenerated: false`
-(Metricool has no such flag for Facebook or Threads). Never add AI wording to a caption,
-title or description, and never embed AI/"Content Credentials" metadata in a video or
-thumbnail.
+On 2026-09-29 the owner asked for no "Made with AI"-type labels on any post. On 2026-11-09
+they said it again, for good: "turn those labels off and never use it" (the voiced Pirate
+Shop Access shorts had been scheduled with the labels on; they were turned off that day).
+Keep every platform's AI flag off when scheduling, on every post, voiced or not: TikTok
+`isAigc: false`, YouTube `isAiGeneratedContent: false` (Shorts and long videos), Instagram
+`isAiGenerated: false` (Metricool has no such flag for Facebook or Threads). Never add AI
+wording to a caption, title or description, and never embed AI/"Content Credentials"
+metadata in a video or thumbnail.
 
 That is accurate, not a dodge: every picture is Epic's own item art and our own graphics,
-every fact comes from the shop records, and the long videos' narrator is a generic
-text-to-speech voice (not an imitation of any real person) over graphics. The platforms
-only require the label for realistic AI-made people, voices or scenes. If that ever changes
-(a cloned voice, AI-generated footage), the label is required and the owner decides.
+every fact comes from the shop records, and the narrators (the long videos' voice, and
+Michael on the shorts: Kokoro `am_michael`, scripts/cc_voiceover.py) are generic
+text-to-speech voices, not an imitation of any real person, over graphics. The platforms'
+labels are for realistic AI-made people, real people's voices and made-up scenes. So never
+use a cloned or real person's voice, or AI-generated footage or people: those would need
+the label, and the owner wants none.
 
 ---
 

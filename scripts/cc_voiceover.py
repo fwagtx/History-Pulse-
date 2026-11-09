@@ -18,6 +18,11 @@ The voice: high-passed at 80 Hz, a little presence (+3 dB from 2.5 kHz) and
 air, a gentle compressor so every word sits at the same level, at -14 LUFS.
 The music and effects dip about 10 dB while it speaks, stay down through
 the pauses between its sentences, and swell back smoothly between lines.
+
+Posting a voiced video changes nothing about its labels: every platform's AI
+flag stays off, as on every post (creator-code/RULES.md, "No made with AI
+labels"; the owner, 2026-11-09: "never use it"). Michael is a generic voice,
+not anyone's real one -- keep it that way: no cloned or real voices here.
 """
 
 import numpy as np
