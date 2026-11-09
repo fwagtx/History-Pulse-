@@ -350,6 +350,7 @@ def cut(ctx, entries: list, *, salt: str, title: str, sub: str, tease: str, ask:
                          width=820))
     cam.push(0, t_items, 1.0, 1.05, MID, 1050)
     ed.cue(0, "impact")
+    when = {"hook": (0.0, t_items)}                   # each screen's (start, end): for a voiceover
     cam.punch(t_wait, .06)
     ed.cue(t_wait, "impact")
 
@@ -370,6 +371,7 @@ def cut(ctx, entries: list, *, salt: str, title: str, sub: str, tease: str, ask:
                     + ED.caption(tease, MID, 1110, _fit(tease, 800, 44, 32), u(ui + 1), style="dark", weight=700,
                                  width=820))
             ed.cue(t_pre, "glitch")
+            when["build"] = (t_pre, t_hit)
             ed.cue(u(ui + 1), "pop2")
             cam.flash(t_pre, .35, .12)
             cam.push(t_pre, t_hit, 1.0, 1.1, TILE_CX, 900)
@@ -379,6 +381,7 @@ def cut(ctx, entries: list, *, salt: str, title: str, sub: str, tease: str, ask:
             ui += kb
         s0 = ui
         start, end = u(s0), u(s0 + k)
+        when[rank] = (start, end)
         bu = lambda j, s0=s0: u(s0 + j)                   # noqa: E731 -- unit j of this screen
 
         iid, main = tile_for(i, TILE_X, TILE_Y, TILE_W, TILE_H)
@@ -483,5 +486,8 @@ def cut(ctx, entries: list, *, salt: str, title: str, sub: str, tease: str, ask:
     ed.cue(t_code, "pop2")
     for b in range(8, plan["outro"], 4):
         cam.punch(u(s0 + b), .025, .25)
+    when["outro"] = (t_out, content_end)
 
-    return ed.finish()
+    comp = ed.finish()
+    comp.timeline = when
+    return comp

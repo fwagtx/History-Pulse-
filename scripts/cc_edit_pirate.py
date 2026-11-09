@@ -73,10 +73,52 @@ def _chance(n: int) -> float:
     return 1 - (1 - 1 / ODDS) ** n
 
 
-def _post(fmt: str, comp, title: str, yt_title: str, hook: str, body: str, ask: str) -> Video:
+def _post(fmt: str, comp, title: str, yt_title: str, hook: str, body: str, ask: str,
+          narration: dict | None = None) -> Video:
     tags = _hashtags(*TAGS)
-    return Video(fmt, comp, title=title, yt_title=yt_title,
-                 caption=_caption(hook + CD.credit(comp), body, ask, tags), hashtags=tags)
+    v = Video(fmt, comp, title=title, yt_title=yt_title,
+              caption=_caption(hook + CD.credit(comp), body, ask, tags), hashtags=tags)
+    v.narration = narration or {}           # the voiceover's lines, per screen (cc_voiceover.narrate)
+    return v
+
+
+# ------------------------------------------------------------------ the voiceover's words
+# Written to be said: numbers and dates in words, short sentences, a comma or
+# "..." where a person would breathe; the code said as a word ("code bad").
+
+ODDS_SAID = "one in a hundred and thirty-seven thousand, five hundred"
+ORDINAL = ("first second third fourth fifth sixth seventh eighth ninth tenth eleventh twelfth thirteenth "
+           "fourteenth fifteenth sixteenth seventeenth eighteenth nineteenth twentieth").split()
+
+
+def _said_num(n: int) -> str:
+    from cc_ingame import _num_words
+    return _num_words(n).replace(" thousand ", " thousand, ")
+
+
+def _said_vb(n: int) -> str:
+    """1,600 -> 'sixteen hundred', 4,000 -> 'four thousand' (how people say prices)."""
+    from cc_ingame import _num_words
+    if n % 1000 == 0:
+        return f"{_num_words(n // 1000)} thousand"
+    if n % 100 == 0 and n < 10000:
+        return f"{_num_words(n // 100)} hundred"
+    return _said_num(n)
+
+
+def _said_day(d: date) -> str:
+    n = d.day
+    word = ORDINAL[n - 1] if n <= 20 else ("twenty-" + ORDINAL[n - 21] if n < 30 else
+                                             "thirtieth" if n == 30 else "thirty-first")
+    return f"{d:%B} {word}"
+
+
+def _short(name: str) -> str:
+    return name.split()[-1]                 # "Monkey D. Luffy" -> "Luffy", "Roronoa Zoro" -> "Zoro"
+
+
+def _and(names: list) -> str:
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
 
 
 # ------------------------------------------------------------------ the videos
@@ -117,7 +159,20 @@ def explainer(ctx: Ctx, cast: dict) -> Video | None:
                  yt_title="Fortnite Pirate Shop Access: 5 Things to Know #shorts",
                  hook="🏴‍☠️ PIRATE SHOP ACCESS — 5 things to know\n"
                       "Fortnite's free Item Shop, from the Treasure Hunters chests 👇",
-                 body=body, ask="Have you found it yet?")
+                 body=body, ask="Have you found it yet?", narration={
+                     "hook": "Pirate Shop Access. Here's what you need to know.",
+                     5: "Number five. It drops from Treasure Hunters chests in Battle Royale, "
+                        "so every one you open is a shot at it.",
+                     4: "Number four. One use gives you fourteen days of free Item Shop claims, "
+                        "starting the moment you activate it.",
+                     3: "Number three. You actually get two uses. One this year, and one in twenty twenty-seven. "
+                        "Just activate this year's by December fifteenth.",
+                     2: f"Number two. The odds. Epic says it's {ODDS_SAID}, per chest. Yeah... it's rare.",
+                     "build": "And number one...",
+                     1: "If one teammate finds it, your whole squad gets it. So squad up!",
+                     "outro": "Have you found it yet? Let me know in the comments.",
+                     "end": "And if you're buying anything in the shop, use code bad!",
+                 })
 
 
 def odds(ctx: Ctx, cast: dict) -> Video | None:
@@ -157,12 +212,28 @@ def odds(ctx: Ctx, cast: dict) -> Video | None:
             f"3️⃣ For a 50/50 chance: about {half:,} chests\n"
             f"4️⃣ After {ODDS:,} chests: still only about a {after}% chance\n"
             f"5️⃣ Epic's odds: 1 in {ODDS:,} per chest in a normal match (posted {POSTED})")
+    narration = {
+        "hook": "How rare is Pirate Shop Access? Let's do the math.",
+        5: f"Number five. Epic says the odds are {ODDS_SAID}, per chest, in a normal match.",
+        4: f"Number four. Open {ODDS_SAID.replace('one in a', 'a')} chests... "
+           f"and you'd still only have about a {_said_num(after)} percent chance.",
+        3: f"Number three. For a coin flip, a fifty-fifty shot, you'd need about {_said_num(half)} chests.",
+        2: "Number two. Say your squad opens two hundred chests a night. "
+           "That's about a zero point one five percent chance... per night.",
+        "build": "But here's the good news...",
+        1: "If anyone in your squad finds it, everyone gets it!",
+        "outro": "So, how many chests have you opened so far?",
+        "end": "And if you're shopping today, use code bad!",
+    }
+    if per_night != "0.15%":
+        narration[2] = (f"Number two. Say your squad opens two hundred chests a night. That's about a "
+                        f"{per_night.rstrip('%')} percent chance... per night.")
     return _post("edit_pirate_odds", comp,
                  title="How Rare Is Pirate Shop Access? The Math (Fortnite)",
                  yt_title=f"How Rare Is Fortnite's Pirate Shop Access? The Math on 1 in {ODDS:,} #shorts",
                  hook="🏴‍☠️ HOW RARE IS PIRATE SHOP ACCESS? The math on Epic's odds\n"
                       f"Epic's posted odds: 1 in {ODDS:,} per chest in a normal match 👇",
-                 body=body, ask="How many chests have you opened?")
+                 body=body, ask="How many chests have you opened?", narration=narration)
 
 
 def _bundle_bits(row: dict) -> str:
@@ -224,11 +295,33 @@ def onepiece(ctx: Ctx, cast: dict) -> Video | None:
         lines.append(f"▸ {what} · {r['price']:,} V-Bucks" + (f" (regular {reg:,})" if reg > r["price"] else ""))
     body = "\n".join(lines)
     body += f"\n\nIn the Item Shop until {leaves:%b} {leaves.day} (the 7 PM ET reset)."
+    words = ["one", "two", "three", "four", "five"]
+    narration = {"hook": "Here's what every One Piece bundle costs.",
+                 "build": "And number one...",
+                 "outro": "Would you spend your Pirate Shop Access on these?",
+                 "end": "And if you're buying them, use code bad!"}
+    cap = lambda t: t[0].upper() + t[1:]                       # noqa: E731
+    for rank, (r, outs) in enumerate(picks, 1):
+        who = [_short(o) for o in outs]
+        price, reg = r["price"], r.get("regular_price") or 0
+        size = _said_num(r.get("bundle_size"))
+        if len(outs) > 1 and rank == 1:
+            line = f"The {size}-item bundle! {_and(who)}, for {_said_vb(price)} V-Bucks."
+        elif len(outs) > 1:
+            line = f"The {size}-item bundle with {_and(who)} is {_said_vb(price)} V-Bucks."
+        else:
+            line = f"{who[0]}'s bundle is {_said_vb(price)} V-Bucks, with {size} items."
+            also = [_short(o) for rr, os in all_picks[5:] if rr["price"] == price for o in os]
+            if rank == 5 and also:
+                line += f" And {_and(also)}? {cap(_said_vb(price))} too."
+        if reg > price:
+            line += f" Regular price? {cap(_said_vb(reg))}."
+        narration[rank] = line if rank == 1 else f"Number {words[rank - 1]}. {line}"
     return _post("edit_pirate_onepiece", comp,
                  title="What the One Piece Skins Cost — Fortnite Item Shop",
                  yt_title="What Fortnite's One Piece Skins Cost: Every Bundle #shorts",
                  hook="🏴‍☠️ WHAT THE ONE PIECE SKINS COST — every One Piece bundle in the Fortnite Item Shop 👇",
-                 body=body, ask="Would you use Pirate Shop Access on these?")
+                 body=body, ask="Would you use Pirate Shop Access on these?", narration=narration)
 
 
 def dates(ctx: Ctx, cast: dict) -> Video | None:
@@ -269,7 +362,19 @@ def dates(ctx: Ctx, cast: dict) -> Video | None:
                  title="Pirate Shop Access — The Dates (Fortnite)",
                  yt_title="Fortnite Pirate Shop Access: The Dates You Can't Miss #shorts",
                  hook="⏰ PIRATE SHOP ACCESS — the dates you can't miss 👇", body=body,
-                 ask="When would you use yours?")
+                 ask="When would you use yours?", narration={
+                     "hook": "Pirate Shop Access dates you can't miss.",
+                     5: "Number five. It all started November first, with Treasure Hunters, the One Piece mini-season.",
+                     4: "Number four. Each use lasts fourteen days from the moment you activate it, "
+                        "so pick your moment.",
+                     3: f"Number three. The One Piece bundles leave the Item Shop on {_said_day(leaves)}, "
+                        "at the seven PM Eastern reset.",
+                     2: "Number two. Activate your twenty twenty-six use by December fifteenth. Don't sit on it.",
+                     "build": "And number one...",
+                     1: "You get a second use in twenty twenty-seven! Another fourteen days of free Item Shop claims.",
+                     "outro": "So, when would you use yours?",
+                     "end": "And if you're buying anything, use code bad!",
+                 })
 
 
 BUILDERS = {"explainer": explainer, "odds": odds, "onepiece": onepiece, "dates": dates}
@@ -283,6 +388,7 @@ def main():
     ap.add_argument("--only", default=",".join(BUILDERS))
     ap.add_argument("--no-video", action="store_true")
     ap.add_argument("--map", help="the current map, cropped to the island (PNG)")
+    ap.add_argument("--voice", default="michael", help="the narrator (cc_ingame.VOICES); '' for none")
     args = ap.parse_args()
     import cc_end_card as E
     import cc_formats as F
@@ -311,6 +417,9 @@ def main():
         if v is None:
             log(f"{name}: can't be made")
             continue
+        if args.voice and getattr(v, "narration", None):
+            import cc_voiceover
+            cc_voiceover.narrate(v.comp, v.narration, voice=args.voice)
         dur = v.comp.duration
         safe = S.check(v.comp)
         log(f"{name}: {dur:.1f}s, safe zones {'OK' if safe['ok'] else S.summary(safe, 4)}, "

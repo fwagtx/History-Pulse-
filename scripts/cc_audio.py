@@ -701,6 +701,9 @@ def soundtrack(comp, seed: int, path: Path) -> Path:
     with a `music` track (the edits, cc_edit.py) gets that track under its
     effects; every other comp gets the synthesized bed, exactly as before."""
     track = getattr(comp, "music", None)
+    if track and getattr(comp, "voiceover", None):
+        import cc_voiceover                 # a narrator over the edit (cc_voiceover.narrate)
+        return write_wav(cc_voiceover.voiced_mix(comp, seed), path)
     if track:
         return write_wav(mix_track(comp.duration, comp.cues, track, seed), path)
     return write_wav(mix(comp.duration, comp.cues, seed), path)
