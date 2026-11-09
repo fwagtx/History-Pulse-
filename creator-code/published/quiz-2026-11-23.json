@@ -1,0 +1,110 @@
+{
+ "tag": "quiz-2026-11-23",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-23/",
+ "checked_at": "2026-11-09T00:54:12+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-09-cover.png": 431320,
+  "bad-quiz-long-2026-11-09-qa.jpg": 208425,
+  "bad-quiz-long-2026-11-09.mp4": 89285082,
+  "manifest.json": 4364
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-23",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-23",
+  "generated_utc": "2026-11-09T00:54:06Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-09",
+    "series": "week",
+    "topic": "the week of Nov 2 – Nov 8, 2026",
+    "file": "bad-quiz-long-2026-11-09.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-23/bad-quiz-long-2026-11-09.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-09-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-23/bad-quiz-long-2026-11-09-cover.png",
+    "duration": 489.79,
+    "post_at_local": "2026-11-09T15:00:00",
+    "post_at_iso": "2026-11-09T15:00:00-06:00",
+    "post_at_utc": "2026-11-09T21:00:00Z",
+    "youtube": {
+     "title": "This Week in the Fortnite Item Shop: The 25 Biggest Comebacks (Nov 2 – Nov 8, 2026)",
+     "description": "The biggest one had been gone for 983 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 9, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:20 #25 Jake Chute\n1:46 #20 Hi-Hat\n4:48 #10 Focused\n6:15 #5 Stealthy Surveyor\n7:28 #1 Shadow Combo Cleavers\n7:49 Outro\n\nThe list\n#1 Shadow Combo Cleavers\n#2 Street Shine\n#3 Starforged Blades\n#4 Ruck\n#5 Stealthy Surveyor\n#6 Spellslinger\n#7 Remembrance Scroll\n#8 Chic Commodore\n#9 Llamacadabra\n#10 Focused\n#11 Stargazing\n#12 Mr. Brightside\n#13 Lunelle\n#14 Bay\n#15 Firework\n#16 BIRDS OF A FEATHER\n#17 Sorina\n#18 Remi\n#19 Gummi Thumper\n#20 Hi-Hat\n#21 Bouncer\n#22 Kavel\n#23 Elowen\n#24 Pepper Thorne\n#25 Jake Chute\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Together to play !\" by Komiku; \"03 L'été sera chaud\" by Monplaisir; \"Walk in the forest\" by Komiku; \"I'M ON FIRE\" by Loyalty Freak Music; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Sweet Sun\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Level 3\" by Juhani Junkala; \"A story that's never been told\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop today",
+      "fortnite item shop comebacks",
+      "returning fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Shadow Combo Cleavers",
+      "Street Shine",
+      "Starforged Blades",
+      "Ruck",
+      "Stealthy Surveyor",
+      "Spellslinger",
+      "Remembrance Scroll",
+      "Chic Commodore"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      20.72,
+      "#25 Jake Chute"
+     ],
+     [
+      106.1,
+      "#20 Hi-Hat"
+     ],
+     [
+      288.44,
+      "#10 Focused"
+     ],
+     [
+      375.21,
+      "#5 Stealthy Surveyor"
+     ],
+     [
+      448.04,
+      "#1 Shadow Combo Cleavers"
+     ],
+     [
+      469.03,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-together-to-play",
+     "monplaisir-03-l-t-sera-chaud",
+     "komiku-walk-in-the-forest",
+     "loyalty-freak-music-i-m-on-fire",
+     "juhani-junkala-town3-sunshine-coast",
+     "loyalty-freak-music-sweet-sun",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-a-story-that-s-never-been-told"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
