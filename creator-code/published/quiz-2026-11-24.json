@@ -1,0 +1,110 @@
+{
+ "tag": "quiz-2026-11-24",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-24/",
+ "checked_at": "2026-11-10T01:03:36+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-10-cover.png": 525521,
+  "bad-quiz-long-2026-11-10-qa.jpg": 218088,
+  "bad-quiz-long-2026-11-10.mp4": 98450935,
+  "manifest.json": 4469
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-24",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-24",
+  "generated_utc": "2026-11-10T01:03:31Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-10",
+    "series": "countdown",
+    "topic": "gone the longest: emotes",
+    "file": "bad-quiz-long-2026-11-10.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-24/bad-quiz-long-2026-11-10.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-10-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-24/bad-quiz-long-2026-11-10-cover.png",
+    "duration": 593.7,
+    "post_at_local": "2026-11-10T15:00:00",
+    "post_at_iso": "2026-11-10T15:00:00-06:00",
+    "post_at_utc": "2026-11-10T21:00:00Z",
+    "youtube": {
+     "title": "The 30 Fortnite Emotes Gone From the Item Shop the Longest (November 2026)",
+     "description": "Number 1 hasn't been in the shop for 2,911 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 10, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:16 #30 Heart-rizon\n3:15 #20 Neo's Bullet Time\n6:29 #10 It's Complicated\n8:01 #5 Head Banger\n9:16 #1 Fresh\n9:32 Outro\n\nThe list\n#1 Fresh\n#2 Hot Marat\n#3 Kiss The Cup\n#4 Welcome!\n#5 Head Banger\n#6 Raise The Cup\n#7 Zombie Shambles\n#8 Out With The Old\n#9 Sing Along\n#10 It's Complicated\n#11 Stuck\n#12 Pelé’s Air Punch\n#13 I Ain't Afraid\n#14 Flex On 'Em\n#15 Laugh It Up\n#16 The Crane Kick\n#17 The Look\n#18 Team Tomato\n#19 Leave The Door Open\n#20 Neo's Bullet Time\n#21 Teth's Throne\n#22 Tidy\n#23 Rambunctious\n#24 Knife Tricks\n#25 Snow Day\n#26 It's good!\n#27 Penalty\n#28 Update Journal\n#29 GALAXIAN\n#30 Heart-rizon\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Walk in the forest\" by Komiku; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Sweet Sun\" by Loyalty Freak Music; \"Together to play !\" by Komiku; \"03 L'été sera chaud\" by Monplaisir; \"Roller Fever\" by Loyalty Freak Music; \"The Tears\" by Loyalty Freak Music; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite emotes gone the longest",
+      "rarest fortnite emotes",
+      "og fortnite emotes",
+      "fortnite skins",
+      "item shop history",
+      "Fresh",
+      "Hot Marat",
+      "Kiss The Cup",
+      "Welcome!",
+      "Head Banger",
+      "Raise The Cup",
+      "Zombie Shambles",
+      "Out With The Old"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      16.26,
+      "#30 Heart-rizon"
+     ],
+     [
+      195.32,
+      "#20 Neo's Bullet Time"
+     ],
+     [
+      389.33,
+      "#10 It's Complicated"
+     ],
+     [
+      481.43,
+      "#5 Head Banger"
+     ],
+     [
+      556.2,
+      "#1 Fresh"
+     ],
+     [
+      572.71,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-walk-in-the-forest",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "loyalty-freak-music-sweet-sun",
+     "komiku-together-to-play",
+     "monplaisir-03-l-t-sera-chaud",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-the-tears",
+     "juhani-junkala-town3-sunshine-coast",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
