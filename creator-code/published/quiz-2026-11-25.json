@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-11-25",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-25/",
+ "checked_at": "2026-11-11T00:59:26+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-11-cover.png": 599880,
+  "bad-quiz-long-2026-11-11-qa.jpg": 215192,
+  "bad-quiz-long-2026-11-11.mp4": 126929213,
+  "manifest.json": 4315
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-25",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-25",
+  "generated_utc": "2026-11-11T00:59:14Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-11",
+    "series": "season",
+    "topic": "Chapter 1, Season 6",
+    "file": "bad-quiz-long-2026-11-11.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-25/bad-quiz-long-2026-11-11.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-11-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-25/bad-quiz-long-2026-11-11-cover.png",
+    "duration": 588.07,
+    "post_at_local": "2026-11-11T15:00:00",
+    "post_at_iso": "2026-11-11T15:00:00-06:00",
+    "post_at_utc": "2026-11-11T21:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Chapter 1, Season 6 Item Shop Skins: Where Are They Now? (Fortnite)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 11, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 Plague\n3:16 #20 Longshot\n6:29 #10 Heidi\n7:57 #5 Rosa\n9:12 #1 Reflex\n9:25 Outro\n\nThe list\n#1 Reflex\n#2 End Zone\n#3 Dante\n#4 Ludwig\n#5 Rosa\n#6 Brainiac\n#7 Spooky Team Leader\n#8 Patch Patroller\n#9 Whistle Warrior\n#10 Heidi\n#11 Straw Ops\n#12 Hollowhead\n#13 Bunnymoon\n#14 Hay Man\n#15 Jack Gourdon\n#16 Guan Yu\n#17 Airheart\n#18 Nara\n#19 Taro\n#20 Longshot\n#21 Mothmando\n#22 Skull Ranger\n#23 Riot\n#24 Yee-Haw!\n#25 Mayhem\n#26 Ruckus\n#27 Scourge\n#28 Maximilian\n#29 Insight\n#30 Plague\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"The Tears\" by Loyalty Freak Music; \"Walk in the forest\" by Komiku; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"Barque sur le lac\" by Komiku; \"Together to play !\" by Komiku; \"Disco Cat\" by Komiku; \"Level 3\" by Juhani Junkala\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite chapter 1 season 6",
+      "fortnite season skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Reflex",
+      "End Zone",
+      "Dante",
+      "Ludwig",
+      "Rosa",
+      "Brainiac",
+      "Spooky Team Leader",
+      "Patch Patroller"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.57,
+      "#30 Plague"
+     ],
+     [
+      196.42,
+      "#20 Longshot"
+     ],
+     [
+      389.05,
+      "#10 Heidi"
+     ],
+     [
+      477.4,
+      "#5 Rosa"
+     ],
+     [
+      552.02,
+      "#1 Reflex"
+     ],
+     [
+      565.97,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "juhani-junkala-town2-where-time-stands-still",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "loyalty-freak-music-the-tears",
+     "komiku-walk-in-the-forest",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "komiku-barque-sur-le-lac",
+     "komiku-together-to-play",
+     "komiku-disco-cat",
+     "juhani-junkala-level-3"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
