@@ -4,6 +4,10 @@ video), each published to its folder in the R2 bucket (cc_store) that Metricool
 picks the videos up from. A step that's already published is skipped, so the
 same run can be fired again after a failure or a lagging shop.
 
+After the shop's five, the day's three Pirate Shop Access videos (the owner's ask
+of 2026-11-11, every day until cc_edit_pirate.END) go into the same folder and
+manifest, so the posting Routine schedules them with the rest.
+
 Each published folder is then checked file by file in the bucket and a copy of
 its manifest and file list is committed to creator-code/published/<tag>.json,
 for the 7 AM Routine, which reads without the bucket's keys. Every run leaves
@@ -11,6 +15,7 @@ its outcome in the bucket at _status/nightly.json (and its log beside it).
 
     python3 scripts/cc_nightly.py                 # shop + quiz, whatever isn't out yet
     python3 scripts/cc_nightly.py shop            # just today's shop videos
+    python3 scripts/cc_nightly.py pirate [DAY]    # just a day's three Pirate Shop Access videos
     python3 scripts/cc_nightly.py quiz [DAY]      # just a quiz day (default: 14 days out)
     python3 scripts/cc_nightly.py records         # refresh the records' copy in the bucket
     python3 scripts/cc_nightly.py music DIR       # put a music library (catalog.json + mp3s) in the bucket
@@ -36,6 +41,7 @@ from cc_common import OUT_DIR, ROOT, log  # noqa: E402
 BRANCH = "claude/creator-code-bad-automation-0jjc1k"
 
 SHOP_FILES = ("bad-*.mp4", "bad-*-cover.png", "bad-*-qa.jpg", "manifest.json")
+PIRATE_FILES = ("bad-*-pirate-*.mp4", "bad-*-pirate-*-cover.png", "bad-*-pirate-*-qa.jpg")
 QUIZ_FILES = ("bad-quiz-*.mp4", "bad-quiz-*-cover.png", "bad-quiz-*-qa.jpg", "manifest.json")
 
 
@@ -179,6 +185,59 @@ def shop(day: date | None = None) -> bool:
     return publish(out, tag, SHOP_FILES)
 
 
+def _is_day(path: Path, day: date) -> bool:
+    try:
+        return json.loads(path.read_text()).get("shop_day") == day.isoformat()
+    except (OSError, ValueError):
+        return False
+
+
+def pirate(day: date | None = None) -> bool:
+    """D's three Pirate Shop Access videos (cc_edit_pirate --daily), added to D's
+    shop folder and its manifest after the five, so the posting Routine schedules
+    them too. Nothing to do after cc_edit_pirate.END, or when they're in already."""
+    import cc_edit_pirate as P
+    day = day or _utc_today()
+    tag = f"shop-{day.isoformat()}"
+    if day > P.END:
+        return True
+    if not STORE.exists(f"{tag}/manifest.json"):
+        log(f"{tag}: not published yet; the Pirate Shop Access videos wait for it")
+        return False
+    if any(v.get("series") == "pirate" for v in json.loads(STORE.get(f"{tag}/manifest.json")).get("videos", [])):
+        log(f"{tag}: Pirate Shop Access videos already in")
+        return True
+    shop_json = OUT_DIR / day.isoformat() / "shop.json"         # cc_build's copy, or a fresh one
+    if not _is_day(shop_json, day):
+        _run(["scripts/cc_shop.py"], timeout=15 * 60)
+    if not _is_day(shop_json, day):
+        log(f"{tag}: no shop for {day}, so no Pirate Shop Access videos this run")
+        return False
+    out = OUT_DIR / f"pirate-{day.isoformat()}"
+    shutil.rmtree(out, ignore_errors=True)
+    if (_run(["scripts/cc_edit_pirate.py", "--daily", "--shop", str(shop_json), "--out", str(out)],
+             timeout=75 * 60) != 0 or not (out / "videos.json").exists()):
+        log(f"{tag}: the Pirate Shop Access build failed")
+        return False
+    return add_pirate(tag, out)
+
+
+def add_pirate(tag: str, out: Path) -> bool:
+    """A --daily build's videos into tag/ and its manifest (each one once)."""
+    made = [m for m in json.loads((out / "videos.json").read_text()) if (out / m["file"]).exists()]
+    if not made:
+        log(f"{tag}: no Pirate Shop Access videos to add")
+        return True
+    STORE.put_dir(out, tag, PIRATE_FILES)
+    manifest = json.loads(STORE.get(f"{tag}/manifest.json"))
+    have = {v["file"] for v in manifest.get("videos", [])}
+    manifest["videos"] = manifest.get("videos", []) + [m for m in made if m["file"] not in have]
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False))
+    STORE.put(out / "manifest.json", f"{tag}/manifest.json")
+    log(f"{tag}: {len(made)} Pirate Shop Access videos added to the manifest")
+    return _commit_copy(tag)
+
+
 def quiz(day: date | None = None) -> bool:
     day = day or _utc_today() + timedelta(days=14)
     tag = f"quiz-{day.isoformat()}"
@@ -231,20 +290,22 @@ def main(argv: list) -> int:
               "(creator-code/storage.json \"use\": \"github\"). See creator-code/AUTOMATION.md.", flush=True)
         return 0
     t0 = time.time()
-    if what in ("all", "shop", "quiz"):
+    if what in ("all", "shop", "quiz", "pirate"):
         # A fresh workspace has none of the render tools: set them up first, so
         # the status says whether they work even on a night nothing can be built.
         NOTES["setup"] = cc_bootstrap.ensure_build_tools()
         log("build tools: " + ("ready" if not NOTES["setup"] else "; ".join(NOTES["setup"])))
-    problems = preflight() if what in ("all", "shop", "quiz", "records") else STORE.check()
+    problems = preflight() if what in ("all", "shop", "quiz", "records", "pirate") else STORE.check()
     problems += NOTES.get("setup", [])
     if problems:
         print("Not building:\n  " + "\n  ".join(problems), flush=True)
-        if what in ("all", "shop", "quiz"):
+        if what in ("all", "shop", "quiz", "pirate"):
             status(what, False, problems, t0)
         return 2
     if what == "shop":
         ok = shop(date.fromisoformat(argv[2]) if len(argv) > 2 else None)
+    elif what == "pirate":
+        ok = pirate(date.fromisoformat(argv[2]) if len(argv) > 2 else None)
     elif what == "quiz":
         ok = quiz(date.fromisoformat(argv[2]) if len(argv) > 2 else None)
     elif what == "records":
@@ -253,12 +314,22 @@ def main(argv: list) -> int:
         ok = music(Path(argv[2]))
     elif what == "all":
         ok = shop()
+        if ok:
+            # Extra videos: a failure is noted in the status and retried by the
+            # next run, but never stops the long video or fails the night.
+            try:
+                if not pirate():
+                    NOTES.setdefault("problems", []).append(
+                        "the Pirate Shop Access videos weren't added this run (the next run tries again)")
+            except Exception as e:  # noqa: BLE001
+                log(f"pirate: {e!r}"[:300])
+                NOTES.setdefault("problems", []).append(f"the Pirate Shop Access step crashed: {e!r}"[:200])
         ok = quiz() and ok
     else:
         print(__doc__)
         return 2
     log(f"nightly {what}: {'OK' if ok else 'FAILED'} in {(time.time() - t0) / 60:.0f} min")
-    if what in ("all", "shop", "quiz"):
+    if what in ("all", "shop", "quiz", "pirate"):
         status(what, ok, [], t0)
     return 0 if ok else 1
 

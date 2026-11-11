@@ -11,7 +11,8 @@ written the way people talk.
 
 Each line starts a beat after its screen's cut (LEAD) and has to end before
 the next screen: one that runs long is said faster, up to MAX_SPEED, and a
-line that still doesn't fit is an error, so nothing is ever talked over.
+line that still doesn't fit is an error (the short "build" screen's line is
+just left out), so nothing is ever talked over.
 "end" goes on the end card, as BAD is typed in.
 
 The voice: high-passed at 80 Hz, a little presence (+3 dB from 2.5 kHz) and
@@ -40,6 +41,7 @@ DUCK_HOLD = .6              # stays down through the pauses between sentences,
 DUCK_ATTACK = .06
 DUCK_RELEASE = .4           # and swells back smoothly between lines
 VOICE_LUFS = -14.0
+OPTIONAL = {"build"}        # a line on the short "and #1 is..." screen is left out when it can't fit
 
 
 def _say(text: str, voice: str, speed: float) -> np.ndarray:
@@ -48,12 +50,29 @@ def _say(text: str, voice: str, speed: float) -> np.ndarray:
     lang = "en-gb" if next(iter(mix)).startswith("b") else "en-us"
     audio, sr = G.engine().create(text, voice=G._style(voice), speed=speed, lang=lang)
     assert sr == VSR
-    return audio.astype(np.float64)
+    return _trim(audio.astype(np.float64))
 
 
-def narrate(comp, lines: dict, voice: str = "michael", speed: float = SPEED) -> list:
+def _trim(x: np.ndarray, floor_db: float = -45.0, pad: float = .03) -> np.ndarray:
+    """Without the silence Kokoro leaves at both ends (30 ms kept), so a line
+    starts right on its beat and the lines run tight."""
+    blk = int(.01 * VSR)
+    nb = len(x) // blk
+    if nb < 3:
+        return x
+    rms = np.sqrt((x[:nb * blk].reshape(nb, blk) ** 2).mean(axis=1))
+    loud = np.where(rms > rms.max() * 10 ** (floor_db / 20))[0]
+    if not len(loud):
+        return x
+    return x[max(0, loud[0] * blk - int(pad * VSR)):min(len(x), (loud[-1] + 1) * blk + int(pad * VSR))]
+
+
+def narrate(comp, lines: dict, voice: str = "michael", speed: float = SPEED, strict: bool = True) -> list:
     """Speak `lines` on the screens of `comp` (a countdown edit, end card
-    added): comp.voiceover = [(start, samples)]. Returns [(key, start, seconds)]."""
+    added): comp.voiceover = [(start, samples)]. Returns [(key, start, seconds)].
+    A line can be a tuple of ways to say it, best first: the first that fits
+    its screen is used. strict=False (the unattended builds) leaves out a line
+    that can't fit instead of raising."""
     tl = dict(getattr(comp, "timeline", {}) or {})
     if not tl:
         raise ValueError("this edit doesn't record its screens (comp.timeline)")
@@ -66,17 +85,24 @@ def narrate(comp, lines: dict, voice: str = "michael", speed: float = SPEED) -> 
         start = a + (LEAD if key != "end" else 0)
         stop = (order[i + 1][1][0] if i + 1 < len(order) else comp.duration) - GAP
         room = stop - start
-        sp = speed
-        audio = _say(lines[key], voice, sp)
+        ways = lines[key] if isinstance(lines[key], (list, tuple)) else (lines[key],)
+        for text in ways:
+            sp = speed
+            audio = _say(text, voice, sp)
+            if len(audio) / VSR > room:
+                sp = min(MAX_SPEED, speed * (len(audio) / VSR) / room * 1.03)
+                audio = _say(text, voice, sp)
+            if len(audio) / VSR <= room:
+                break
         if len(audio) / VSR > room:
-            sp = min(MAX_SPEED, speed * (len(audio) / VSR) / room * 1.03)
-            audio = _say(lines[key], voice, sp)
-        if len(audio) / VSR > room:
-            long.append(f"the {key!r} line runs {len(audio) / VSR:.1f}s on a {room:.1f}s screen: {lines[key]!r}")
+            if key in OPTIONAL or not strict:    # the drum roll can go unsaid
+                log(f"  voice {key!s:>5} left out: {len(audio) / VSR:.1f}s on a {room:.1f}s screen: {text}")
+                continue
+            long.append(f"the {key!r} line runs {len(audio) / VSR:.1f}s on a {room:.1f}s screen: {text!r}")
             continue
         out.append((start, audio))
         said.append((key, round(start, 2), round(len(audio) / VSR, 2)))
-        log(f"  voice {key!s:>5} {start:6.2f}s {len(audio) / VSR:4.1f}s of {room:4.1f}s  x{sp:.2f}  {lines[key]}")
+        log(f"  voice {key!s:>5} {start:6.2f}s {len(audio) / VSR:4.1f}s of {room:4.1f}s  x{sp:.2f}  {text}")
     if long:
         raise ValueError("; ".join(long))
     comp.voiceover = out

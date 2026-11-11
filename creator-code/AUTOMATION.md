@@ -23,11 +23,14 @@ backup and adds anything the evening run missed. They **post by themselves**:
 
 | Time (Central) | What it is |
 |---|---|
-| 8:00 AM | **Quiz** — Who's That Skin?, Zoomed In, Which Came First?, Guess the Season or a Season Throwback, from the quiz plan. **Every day in October: the Fortnitemares edition; in December: Winterfest** |
+| 8:00 AM | **A countdown from the shop's history**, rotating: Most Common · Rarest · Gone the Longest (skins, pickaxes, emotes, back blings, gliders) |
 | 11:00 AM | **Today's shop** — Shop Recap (or OG Check / Last Chance on a thin day). *Also on Threads* |
-| 1:00 PM | **On This Day** — the Item Shop on today's date, a year per beat, every year since 2018 |
-| 4:00 PM | **A game on today's shop**, rotating: Back After · OG Check · Guess the Price · Last Chance · This or That. *Also on Threads* |
-| 7:00 PM | **From the shop's history**, rotating: Higher or Lower · Most Common · Rarest · Gone the Longest (skins, pickaxes, emotes, back blings, gliders) |
+| 1:00 PM | **Another look at today's shop** — OG Check or Last Chance, else a countdown |
+| 4:00 PM | **Back in the Shop After N Days** (else OG Check · Last Chance · Guess the Price). *Also on Threads* |
+| 7:00 PM | **A countdown from the shop's history** (as at 8 AM, a different one) |
+
+(The quizzes, On This Day and the throwbacks left the lineup on October 30, 2026, at the
+owner's request.)
 
 Both shop videos post before the shop resets, so none ever shows items that are gone. The
 7 PM video isn't about the day's shop.
@@ -44,6 +47,24 @@ worse):
 
 If the whole five-video build ever fails (say the emoji font can't be installed), that
 day falls back to three classic shop videos instead of posting nothing.
+
+## Until December 5: 3 Pirate Shop Access videos a day
+
+The owner asked on November 11, 2026 for three extra videos a day about Pirate Shop Access
+"until it gets removed from the shop". The nightly build makes them right after the five,
+with the Michael voiceover, and adds them to the same folder and list, so the posting job
+schedules them with the rest (no AI labels, as on every post):
+
+| Time (Central) | What it is |
+|---|---|
+| 9:30 AM | **Today's 5 best grabs** — the priciest outfit, emote, pickaxe, glider and back bling in today's shop |
+| 2:30 PM | **Today's best** skins, emotes, pickaxes, back blings or gliders & wraps, or what leaves tonight and tomorrow (rotating) |
+| 8:00 PM | **Your odds so far** · **The countdown** · **The One Piece items to claim** (rotating, with that day's numbers) |
+
+The last day is December 5, the One Piece items' last day in the shop (`END` in
+`scripts/cc_edit_pirate.py`); a day whose shop has no One Piece items gets none. They only
+say what the guides agree on: no bundle is ever called free, and nothing about Treasure
+Hours (the outlets' numbers disagree).
 
 ## Weekdays: 1 long video on YouTube (3:00 PM Central)
 
