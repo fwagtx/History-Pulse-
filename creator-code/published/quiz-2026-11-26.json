@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-11-26",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-26/",
+ "checked_at": "2026-11-12T01:04:56+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-12-cover.png": 531813,
+  "bad-quiz-long-2026-11-12-qa.jpg": 195948,
+  "bad-quiz-long-2026-11-12.mp4": 112529778,
+  "manifest.json": 4528
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-26",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-26",
+  "generated_utc": "2026-11-12T01:04:48Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-12",
+    "series": "countdown",
+    "topic": "the rarest skins",
+    "file": "bad-quiz-long-2026-11-12.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-26/bad-quiz-long-2026-11-12.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-12-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-26/bad-quiz-long-2026-11-12-cover.png",
+    "duration": 547.39,
+    "post_at_local": "2026-11-12T15:00:00",
+    "post_at_iso": "2026-11-12T15:00:00-06:00",
+    "post_at_utc": "2026-11-12T21:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Fortnite Skins: Fewest Times in the Item Shop (November 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 12, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 The Paradigm\n3:03 #20 Codename E.L.F.\n6:02 #10 Recon Champion\n7:18 #5 Contract Giller\n8:28 #1 Rogue Agent\n8:46 Outro\n\nThe list\n#1 Rogue Agent\n#2 Reflex\n#3 World Warrior\n#4 Slurp Jonesy\n#5 Contract Giller\n#6 Travis Scott\n#7 The Champion\n#8 NBA 75 Fit\n#9 Black Adam\n#10 Recon Champion\n#11 Captain Levi\n#12 FNCS Renegade\n#13 Karl Keyes\n#14 Darth Jar Jar\n#15 Rove\n#16 Cursed Kodama\n#17 Lord Zedd\n#18 Ares (TRON)\n#19 Autumn\n#20 Codename E.L.F.\n#21 Rue\n#22 Mike Lowrey\n#23 P.K.E. Ranger\n#24 Hangtime\n#25 FFC Chloe Kim\n#26 Adonis Creed\n#27 Polo Prodigy\n#28 Optimus Primal\n#29 Nord Warrior\n#30 The Paradigm\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"Barque sur le lac\" by Komiku; \"Roller Fever\" by Loyalty Freak Music; \"03 L'été sera chaud\" by Monplaisir; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Town2 - Where Time Stands Still\" by Juhani Junkala; \"Action2 - Army Approaching\" by Juhani Junkala; \"Disco Cat\" by Komiku; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"Introduction to your adventure\" by Komiku; \"Together to play !\" by Komiku\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "rarest fortnite skins",
+      "rare fortnite skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Rogue Agent",
+      "Reflex",
+      "World Warrior",
+      "Slurp Jonesy",
+      "Contract Giller",
+      "Travis Scott",
+      "The Champion",
+      "NBA 75 Fit"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.04,
+      "#30 The Paradigm"
+     ],
+     [
+      183.2,
+      "#20 Codename E.L.F."
+     ],
+     [
+      362.11,
+      "#10 Recon Champion"
+     ],
+     [
+      438.93,
+      "#5 Contract Giller"
+     ],
+     [
+      508.94,
+      "#1 Rogue Agent"
+     ],
+     [
+      526.91,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "komiku-barque-sur-le-lac",
+     "loyalty-freak-music-roller-fever",
+     "monplaisir-03-l-t-sera-chaud",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "juhani-junkala-town2-where-time-stands-still",
+     "juhani-junkala-action2-army-approaching",
+     "komiku-disco-cat",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "komiku-introduction-to-your-adventure",
+     "komiku-together-to-play"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
