@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-11-30",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-30/",
+ "checked_at": "2026-11-16T01:11:05+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-16-cover.png": 513886,
+  "bad-quiz-long-2026-11-16-qa.jpg": 193199,
+  "bad-quiz-long-2026-11-16.mp4": 82147341,
+  "manifest.json": 4200
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-11-30",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-11-30",
+  "generated_utc": "2026-11-16T01:10:56Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-16",
+    "series": "week",
+    "topic": "the week of Nov 9 – Nov 15, 2026",
+    "file": "bad-quiz-long-2026-11-16.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-30/bad-quiz-long-2026-11-16.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-16-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-11-30/bad-quiz-long-2026-11-16-cover.png",
+    "duration": 488.36,
+    "post_at_local": "2026-11-16T15:00:00",
+    "post_at_iso": "2026-11-16T15:00:00-06:00",
+    "post_at_utc": "2026-11-16T21:00:00Z",
+    "youtube": {
+     "title": "This Week in the Fortnite Item Shop: The 25 Biggest Comebacks (Nov 9 – Nov 15, 2026)",
+     "description": "The biggest one had been gone for 1,144 days.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 16, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #25 Oki Doki\n1:45 #20 Shadow Archetype\n4:51 #10 Herald's Wand\n6:13 #5 Servo\n7:27 #1 J Balvin\n7:47 Outro\n\nThe list\n#1 J Balvin\n#2 Switchstep\n#3 Dark Dino Bones\n#4 Moonlit Bowblade\n#5 Servo\n#6 Playdreamin'\n#7 Click!\n#8 Wrap Major\n#9 Free Kick Maverick\n#10 Herald's Wand\n#11 Baguette Bat\n#12 100% Pure Love\n#13 Let's Get It Started\n#14 Ruby Shadows\n#15 Gunslinger Smokeshow\n#16 Still Into You\n#17 Signature Sniper\n#18 Syncopator\n#19 Variable Slicer\n#20 Shadow Archetype\n#21 Ain't It Fun\n#22 Slick\n#23 Winter's Wings\n#24 Sleuth\n#25 Oki Doki\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Level 3\" by Juhani Junkala; \"I'M ON FIRE\" by Loyalty Freak Music; \"Together to play !\" by Komiku; \"Disco Cat\" by Komiku; \"Walk in the forest\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"Sweet Sun\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite item shop today",
+      "fortnite item shop comebacks",
+      "returning fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "J Balvin",
+      "Switchstep",
+      "Dark Dino Bones",
+      "Moonlit Bowblade",
+      "Servo",
+      "Playdreamin'",
+      "Click!",
+      "Wrap Major"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.36,
+      "#25 Oki Doki"
+     ],
+     [
+      105.27,
+      "#20 Shadow Archetype"
+     ],
+     [
+      291.92,
+      "#10 Herald's Wand"
+     ],
+     [
+      373.82,
+      "#5 Servo"
+     ],
+     [
+      447.95,
+      "#1 J Balvin"
+     ],
+     [
+      467.6,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-level-3",
+     "loyalty-freak-music-i-m-on-fire",
+     "komiku-together-to-play",
+     "komiku-disco-cat",
+     "komiku-walk-in-the-forest",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-sweet-sun",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
