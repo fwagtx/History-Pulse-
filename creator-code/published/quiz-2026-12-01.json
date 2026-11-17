@@ -1,0 +1,111 @@
+{
+ "tag": "quiz-2026-12-01",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-01/",
+ "checked_at": "2026-11-17T01:07:52+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-17-cover.png": 614823,
+  "bad-quiz-long-2026-11-17-qa.jpg": 221074,
+  "bad-quiz-long-2026-11-17.mp4": 111226653,
+  "manifest.json": 4752
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-12-01",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-12-01",
+  "generated_utc": "2026-11-17T01:07:37Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-17",
+    "series": "countdown",
+    "topic": "the rarest back blings",
+    "file": "bad-quiz-long-2026-11-17.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-01/bad-quiz-long-2026-11-17.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-17-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-01/bad-quiz-long-2026-11-17-cover.png",
+    "duration": 557.63,
+    "post_at_local": "2026-11-17T15:00:00",
+    "post_at_iso": "2026-11-17T15:00:00-06:00",
+    "post_at_utc": "2026-11-17T21:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Fortnite Back Blings: Fewest Times in the Item Shop (November 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 17, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 Gata Bag\n3:10 #20 Hobie's Axe\n6:04 #10 Ultrabrite Elim Counter\n7:27 #5 FNCS Holoflair\n8:37 #1 Rust Bucket\n8:57 Outro\n\nThe list\n#1 Rust Bucket\n#2 Dorsal Destroyer\n#3 Scarlet Satchel\n#4 Champion's Crest\n#5 FNCS Holoflair\n#6 Happy 2022\n#7 NBA Beacon\n#8 Basquiat's Tuxedo\n#9 Champion's Honor\n#10 Ultrabrite Elim Counter\n#11 Symbol of Shiruta\n#12 Transformation Serum\n#13 Access Core\n#14 Champion's Rucksack\n#15 MrDiamond Eyes\n#16 Tactical Satchel\n#17 Vault Boy Bobblehead\n#18 Snowshadow Slingpack\n#19 XO Bass\n#20 Hobie's Axe\n#21 Eerie Orbs\n#22 MSB Mic\n#23 Relika Copper\n#24 Strummy Mummy\n#25 Zenia's Roadpack\n#26 Chromatica Bass\n#27 Chromatica Guitar\n#28 Viridian Burnpack\n#29 Frog Star\n#30 Gata Bag\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"Walk in the forest\" by Komiku; \"Introduction to your adventure\" by Komiku; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"Sweet Sun\" by Loyalty Freak Music; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"The Tears\" by Loyalty Freak Music; \"Roller Fever\" by Loyalty Freak Music; \"03 L'été sera chaud\" by Monplaisir; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "rarest fortnite back blings",
+      "rare fortnite back blings",
+      "og fortnite back blings",
+      "fortnite skins",
+      "item shop history",
+      "Rust Bucket",
+      "Dorsal Destroyer",
+      "Scarlet Satchel",
+      "Champion's Crest",
+      "FNCS Holoflair",
+      "Happy 2022",
+      "NBA Beacon",
+      "Basquiat's Tuxedo"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.85,
+      "#30 Gata Bag"
+     ],
+     [
+      190.17,
+      "#20 Hobie's Axe"
+     ],
+     [
+      364.54,
+      "#10 Ultrabrite Elim Counter"
+     ],
+     [
+      447.46,
+      "#5 FNCS Holoflair"
+     ],
+     [
+      517.99,
+      "#1 Rust Bucket"
+     ],
+     [
+      537.15,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "juhani-junkala-town3-sunshine-coast",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "komiku-walk-in-the-forest",
+     "komiku-introduction-to-your-adventure",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "loyalty-freak-music-sweet-sun",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "loyalty-freak-music-the-tears",
+     "loyalty-freak-music-roller-fever",
+     "monplaisir-03-l-t-sera-chaud",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
