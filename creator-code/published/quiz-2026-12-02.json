@@ -1,0 +1,112 @@
+{
+ "tag": "quiz-2026-12-02",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-02/",
+ "checked_at": "2026-11-18T01:12:38+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-18-cover.png": 571098,
+  "bad-quiz-long-2026-11-18-qa.jpg": 199252,
+  "bad-quiz-long-2026-11-18.mp4": 122148494,
+  "manifest.json": 4605
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-12-02",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-12-02",
+  "generated_utc": "2026-11-18T01:12:33Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-18",
+    "series": "season",
+    "topic": "Chapter 2, Season 3",
+    "file": "bad-quiz-long-2026-11-18.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-02/bad-quiz-long-2026-11-18.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-18-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-02/bad-quiz-long-2026-11-18-cover.png",
+    "duration": 598.46,
+    "post_at_local": "2026-11-18T15:00:00",
+    "post_at_iso": "2026-11-18T15:00:00-06:00",
+    "post_at_utc": "2026-11-18T21:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Chapter 2, Season 3 Item Shop Skins: Where Are They Now? (Fortnite)",
+     "description": "Number 1 has been in the Item Shop just 4 times.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 18, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:21 #30 Castaway Jonesy\n3:23 #20 Loserfruit\n6:28 #10 Shore Leave\n7:55 #5 Waveripper\n9:15 #1 Double Agent Hush\n9:36 Outro\n\nThe list\n#1 Double Agent Hush\n#2 Swamp Stomper\n#3 Deo\n#4 Black Manta\n#5 Waveripper\n#6 Kalia\n#7 Barracuda\n#8 Rally Raider\n#9 Metal Team Leader\n#10 Shore Leave\n#11 King Krab\n#12 Trench Trawler\n#13 Bryce 3000\n#14 Lada\n#15 Penny\n#16 Captain America\n#17 Starflare\n#18 Scarlet Serpent\n#19 Crustina\n#20 Loserfruit\n#21 Party Star\n#22 Party MVP\n#23 Sizzle\n#24 Relaxed Fit Jonesy\n#25 Atlantean Fishstick\n#26 Darkheart\n#27 Mariana\n#28 Splatterella\n#29 Sandshark Driver\n#30 Castaway Jonesy\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new video every weekday.\n\n🎵 Music (public domain, CC0): \"Together to play !\" by Komiku; \"Sweet Sun\" by Loyalty Freak Music; \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"A story that's never been told\" by Loyalty Freak Music; \"Retrouvons nous dans tes bras\" by Loyalty Freak Music; \"The Tears\" by Loyalty Freak Music; \"Action2 - Army Approaching\" by Juhani Junkala; \"03 L'été sera chaud\" by Monplaisir; \"Level 3\" by Juhani Junkala; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Barque sur le lac\" by Komiku\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite chapter 2 season 3",
+      "fortnite season skins",
+      "og fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Double Agent Hush",
+      "Swamp Stomper",
+      "Deo",
+      "Black Manta",
+      "Waveripper",
+      "Kalia",
+      "Barracuda",
+      "Rally Raider"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      21.83,
+      "#30 Castaway Jonesy"
+     ],
+     [
+      203.06,
+      "#20 Loserfruit"
+     ],
+     [
+      388.26,
+      "#10 Shore Leave"
+     ],
+     [
+      475.56,
+      "#5 Waveripper"
+     ],
+     [
+      555.07,
+      "#1 Double Agent Hush"
+     ],
+     [
+      576.32,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "komiku-together-to-play",
+     "loyalty-freak-music-sweet-sun",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "loyalty-freak-music-a-story-that-s-never-been-told",
+     "loyalty-freak-music-retrouvons-nous-dans-tes-bras",
+     "loyalty-freak-music-the-tears",
+     "juhani-junkala-action2-army-approaching",
+     "monplaisir-03-l-t-sera-chaud",
+     "juhani-junkala-level-3",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "juhani-junkala-town3-sunshine-coast",
+     "komiku-barque-sur-le-lac"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
