@@ -66,7 +66,14 @@ The last day is December 5, the One Piece items' last day in the shop (`END` in
 say what the guides agree on: no bundle is ever called free, and nothing about Treasure
 Hours (the outlets' numbers disagree).
 
-## Weekdays: 1 long video on YouTube (3:00 PM Central)
+## Fridays: 1 long video on YouTube (3:00 PM Central)
+
+**One a week since November 20, 2026.** Until then there was one every weekday; the owner
+asked for far fewer: 13 of the first 28 got 10 views or fewer, while the Shorts get
+hundreds each. Friday's series did best (median 22 views, against 4–9 on the other days),
+so Friday is the one that stays. The days are `long_days` in `creator-code/lineup.json`
+(remove it to go back to every weekday); on the other days nothing is built, so the
+posting job has nothing to schedule.
 
 About 8–10 minutes, 16:9, narrated by a free open-source voice (Kokoro), with subtitles,
 YouTube chapters, a custom thumbnail, a new public-domain music track about every minute,
@@ -74,11 +81,11 @@ a "use code BAD" moment before the top ten and the code-entry card at the end.
 
 | Day | Series |
 |---|---|
-| Monday | **This Week in the Item Shop** — last week's biggest comebacks |
-| Tuesday | **The 30 …** — a countdown that rotates weekly: gone the longest · the rarest · the most common, for skins, pickaxes, emotes, back blings, gliders |
-| Wednesday | **<Season>: where are they now?** — one season's shop skins, down to the rarest |
-| Thursday | **The Item Shop in <this month, an earlier year>** — every skin new that month, then and now |
-| Friday | **The rarest <Icon Series / Marvel / DC / Star Wars / Gaming Legends / a big set> skins** |
+| **Friday** | **The rarest <Icon Series / Marvel / DC / Star Wars / Gaming Legends / a big set> skins** (the one that posts) |
+| Monday *(paused)* | This Week in the Item Shop — last week's biggest comebacks |
+| Tuesday *(paused)* | The 30 … — a countdown that rotates weekly: gone the longest · the rarest · the most common |
+| Wednesday *(paused)* | <Season>: where are they now? — one season's shop skins, down to the rarest |
+| Thursday *(paused)* | The 30 … — a second countdown |
 
 Built every night by the nightly build (with the quiz day two weeks out, from that
 morning's shop records), put in that night's `quiz-…` folder, and scheduled for 3 PM by

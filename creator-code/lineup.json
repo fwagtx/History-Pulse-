@@ -1,5 +1,8 @@
 {
  "edit_from": "2026-10-01",
  "long_from": "2026-09-30",
- "note": "Days on or after edit_from are built as the five edit-style shorts a day (scripts/cc_lineup.py, in the shop job); before it, the classic three shop videos plus the quiz releases' videos. From long_from on, the quiz job also makes each weekday's long YouTube video (scripts/cc_long_build.py). null = off. Switched on 2026-09-28 at the owner's request (five shorts a day, five long videos a week)."
+ "note": "Days on or after edit_from are built as the five edit-style shorts a day (scripts/cc_lineup.py, in the shop job); before it, the classic three shop videos plus the quiz releases' videos. From long_from on, the quiz job also makes each weekday's long YouTube video (scripts/cc_long_build.py). null = off. Switched on 2026-09-28 at the owner's request (five shorts a day, five long videos a week). long_days: the weekdays that get a long video. The owner asked on 2026-11-20 to post far fewer (13 of 28 got 10 views or fewer): one a week, Friday, whose series did best (median 22 views; 4 to 9 on the other days). Remove long_days to go back to every weekday.",
+ "long_days": [
+  "friday"
+ ]
 }

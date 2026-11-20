@@ -88,7 +88,9 @@ def show_for(day: date) -> str | None:
     forced = os.environ.get("CC_LONG_SHOW", "").strip()
     if forced:
         return forced
-    start = v2_from()
+    start, days = v2_from(), SER.long_days()
+    if days is not None and day.weekday() not in days:      # lineup.json's long_days (since 2026-11-20)
+        return None
     if start and day >= start:
         return V2_DAYS.get(day.weekday())
     return "classic" if day.weekday() <= 4 else None

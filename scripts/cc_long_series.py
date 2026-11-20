@@ -1,5 +1,7 @@
 """
-The long videos: five a week on YouTube, Monday to Friday, one series a day,
+The long videos on YouTube, one series per weekday -- since 2026-11-20 only on
+creator-code/lineup.json's "long_days" (Friday: the owner asked for far fewer,
+most were getting under 10 views), every weekday when it isn't set --
 every word from the Item Shop's own records (cc_rarity) and Epic's item data,
 so they never run out and never make anything up.
 
@@ -66,8 +68,41 @@ COUNTDOWNS = [("longest_gone", "outfit"), ("rarest", "outfit"), ("most_common", 
 SERIES = {"Icon Series": "Icon Series", "MARVEL SERIES": "Marvel", "DC SERIES": "DC",
           "Star Wars Series": "Star Wars", "Gaming Legends Series": "Gaming Legends"}
 EPOCH = date(2026, 9, 28)          # a Monday: week 0 of the rotations
-POST_AT = (15, 0)                  # America/Chicago, Monday to Friday
+POST_AT = (15, 0)                  # America/Chicago, on the long_days
 COUNT = 30                         # items in a countdown
+WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+
+def long_days() -> set | None:
+    """The weekdays (0 = Monday) that get a long video: creator-code/lineup.json's
+    "long_days" (["friday"]), or None when it isn't set (every weekday)."""
+    import json
+    from cc_common import CC_DIR
+    try:
+        names = json.loads((CC_DIR / "lineup.json").read_text()).get("long_days")
+    except (OSError, ValueError):
+        return None
+    days = {WEEKDAYS.index(str(n).strip().lower()) for n in names or [] if str(n).strip().lower() in WEEKDAYS}
+    return days or None
+
+
+def _every_line() -> str:
+    """The description's line about when videos come."""
+    every = cadence()
+    if not every:
+        return "🔔 A new video every weekday."
+    return "🔔 A new long video every " + every[len("There's a new one every "):-1] + ", and new Shorts every day."
+
+
+def cadence() -> str:
+    """The outro's line about the next one ("There's a new one every Friday."),
+    or "" for the every-weekday wording."""
+    days = long_days()
+    if not days:
+        return ""
+    names = [WEEKDAYS[d].capitalize() for d in sorted(days)]
+    return "There's a new one every " + (names[0] if len(names) == 1 else
+                                         ", ".join(names[:-1]) + " and " + names[-1]) + "."
 MIN_ROWS = 12                      # fewer than this and the day's topic falls back
 AGED = 365                         # days an item must have been out to count as "rare"
 
@@ -690,8 +725,9 @@ def build(day: date, hist: R.History, art, out_dir: Path, seed: int | None = Non
     or None at weekends or if no topic makes it. accept(out) -> bool is the
     caller's quality gate: a topic it turns down falls back to the next."""
     seed = seed if seed is not None else int(day.strftime("%Y%m%d"))
+    every = cadence()
     for ep in episodes(day):
-        got = _make(ep, day, hist, art, random.Random(seed), seed)
+        got = _make(ep, day, hist, art, random.Random(seed), seed, cadence=every)
         if not got:
             log(f"  long video {ep}: too few items, trying the next topic")
             continue
@@ -758,7 +794,7 @@ def describe(out: dict, day: date) -> dict:
         lines += ["Chapters", L.chapters_text(chapters), ""]
     lines += ["The list"] + [f"#{i + 1} {r['name']}" for i, r in enumerate(rows)] + [""]
     lines += ["💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner",
-              "🔔 A new video every weekday.", ""]
+              _every_line(), ""]
     if credits:
         lines += [f"🎵 Music (public domain, CC0): {credits}", ""]
     lines += ["Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights "

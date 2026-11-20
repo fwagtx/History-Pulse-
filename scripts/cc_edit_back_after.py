@@ -21,9 +21,10 @@ classic cc_fmt_rarity.back_after.
 
 Data and truth -- cc_rarity.back_in_shop through the classic's own pieces
 (cc_fmt_rarity.history, SHOWN, TYPE_ORDER, _group_title):
-  - "back after N days"   <- the item is in today's shop and N days passed
-                             between its previous day in the shop and the day
-                             this listing started (the row's in_day)
+  - "back after N days"   <- the item came back today (its listing started
+                             today: the row's in_day) and N days passed since
+                             its previous day in the shop -- only today's
+                             comebacks, so the video changes every day
   - one card per comeback: items last in the shop the same day that came back
     the same day are one comeback (the classic's grouping), named by their
     shop section or set when they share one, else by the lead item
@@ -54,7 +55,10 @@ def cards(ctx: Ctx, min_days: int) -> tuple:
     before), the lead (the one on the tile) first. A member without art can't
     lead a card; a card with no member that has art is left out."""
     hist = history()
-    rows = R.back_in_shop(hist, ctx.shop, ctx.day, min_days)
+    # Only what came back today: an offer stays in the shop for days, and its
+    # comeback made the same video every one of them (Nov 11-15, 2026: "back
+    # after 1,144 days" five days running, and the 4 PM slot's views sank).
+    rows = [r for r in R.back_in_shop(hist, ctx.shop, ctx.day, min_days) if r[0].get("in_day") == ctx.day.isoformat()]
     groups, seen = {}, set()
     for row, iid, gone, last, times in rows:
         if row["name"].lower() in seen or row.get("type") not in SHOWN:
