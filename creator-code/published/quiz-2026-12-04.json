@@ -1,0 +1,109 @@
+{
+ "tag": "quiz-2026-12-04",
+ "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-04/",
+ "checked_at": "2026-11-20T01:09:01+00:00",
+ "files": {
+  "bad-quiz-long-2026-11-20-cover.png": 505437,
+  "bad-quiz-long-2026-11-20-qa.jpg": 197949,
+  "bad-quiz-long-2026-11-20.mp4": 114994344,
+  "manifest.json": 4531
+ },
+ "manifest": {
+  "kind": "quiz",
+  "quiz_day": "2026-12-04",
+  "timezone": "America/Chicago",
+  "release": "quiz-2026-12-04",
+  "generated_utc": "2026-11-20T01:08:56Z",
+  "videos": [],
+  "long_videos": [
+   {
+    "kind": "long",
+    "day": "2026-11-20",
+    "series": "collection",
+    "topic": "the rarest Icon Series skins",
+    "file": "bad-quiz-long-2026-11-20.mp4",
+    "url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-04/bad-quiz-long-2026-11-20.mp4",
+    "thumbnail": "bad-quiz-long-2026-11-20-cover.png",
+    "thumbnail_url": "https://pub-3f1b6462fa8a4a69aeb545c6ece93d92.r2.dev/quiz-2026-12-04/bad-quiz-long-2026-11-20-cover.png",
+    "duration": 578.49,
+    "post_at_local": "2026-11-20T15:00:00",
+    "post_at_iso": "2026-11-20T15:00:00-06:00",
+    "post_at_utc": "2026-11-20T21:00:00Z",
+    "youtube": {
+     "title": "The 30 Rarest Icon Series Skins in Fortnite (November 2026)",
+     "description": "Number 1 has been in the Item Shop just once.\n\nEvery number here comes from the Fortnite Item Shop's own records, as of Nov 20, 2026. A few days in a row in the shop counts as one time.\n\nChapters\n0:00 Intro\n0:19 #30 Rap Boy Reloaded\n3:14 #20 Platinum Gaga\n6:21 #10 Ravemello\n7:45 #5 Enigmatic Gaga\n8:58 #1 Travis Scott\n9:17 Outro\n\nThe list\n#1 Travis Scott\n#2 FFC Chloe Kim\n#3 The Weeknd\n#4 Carolina\n#5 Enigmatic Gaga\n#6 Green Roots Billie\n#7 Santa Dogg\n#8 Slayer Juice WRLD\n#9 Giannis Antetokounmpo\n#10 Ravemello\n#11 Santa Shaq\n#12 Sonny\n#13 Noodle\n#14 Bruno-San\n#15 deadmau5\n#16 Mother of Thorns Doja\n#17 LeBron James\n#18 Anderson .Paak\n#19 Platinum The Weeknd\n#20 Platinum Gaga\n#21 GM08\n#22 CHROMAKOPIAN\n#23 Doja Cat\n#24 J Balvin Redux\n#25 Harry Kane\n#26 Marco Reus\n#27 Naomi Osaka\n#28 MrBeast6000\n#29 MrBeast\n#30 Rap Boy Reloaded\n\n💚 Support the channel: use Creator Code BAD in the Item Shop #EpicPartner\n🔔 A new long video every Friday, and new Shorts every day.\n\n🎵 Music (public domain, CC0): \"Loyalty Freak Music - HYPER METAL ! - 02 MAXI METAL\" by Loyalty Freak Music; \"03 L'été sera chaud\" by Monplaisir; \"Roller Fever\" by Loyalty Freak Music; \"Loyalty Freak Music - HYPER METAL ! - 04 ULTRA METAL\" by Loyalty Freak Music; \"04 j'aurai toujours peur de me perdre\" by Monplaisir; \"Evil1 - Ancient Evil Awakens\" by Juhani Junkala; \"Town3 - Sunshine Coast\" by Juhani Junkala; \"Barque sur le lac\" by Komiku; \"Together to play !\" by Komiku; \"Introduction to your adventure\" by Komiku\n\nPortions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved by Epic. This material is not official and is not endorsed by Epic.\n\n#usecodebad #creatorcodebad #codebad #EpicPartner #fortnite",
+     "tags": [
+      "usecodebad",
+      "creatorcodebad",
+      "codebad",
+      "creator code bad",
+      "fortnite",
+      "fortnite item shop",
+      "fortnite icon series skins",
+      "rarest fortnite skins",
+      "fortnite skins",
+      "item shop history",
+      "Travis Scott",
+      "FFC Chloe Kim",
+      "The Weeknd",
+      "Carolina",
+      "Enigmatic Gaga",
+      "Green Roots Billie",
+      "Santa Dogg",
+      "Slayer Juice WRLD"
+     ],
+     "category": "GAMING",
+     "made_for_kids": false,
+     "privacy": "public"
+    },
+    "chapters": [
+     [
+      0.0,
+      "Intro"
+     ],
+     [
+      19.61,
+      "#30 Rap Boy Reloaded"
+     ],
+     [
+      194.65,
+      "#20 Platinum Gaga"
+     ],
+     [
+      381.41,
+      "#10 Ravemello"
+     ],
+     [
+      465.24,
+      "#5 Enigmatic Gaga"
+     ],
+     [
+      538.81,
+      "#1 Travis Scott"
+     ],
+     [
+      557.18,
+      "Outro"
+     ]
+    ],
+    "music": [
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-02-maxi-metal",
+     "monplaisir-03-l-t-sera-chaud",
+     "loyalty-freak-music-roller-fever",
+     "loyalty-freak-music-loyalty-freak-music-hyper-metal-04-ultra-metal",
+     "monplaisir-04-j-aurai-toujours-peur-de-me-perdre",
+     "juhani-junkala-evil1-ancient-evil-awakens",
+     "juhani-junkala-town3-sunshine-coast",
+     "komiku-barque-sur-le-lac",
+     "komiku-together-to-play",
+     "komiku-introduction-to-your-adventure"
+    ],
+    "safe_zones": {
+     "ok": true,
+     "violations": 0,
+     "cover": 0
+    }
+   }
+  ]
+ }
+}
