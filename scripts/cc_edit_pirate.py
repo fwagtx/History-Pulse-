@@ -498,7 +498,8 @@ def _pick(ctx: Ctx, rows: list, *, fmt: str, salt: str, on_title: str, sub: str,
     if len(rows) < 5:
         return None
     day, picks = ctx.day, rows[:5]
-    entries, narration = [], {"hook": said_hook, "build": said_build, "outro": said_ask, "end": said_end}
+    entries, narration = [], {"hook": said_hook, "build": said_build, "end": said_end,
+                              "outro": (f"{said_ask} Follow for tomorrow's shop!", said_ask)}
     for rank, r in enumerate(picks, 1):
         kind = KIND[r["type"]]
         where = (r.get("section") or "").strip().lower()
@@ -669,7 +670,8 @@ def countdown(ctx: Ctx, cast: dict) -> Video | None:
                          "this year's use. The deadline is December fifteenth."),
                      "build": "And number one...",
                      1: "You get a second use in twenty twenty-seven! Another fourteen days of free Item Shop claims.",
-                     "outro": "So, when are you using yours?",
+                     "outro": ("So, when are you using yours? Follow for tomorrow's countdown!",
+                               "So, when are you using yours?"),
                      "end": "And if you're buying anything, use code bad!",
                  })
 
@@ -736,7 +738,8 @@ def sofar(ctx: Ctx, cast: dict) -> Video | None:
                      2: f"Number two. A squad of four, thirty each a day? About one in {_said_num(_one_in(nsq))}.",
                      "build": "The good news?",
                      1: "If anyone in your squad finds it, everyone gets it!",
-                     "outro": "So, how many chests have you opened?",
+                     "outro": ("So, how many chests have you opened? Follow for tomorrow's odds!",
+                               "So, how many chests have you opened?"),
                      "end": "And if you're shopping today, use code bad!",
                  })
 

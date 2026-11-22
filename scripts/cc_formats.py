@@ -37,6 +37,9 @@ MIN_SECONDS = 62.0      # over TikTok's 1-minute Creator Rewards bar, with margi
 # owner dropped the longer "I get a commission..." sentence on 2026-09-23.
 DISCLOSE = "#EpicPartner"
 CODE_CREDIT = "💚 Creator Code: BAD"
+# Nothing asked anyone to subscribe until 2026-11-22, when the channel had just
+# passed 100 subscribers after two months: every description now asks.
+FOLLOW = "🔔 Follow for the Fortnite Item Shop every day"
 # Epic's Fan Content Policy asks for this notice on fan content that uses its
 # material (legal.epicgames.com/epicgames/fan-art-policy); every caption carries it.
 EPIC_NOTE = ("Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. "
@@ -201,13 +204,14 @@ def _caption(hook: str, body: str, ask: str, tags: list) -> str:
         <hook: what it is + the full date>      <- all TikTok shows before "more"
         <body: short lines, one item per line>
         💬 <the ask>
+        🔔 Follow for the Fortnite Item Shop every day
         💚 Creator Code: BAD · #EpicPartner
         <Epic's fan-content notice>
         #hashtags
 
     Blank lines between the blocks. If it's ever too long, whole lines drop from
     the end of the body -- never the ask, the code, the disclosure or the tags."""
-    ask = ask if ask.startswith("💬") else f"💬 {ask}"
+    ask = (ask if ask.startswith("💬") else f"💬 {ask}") + f"\n{FOLLOW}"
     foot = f"{CODE_CREDIT} · {DISCLOSE}\n{EPIC_NOTE}\n\n" + " ".join("#" + t for t in tags)
     lines = [ln.rstrip() for ln in body.strip().split("\n")]
 
